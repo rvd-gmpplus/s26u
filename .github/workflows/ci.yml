@@ -1,14 +1,19 @@
 name: ci
 # Push-job: lint, index.html hoort bij src/, nummergegevens, rooktest, integriteit en de budgetpoort.
 # Plus silhouet en doorsteken tussen domeinen. De volledige set staat in tools/orkestratie/finaltests.sh.
+# Job 'volledig' (orkestrator golf 6, 2026-10-16; premortem 1 en 5): de beoordelende volledige set, met visdiff, op Linux,
+# het platform van de basislijn in docs/baseline. Draait bij workflow_dispatch en bij een pull request naar main. Gebruikt
+# alleen bestanden die ook op edb37f2 bestaan, zodat hij op een hulptak 'edb37f2 plus alleen deze ci.yml' de nulmeting geeft.
 on:
   push:
     branches: ['**']
   pull_request:
   workflow_dispatch:
+# Groep per gebeurtenis en ref (orkestrator golf 6, 2026-10-16): met alleen de ref annuleerde een push op dezelfde tak een
+# lopende dispatch-run (en andersom). Een dispatch-run wordt nooit afgebroken, ook niet door een volgende dispatch.
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
 jobs:
   snel:
     runs-on: ubuntu-latest
@@ -50,3 +55,64 @@ jobs:
       - name: testlijst van finaltests.sh
         run: |
           grep -q 'TESTS="lint smoke integ sil overlap inner opentest itest tri pub stats shots visdiff"' tools/orkestratie/finaltests.sh || { echo "::error::de testlijst in finaltests.sh wijkt af van de verwachting"; exit 1; }
+  volledig:
+    # Beoordelende volledige set op Linux (orkestrator golf 6, 2026-10-16). Rood visdiff is hier FOUT, zoals in finaltests.sh.
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.base_ref == 'main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      S26U_TIMEOUT_MS: '600000'
+      PUBSMOKE_READY_MS: '120000'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: testomgeving
+        run: |
+          python3 -m pip install --quiet -r requirements.txt
+          python3 -m playwright install --with-deps chromium
+          python3 tools/harness.py --ensure-three
+      - name: volledige set (tools/orkestratie/finaltests.sh)
+        shell: bash
+        run: |
+          set -o pipefail
+          bash tools/orkestratie/finaltests.sh "$RUNNER_TEMP/volledig" 2>&1 | tee "$RUNNER_TEMP/finaltests-uitvoer.txt"
+      - name: samenvatting
+        if: always()
+        shell: bash
+        run: |
+          UIT="$RUNNER_TEMP/volledig"
+          mkdir -p "$UIT"
+          [ -f "$RUNNER_TEMP/finaltests-uitvoer.txt" ] && cp "$RUNNER_TEMP/finaltests-uitvoer.txt" "$UIT/samenvatting.txt"
+          {
+            echo "## Volledige set op $(uname -sm)"
+            echo
+            echo "Commit \`$(git rev-parse HEAD)\`, uitvoer als artefact \`volledig-uitvoer\`."
+            echo
+            echo "### Uitslag per test"
+            echo '```'
+            if [ -f "$UIT/samenvatting.txt" ]; then grep -E '^(== |ALLES GROEN|RODE TESTS|macOS: )' "$UIT/samenvatting.txt" || cat "$UIT/samenvatting.txt"; else echo "geen samenvatting (de set is niet gestart)"; fi
+            echo '```'
+            echo
+            echo "### visdiff per beeld (drempel 1,5 %)"
+            echo '```'
+            if [ -f "$UIT/visdiff.txt" ]; then grep -E '^(ok  |ROOD|VISDIFF:|exit )' "$UIT/visdiff.txt" || cat "$UIT/visdiff.txt"; else echo "geen visdiff.txt"; fi
+            echo '```'
+            for f in bron.txt renderer.txt; do
+              if [ -f "$UIT/$f" ]; then echo; echo "### $f"; echo '```'; cat "$UIT/$f"; echo '```'; fi
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: uitvoer bewaren
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: volledig-uitvoer
+          path: ${{ runner.temp }}/volledig
+          if-no-files-found: warn
+          overwrite: true
+          retention-days: 30

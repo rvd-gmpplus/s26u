@@ -24,6 +24,6 @@ SOFTWARE.
 
 Gegevens (docs/onderdeelnummers.csv en src/partnumbers.js): de onderdeelnummers en bron-URL's zijn feitelijke gegevens,
 verzameld uit openbare catalogi en per nummer voorzien van een bron. Ze bevatten geen productteksten of prijzen. Een
-juridische toets op databankenrecht is niet gedaan; zie docs/onderzoek/databankenrecht.md. Het werkplaatshandboek MR 415
-en de referentiefoto's zitten niet in de repo (rechten van Renault en derden). Namen van fabrikanten en artikelnummers
-zijn eigendom van de respectieve merken.
+juridische toets op databankenrecht is niet gedaan. De repo bevat geen Samsung-logo, foto's, 3D-bestanden of
+productteksten; het model is onafhankelijk en niet van of namens Samsung. Samsung en Galaxy zijn merken van Samsung
+Electronics. Namen van fabrikanten en artikelnummers zijn eigendom van de respectieve merken.

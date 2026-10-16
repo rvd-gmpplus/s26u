@@ -1,6 +1,6 @@
 # Kerncijfers
 
-Gegenereerd door `tools/orkestratie/cijfers.py` uit `stats.json` op 2026-10-16, bron `d34e74a 2026-10-16`. Niet met de hand bewerken; andere documenten verwijzen hiernaar in plaats van getallen te herhalen.
+Gegenereerd door `tools/orkestratie/cijfers.py` uit `stats.json` op 2026-10-16, bron `edb37f2 2026-10-16`. Niet met de hand bewerken; andere documenten verwijzen hiernaar in plaats van getallen te herhalen.
 
 ## Boom
 
@@ -36,19 +36,20 @@ Gegenereerd door `tools/orkestratie/cijfers.py` uit `stats.json` op 2026-10-16, 
 | Zonder bundelen | 252 |
 | Batches | 8 groepen, 84 batchmeshes, 230 losse meshes vervangen, 10.3 MB van 15.1 MB |
 
-## Opstarttijdlijn (software-rendering in de container, ms sinds het begin van de navigatie)
+## Opstarttijdlijn (software-rendering, platform: Darwin arm64; ms sinds het begin van de navigatie)
 
 | Moment | ms |
 |---|---|
-| script | 643 |
-| buildStart | 3.041 |
-| buildPhone | 2.097 |
-| startUp | 5.252 |
-| render0 | 7.540 |
-| firstFrame | 14.447 |
-| interactive | 14.457 |
-| ready | 30.485 |
-| duur buildPhone() | 2.097 |
+| script | 155 |
+| buildStart | 248 |
+| buildPhone | 627 |
+| startUp | 906 |
+| render0 | 2.350 |
+| firstFrame | 2.751 |
+| interactive | 2.754 |
+| ready | 12.869 |
+| batches | 2.781 |
+| duur buildPhone() | 379 |
 
 Deze tijden zeggen niets over een echt apparaat; zie `docs/telefoontest.md`.
 

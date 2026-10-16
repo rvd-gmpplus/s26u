@@ -12,6 +12,8 @@ Omgevingsvariabelen:
     CHROMIUM    pad naar een Chromium-binary (standaard /opt/pw-browsers/chromium als die bestaat)
     S26U_TEST bestaande testmap gebruiken in plaats van opnieuw te bouwen
     S26U_TIMEOUT_MS wachttijd op laden en `ready` in milliseconden (standaard 120000)
+    S26U_TEGENPROEF=1 elke pagina doet bij het laden console.warn('s26u tegenproef'); smoke.py hoort dan rood te worden
+                    (bewijst dat het consolefilter niet alles wegslikt; orkestrator golf 6, 2026-10-16)
 
 Los aan te roepen: `python3 tools/harness.py --ensure-three` haalt three.js op (met hashcontrole) en drukt de map af.
 """
@@ -29,6 +31,50 @@ ARGS = ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-
 IGNORE = (
     'favicon.ico',  # de testpagina heeft geen favicon en de browser vraagt hem toch op (golf 1, 13 oktober 2026)
 )
+# Alleen op macOS (Darwin) genegeerd. Reden: ANGLE meldt bij elke readPixels (screenshots, pick, renderer.info) de
+# prestatiehint 'GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels'. Gemeten
+# renderer op die Mac met bovenstaande ARGS: 'ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)),
+# SwiftShader driver)', Chromium 156.0.8078.4 (tools/orkestratie/renderer.py); 'OpenGL' in de melding is de bronnaam van
+# de debugmelding, niet de GPU. Bewust alleen deze exacte zin, geen 'GL Driver Message', 'WebGL' of 'Performance', en
+# alleen op Darwin zodat Linux en CI net zo streng blijven als voorheen (orkestrator golf 6, 2026-10-16).
+IGNORE_DARWIN = (
+    'GPU stall due to ReadPixels',
+)
+
+
+def is_ignored(tekst):
+    """True als een consolemelding geen fout is volgens IGNORE (en op macOS IGNORE_DARWIN). Gebruikt door on_console;
+    los te testen (orkestrator golf 6, 2026-10-16)."""
+    lijst = IGNORE + (IGNORE_DARWIN if sys.platform == 'darwin' else ())
+    return any(i in (tekst or '') for i in lijst)
+
+
+# Leest de echte WebGL-renderer: van een vers canvas en, als die er is, van de three.js-context van de pagina
+# (`renderer` is een globale let/const en staat dus niet op window). Voor smoke.py en tools/orkestratie/renderer.py
+# (orkestrator golf 6, 2026-10-16).
+RENDERER_PROBE = """(() => {
+  const lees = gl => {
+    if (!gl) return null;
+    const ext = gl.getExtension('WEBGL_debug_renderer_info');
+    return { vendor: ext ? gl.getParameter(ext.UNMASKED_VENDOR_WEBGL) : null,
+             renderer: ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : null, version: gl.getParameter(gl.VERSION) };
+  };
+  const c = document.createElement('canvas');
+  const vers = lees(c.getContext('webgl2') || c.getContext('webgl'));
+  let pagina = null;
+  try { pagina = lees(typeof renderer !== 'undefined' && renderer.getContext ? renderer.getContext() : null); } catch (e) { pagina = null; }
+  return { vers, pagina, navigatorPlatform: navigator.platform, userAgent: navigator.userAgent };
+})()"""
+
+
+def renderer_info(pg):
+    """Renderergegevens van een geladen pagina; 'swiftshader' is True als elke gelezen context SwiftShader is."""
+    r = pg.evaluate(RENDERER_PROBE)
+    bron = r['pagina'] or r['vers'] or {}
+    namen = [x.get('renderer') or '' for x in (r['vers'], r['pagina']) if x]
+    return {'vendor': bron.get('vendor'), 'renderer': bron.get('renderer'), 'gl_version': bron.get('version'),
+            'vers_canvas': r['vers'], 'pagina_context': r['pagina'], 'navigator_platform': r['navigatorPlatform'],
+            'user_agent': r['userAgent'], 'swiftshader': bool(namen) and all('SwiftShader' in n for n in namen)}
 
 
 def _check_tgz(path):
@@ -93,7 +139,8 @@ class Session:
         threading.Thread(target=self.srv.serve_forever, daemon=True).start()
         self._pw = sync_playwright().start()
         exe = chromium_path()
-        self.browser = self._pw.chromium.launch(executable_path=exe, args=ARGS) if exe else self._pw.chromium.launch(args=ARGS)
+        self.args = list(ARGS)  # vastgelegd voor tools/orkestratie/renderer.py (orkestrator golf 6, 2026-10-16)
+        self.browser = self._pw.chromium.launch(executable_path=exe, args=self.args) if exe else self._pw.chromium.launch(args=self.args)
         self.logs = []
         self.load_times = []
 
@@ -103,13 +150,17 @@ class Session:
         timeout = int(os.environ.get('S26U_TIMEOUT_MS', timeout or 120000))
         ctx = self.browser.new_context(viewport={'width': w, 'height': h}, device_scale_factor=scale, has_touch=touch, is_mobile=touch)
         ctx.add_init_script('window.__S26U_CACHECHECK = true;')
+        if os.environ.get('S26U_TEGENPROEF') == '1':
+            # tegenproef: deze waarschuwing mag nooit door IGNORE vallen (orkestrator golf 6, 2026-10-16)
+            ctx.add_init_script("console.warn('s26u tegenproef');")
         pg = ctx.new_page()
         tag = f'{w}x{h}'
 
         def on_console(m):
-            if m.type in ('error', 'warning') and not any(i in m.text for i in IGNORE):
+            # filter via is_ignored, zodat het los te testen is (orkestrator golf 6, 2026-10-16)
+            if m.type in ('error', 'warning') and not is_ignored(m.text):
                 loc = m.location or {}
-                if 'Failed to load resource' in m.text and any(i in (loc.get('url') or '') for i in IGNORE):
+                if 'Failed to load resource' in m.text and is_ignored(loc.get('url') or ''):
                     return
                 self.logs.append(f'[{tag}] {m.type}: {m.text}')
         pg.on('console', on_console)
@@ -123,7 +174,7 @@ class Session:
         return pg
 
     def errors(self):
-        """Alle gelogde consolemeldingen: fouten én waarschuwingen tellen (docs/testen.md), behalve IGNORE."""
+        """Alle gelogde consolemeldingen: fouten én waarschuwingen tellen (docs/testen.md), behalve wat is_ignored() negeert."""
         return list(self.logs)
 
     def warnings(self):

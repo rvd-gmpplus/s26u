@@ -2,7 +2,7 @@
 
     python3 tools/orkestratie/stats.py REPO UIT.json    exitcode 1 bij consolefouten
 """
-import sys, os, json
+import sys, os, json, platform, subprocess
 if len(sys.argv) < 3: print(__doc__); sys.exit(2)
 repo, out = sys.argv[1], sys.argv[2]
 sys.path.insert(0, os.path.join(repo, 'tools'))
@@ -18,6 +18,20 @@ with session() as s:
       try { res.timing = L.timing ? L.timing() : null; } catch (e) { res.timing = String(e); }
       try { L.batchFlush && L.batchFlush(); L.finishAll(); res.drawCallsBatched = L.drawCalls ? L.drawCalls() : null; if (L.batching) { L.batching(false); res.drawCallsUnbatched = L.drawCalls(); L.batching(true); } res.batchStats = L.batchStats ? L.batchStats() : null; } catch (e) { res.drawErr = String(e); }
       return res; })()""")
+    # golf 6, 2026-10-16: platform zoals 'uname -sm' (bv. 'Darwin arm64', 'Linux x86_64') en de Chromium-versie, zodat cijfers.md het platform noemt
+    r['platform'] = f"{platform.system()} {platform.machine()}"
+    r['chromium'] = s.browser.version
+    # pakket I4: bronvelden, zodat cijfers.py het bron-deel uit stats.json haalt en niet uit de map van het script
+    r['version'] = pg.evaluate("(document.querySelector('meta[name=\"s26u-version\"]') || {}).content || ''") or None
+    def _git(*a):
+        try:
+            x = subprocess.run(['git', '-C', repo, *a], capture_output=True, text=True, timeout=30)
+            return x.stdout.strip() if x.returncode == 0 else None
+        except Exception:
+            return None
+    r['commit'] = _git('rev-parse', '--short', 'HEAD') or None
+    _st = _git('status', '--porcelain')
+    r['dirty'] = None if _st is None else bool(_st)
     json.dump(r, open(out, 'w'), ensure_ascii=False, indent=1)
     print(json.dumps({k: v for k, v in r.items() if k not in ('perMainGroup',)}, ensure_ascii=False)[:1500])
     s.report()
