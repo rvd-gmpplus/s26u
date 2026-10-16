@@ -64,8 +64,8 @@ y 1,75 zakken door een gat in de middenplaat (Ø 14 om hun lensas). Het schermpa
 | Selfiecamera | -3,5 tot +3,5 | -78 tot -71 | 1,0 tot 4,5 (onder het bord, door het scherm heen kijkend) | Camera's |
 | Oorspeaker | +4 tot +18 | -80 tot -75 | 2,9 tot 4,9 | Randapparatuur |
 | Batterij | -34 tot +26 | -16 tot +62 | 2,8 tot 7,0 | Energie en koeling |
-| S Pen-silo (in het frame) | +29,1 tot +34,5 | -26 tot +81,8 | buis buiten Ø 5,4, binnen Ø 4,8, as x +31,8, y 4,45 (y 1,75 tot 7,15); de middenplaat heeft hier een sleuf | Behuizing |
-| S Pen (in de silo) | as x +31,8, y 4,45 | -24 tot +78,6 (de dop blijft binnen de hoekwand van het frame; de silo ligt in de afgeronde hoek) | Ø 4,4 (schatting) | S Pen |
+| S Pen-silo (in het frame) | +29,3 tot +34,7 | -26 tot +79,8 (het open eind is schuin afgesneden langs de binnenboog van de hoek) | buis buiten Ø 5,4, binnen Ø 4,8, as x +32,0, y 4,45 (y 1,75 tot 7,15), in de afgeronde hoek linksonder gezien op het scherm; de middenplaat heeft hier een sleuf (x +29,1 tot +34,9) | Behuizing |
+| S Pen (in de silo) | as x +32,0, y 4,45 | -24 tot +81,8 bij x +30,55 en lager, tot circa +81,0 bij x +34,2 (de dop is schuin afgesneden langs de buitenboog van de hoek en ligt gelijk met het frame) | Ø 4,4 (schatting) | S Pen |
 | Hoofdflexkabel bord naar subbord | -36,8 tot -34,4 | -21 tot +66 | 2,9 tot 3,4 | Randapparatuur |
 | Trilmotor | -34 tot -24 | +63 tot +67 | 3,0 tot 6,0 | Randapparatuur |
 | Luidspreker onder | -34 tot -8 | +68 tot +79 | 2,9 tot 6,9 | Randapparatuur |
@@ -91,7 +91,7 @@ y 1,75 zakken door een gat in de middenplaat (Ø 14 om hun lensas). Het schermpa
 | Volumeknop | -x (rechts op het scherm) | -48 tot -26 | schatting |
 | Aan/uit-knop | -x | -16 tot -4 | schatting |
 | USB-C, microfoon, luidsprekergaten, SIM-lade | onderrand | zie de zones | schatting |
-| S Pen-opening | onderrand, +x | x +31,8 | schatting |
+| S Pen-opening | afgeronde hoek onder, +x (links gezien op het scherm) | x +32,0 (cirkel Ø 5,0, evenwijdig aan de pen geboord) | schatting; kant en hoekplek volgens 9to5Google, 23-02-2026 (zie docs/masterplan.md) |
 
 ## Uitklaprichtingen van de hoofdgroepen
 
