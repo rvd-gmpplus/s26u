@@ -81,14 +81,49 @@ Parallel in eigen worktrees, met `mergecheck.py` vóór elke samenvoeging.
 - Samsung-servicenummers in `data/pn/units/*.json`, met bewijs A tot D en een bron per nummer.
 - Een onzeker nummer krijgt graad D of blijft weg.
 
-### Golf 6: tests, publiceren, terugkoppelen (klaar tot en met de testset; publiceren na samenvoegen in main)
-- Volledige strikte set groen.
-- `docs/cijfers.md` vernieuwen en baselines vastleggen.
-- Publiceren:
-  - GitHub Pages: de gebruiker zet Pages aan in de instellingen van de repo;
-  - daarnaast een claude.ai-artifact met dezelfde bytes;
-  - de URL teruglezen en byte voor byte vergelijken.
-- Telefoontest op het toestel zelf.
+### Golf 6: tests, publiceren, terugkoppelen
+
+Succesmaat, openlijk: ALLES GROEN op Linux in de Actions-job `volledig`; op macOS alle 12 beoordeelde tests groen, visdiff
+"platform, niet beoordeeld". Visdiff is op macOS niet beoordelend omdat tekst daar met CoreText rastert en in de basislijn
+met FreeType (zie `docs/testen.md`).
+
+- Volledige strikte set groen in de Linux-job `volledig` (`.github/workflows/ci.yml`, bij `workflow_dispatch` en `pull_request`).
+- `docs/cijfers.md` vernieuwen uit het geuploade Actions-resultaat (stappen in `docs/testen.md`) en baselines vastleggen.
+- Publiceren via PR `golf-6` naar `main`; daarna:
+  - GitHub Pages staat al aan (legacy-build vanaf `main` `/`, `https://rvd-gmpplus.github.io/s26u/`) en serveert v1 sinds
+    2026-10-16 14:01 UTC. v1 heeft geen doctype en geen viewport, dus telefoons krijgen nu de 980 px-indeling; v2 herstelt
+    dat. Na het samenvoegen moet Pages de nieuwe commit van `main` serveren (stap (f) in `docs/publiceren.md`);
+  - daarnaast het bestaande claude.ai-artifact "Galaxy S26 Ultra explosietekening" bijwerken met dezelfde bytes, volgens
+    stap (g) in `docs/publiceren.md` (zelfde artifact, geen nieuw);
+  - de URL teruglezen en vergelijken volgens de vergelijkingsdefinitie in `docs/publiceren.md`
+    (hulpmiddelen: `tools/orkestratie/bytecheck.py`, `tools/orkestratie/verwijzingen.py`).
+- Telefoontest: geëmuleerd gedaan in `tools/pubsmoke.py` (Pages-vorm en artifact-verpakking, drie telefoonviewports). Het
+  punt "op het toestel zelf" blijft open tot de tabel in `docs/telefoontest.md` is gevuld.
+
+#### Premortem golf 6
+
+| Oorzaak | Stand | Waar |
+|---|---|---|
+| 1. Visdiff geeft op een andere renderer valse rood of vals groen | Gesloten na keuze van de gebruiker (2026-10-16): de nulmeting op ongewijzigd `edb37f2` in `volledig` (run 38933145474) gaf 27 van 27 beelden rood, 6,6 tot 8,1 procent, alleen tekst en randen; de oude basislijn kwam uit de cloudcontainer. Golf 6 en v1 zijn op de runner pixel voor pixel gelijk (maximaal kanaalverschil 0, run 38939049262). Basislijn vernieuwd uit die run; referentieplatform is nu `ubuntu-latest` van GitHub Actions. | `docs/baseline/`, `.github/workflows/ci.yml` |
+| 2. Een gedempte consolemelding verbergt een echte fout | Gesloten: smal filter met de exacte zin "GPU stall due to ReadPixels" en een tegenproef met `S26U_TEGENPROEF=1` (handmatig, `finaltests.sh` draait hem niet) | `tools/orkestratie/renderer.py`, `tools/harness.py` |
+| 3. De testversie wijkt af van wat de telefoon krijgt (geen doctype, viewport) | Gesloten: doctype, charset en viewport in `src/head.html`, testversie is de ruwe Pages-vorm, lintcontrole | `src/head.html`, `build.py` |
+| 4. De artifact-host weigert of verandert de pagina | Geaccepteerd (buiten onze controle): een weigering wordt vastgelegd en het punt blijft open. Overdracht: de gebruiker beslist of Pages volstaat. | `tools/pubsmoke.py`, `docs/telefoontest.md` |
+| 5. Na de groene Linux-run wordt nog aan het beeld gesleuteld | Geaccepteerd met bevriezing: verbeteringen die beelden raken gaan naar golf 7, of naar een galerijcommit met een basislijn uit Actions na melding aan de gebruiker | orkestrator |
+| 6. De telefoontest wordt nooit op het toestel gedaan, of IMEI lekt in de logs | Geaccepteerd, eigenaar de gebruiker: protocol in `docs/telefoontest.md`, IMEI-regel (nooit in repo, pagina of commitbericht), controles op 19 en 23 oktober | `docs/telefoontest.md`, `docs/publiceren.md` |
+| 7. OneDrive onder de repo corrumpeert of dupliceert bestanden | Geaccepteerd risico. `~/Documents` is een symlink naar `OneDrive-Persoonlijk(2)/Documenten`, dus de golf-6-worktree, de gedeelde `.git` in de main-worktree en de runmap `~/Documents/GitHub/s26u-runs` staan allemaal in OneDrive. De worktree staat dus niet buiten OneDrive. Mitigatie: struikeldraad op conflictkopieën (zie hieronder). Na golf 6 beslist de gebruiker: de worktrees met `git worktree move` naar een map buiten OneDrive, of de map `GitHub` uitsluiten van synchronisatie. Niet nu verplaatsen: lopende agents gebruiken dit pad. | orkestrator |
+
+Struikeldraden:
+
+| Signaal | Drempel | Moment | Eigenaar | Actie |
+|---|---|---|---|---|
+| Visdiff op ongewijzigd `edb37f2` in de Linux-job | Boven 1,5 procent afwijkende pixels | Eerste run van `volledig` | Orkestrator, dan gebruiker | Afgegaan op 2026-10-16; gebruiker koos een Actions-basislijn |
+| Consolefilter slikt meer dan de ene zin | `S26U_TEGENPROEF=1 python3 tools/smoke.py` blijft groen (hoort rood te worden) | Bij elke wijziging van `IGNORE`, `IGNORE_DARWIN` of `ARGS` in `tools/harness.py` en vóór de PR | Orkestrator | Filter terug naar de exacte zin |
+| Testversie en Pages-vorm verschillen | `pubsmoke` of lint rood | Elke push | Orkestrator | Eerst `src/head.html` herstellen |
+| Artifact-host weigert de bytes | Eén weigering | Na publiceren | Orkestrator | Vastleggen; punt open; melden aan gebruiker |
+| Beeldwijziging na de groene Linux-run | Elke wijziging die een preset-beeld raakt | Na de groene run | Orkestrator | Bevriezen; golf 7 of galerijcommit na melding |
+| Telefoontest niet gedaan | Tabel in `docs/telefoontest.md` leeg | 19 oktober en 23 oktober | Gebruiker | Herinneren; toestel blijft open |
+| Wijzigingen in de main-worktree | `git status --porcelain` niet leeg | Begin van elke sessie | Orkestrator | Stoppen en melden vóór verder werk |
+| OneDrive-conflictkopie in de worktree of in `.git` | Één of meer treffers van `find . "$(git rev-parse --git-common-dir)" \( -name '* [0-9]' -o -name '* [0-9].*' -o -name '*conflicted copy*' -o -name '*-MacBook-*' \) -print` (namen met ` 2`, ` 3` of een computernaam; `git status` ziet dit in `.git` niet) | Begin van elke sessie en vóór elke commit | Orkestrator | Stoppen; niets committen; de kopie niet verwijderen of samenvoegen maar melden aan de gebruiker, die kiest welk bestand geldt |
 
 ## Geverifieerde basisfeiten
 Zie `docs/specificaties-en-bronnen.md`; dit plan herhaalt de getallen niet.

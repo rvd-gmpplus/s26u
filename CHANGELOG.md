@@ -1,5 +1,15 @@
 # Wijzigingen
 
+## Versie 2
+
+- Doctype, charset en viewport in `src/head.html`: de telefoon gebruikt de standaardmodus.
+- De testversie is gelijk aan de Pages-vorm (de ruwe `index.html`).
+- Actions-job `volledig` op Linux met de hele testset; `bron.txt` en `renderer.txt` bij het resultaat.
+- Visdiff meldt op macOS "platform, niet beoordeeld".
+- Smal consolefilter met de exacte zin en een tegenproef (`S26U_TEGENPROEF=1`).
+- Publicatiehulpmiddelen (`docs/publiceren.md`) en de telefoontest (`docs/telefoontest.md`).
+- Aantallen: zie `docs/cijfers.md`.
+
 ## Versie 1
 
 Eerste publicatie, golf 0 tot en met 6.

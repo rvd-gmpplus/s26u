@@ -10,6 +10,7 @@ Controles (de bouw stopt bij een fout):
   - dubbele functienamen op het hoogste niveau over alle bestanden (die zouden elkaar stil overschrijven)
   - dubbele materiaalnamen in std()/phys()
   - syntaxis van het samengevoegde script via `node --check` (vangt ook dubbele const/let), en van elk inline script in head.html
+  - head.html begint met <!doctype html> en bevat meta charset utf-8 en meta viewport met width=device-width (struikeldraad 2)
 
 De scripttags van three.js krijgen integrity (sha384) en crossorigin="anonymous"; de hash komt uit het lokale npm-pakket
 (THREE_DIR of ~/.cache/s26u/three-0.147.0/package, zie tools/harness.py --ensure-three). Ontbreekt dat, dan stopt de bouw.
@@ -97,8 +98,8 @@ def lint(sources):
 
 def lint_head(head):
     """Inline scripts in head.html (zoals de foutafhandeling vóór de scripttags) vallen buiten het samengevoegde script;
-    ze gaan apart door node --check."""
-    errors = []
+    ze gaan apart door node --check. Daarnaast struikeldraad 2: het geraamte van de pagina (doctype, charset, viewport)."""
+    errors = lint_skeleton(head)
     node = shutil.which('node')
     if not node:
         return errors
@@ -112,6 +113,22 @@ def lint_head(head):
                 errors.append(f'syntaxfout in inline script {i} van head.html:\n' + (r.stderr or r.stdout).strip().replace(tmp, 'head-inline.js'))
         finally:
             os.unlink(tmp)
+    return errors
+
+
+def lint_skeleton(head):
+    """Struikeldraad 2 (orkestrator golf 6, 2026-10-16): index.html is de pagina die Pages ruw serveert, zonder geraamte
+    eromheen. Zonder doctype draait een telefoon hem in quirks mode, zonder viewport met 980 px lay-outbreedte. Daarom moet
+    head.html zelf beginnen met <!doctype html> en meta charset utf-8 en meta viewport (width=device-width) bevatten.
+    Staat ook in --lint, zodat de controle vóór elke commit draait."""
+    errors = []
+    if not re.match(r'\s*<!doctype html>', head, re.I):
+        errors.append('head.html begint niet met <!doctype html> (struikeldraad 2: zonder doctype quirks mode op Pages)')
+    if not re.search(r'<meta\s+charset=["\']?utf-8["\']?\s*/?>', head, re.I):
+        errors.append('head.html mist <meta charset="utf-8"> (struikeldraad 2)')
+    vp = re.search(r'<meta\s+name=["\']?viewport["\']?\s+content=["\']([^"\']*)["\']', head, re.I)
+    if not vp or not re.search(r'width\s*=\s*device-width', vp.group(1), re.I):
+        errors.append('head.html mist <meta name="viewport"> met width=device-width (struikeldraad 2: anders 980 px lay-outbreedte op een telefoon)')
     return errors
 
 
@@ -156,9 +173,12 @@ def main(argv):
     if args:
         test_dir = args[0]
         os.makedirs(test_dir, exist_ok=True)
-        body = page(head, js, 'three/', test=True)
+        # orkestrator golf 6, 2026-10-16: de testversie is de ruwe vorm die Pages serveert, zonder eigen geraamte (doctype,
+        # charset en viewport staan sinds versie 2 in head.html). Alleen het src-voorvoegsel van de vijf scripttags (three/ in
+        # plaats van jsDelivr) en de versiestempel (', testversie') wijken af van index.html; de integrity-attributen zijn
+        # gelijk. Zo laadt elke test via harness.build_test de echte vorm.
         with open(os.path.join(test_dir, 'index.html'), 'w', encoding='utf-8') as f:
-            f.write('<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"></head><body>\n' + body + '</body></html>')
+            f.write(page(head, js, 'three/', test=True))
     print('ok', 'testversie' if test_only else f'{os.path.getsize(out)} bytes')
     return 0
 

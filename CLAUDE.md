@@ -10,6 +10,8 @@ de taal van code-commentaar, beschrijvingen, docs en commits. Geen em-dashes in 
 - `tools/setup.sh` maakt een verse omgeving klaar (Playwright uit `requirements.txt`, three.js 0.147.0 met hashcontrole).
 - `python3 build.py --lint` voor elke commit; `python3 build.py` herbouwt `index.html` (gecommit, hoort bij `src/`).
 - Volledige set: `tools/orkestratie/finaltests.sh UITMAP` (strikt, één exitcode, tijd per test). Losse scripts in `tools/`.
+- Op macOS beoordeelt `finaltests.sh` twaalf tests en meldt visdiff "platform, niet beoordeeld" (exit 0 ook als visdiff rood is). Het
+  beoordelende oordeel komt van de Actions-job, volledig op Linux. Maak nooit een basislijn op macOS.
 - Budgetten (driehoeken per hoofdgroep) staan in `tools/anchors.json`; `tools/tri.py --gate` bewaakt ze.
 - Een melding van de gebruiker eerst narekenen met `tools/orkestratie/pick.py`, `probe.py` of stralen; dan pas wijzigen.
 
@@ -41,7 +43,10 @@ de taal van code-commentaar, beschrijvingen, docs en commits. Geen em-dashes in 
 ## Werkwijze
 
 - Golven per domein in eigen worktrees; `tools/orkestratie/mergecheck.py` vóór samenvoegen; na samenvoegen de volledige
-  set, dan pas `index.html` herbouwen en publiceren; na publiceren de URL teruglezen en byte voor byte vergelijken.
+  set, dan pas `index.html` herbouwen en publiceren; na publiceren de URL teruglezen en vergelijken.
+- Publiceren gaat volgens `docs/publiceren.md`. "Byte voor byte" is de uitkomst van `tools/orkestratie/bytecheck.py`: `gelijk`,
+  `gelijk (na vaste verpakking)` of `gelijk (bron)`; iets anders is niet gelijk. Testuitvoer gaat naar `/tmp/s26u-runs`.
 - `VERSION` is het versienummer van de volgende publicatie; `build.py` zet nummer plus inhoudshash in de pagina.
 - Begin elke sessie met `git ls-remote --heads origin` en een vergelijking van elke tak met `main`.
-- Volledige uitleg: `docs/masterplan.md`, `docs/ontwerp-en-architectuur.md`, `docs/testen.md`.
+- Volledige uitleg: `docs/masterplan.md`, `docs/ontwerp-en-architectuur.md`, `docs/testen.md`,
+  `docs/publiceren.md`, `docs/telefoontest.md`.

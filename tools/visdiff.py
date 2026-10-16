@@ -13,9 +13,11 @@ samenvatting; exitcode 1 bij een rood beeld, anders 0.
 De basislijn staat in docs/baseline/ en is gemaakt met `--basislijn` uit de uitvoer van tools/orkestratie/presetshots.py:
 de beelden worden daarbij met SCHAAL verkleind en teruggebracht tot 256 kleuren (Pillow quantize met MAXCOVERAGE, dat de
 grootste kleurfout klein houdt: hoogstens 12 stappen per kanaal op deze beelden, en kleinere bestanden geeft dan de
-mediaansnede van docshots.py), zodat de 42 presets samen ruim onder de 3 MB blijven (elke vernieuwing komt opnieuw in de
+standaard mediaansnede), zodat de 27 presetbeelden samen ruim onder de 3 MB blijven (elke vernieuwing komt opnieuw in de
 git-geschiedenis). De standaardtolerantie van 16 ligt boven die kwantiseringsfout: een verse reeks op dezelfde stand geeft
-0,000 procent afwijking op alle beelden, dus alles boven de drempel is een echte verandering van de weergave. Alleen de
+0,000 procent afwijking op alle beelden, dus alles boven de drempel is een echte verandering van de weergave. Dat geldt op
+het platform van de basislijn (Linux); op macOS wijkt de tekst af (CoreText tegen FreeType), daarom beoordeelt
+tools/orkestratie/finaltests.sh visdiff daar niet. Alleen de
 orkestrator vernieuwt de basislijn, in een eigen commit met een voor/na-galerij (premortem, struikeldraad T8).
 
 Pillow en numpy zijn nodig (requirements.txt); ontbreken ze, dan stopt het script met een melding en exitcode 2.
