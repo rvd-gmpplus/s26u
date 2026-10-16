@@ -91,8 +91,8 @@ function phys(name, opts) {
   m.name = name; MAT[name] = m; return m;
 }
 // Basismaterialen voor alle domeinen. Een domein maakt eigen materialen met zijn voorvoegsel (zie CLAUDE.md).
-// TOESTELKLEUR: de lichte uitvoering van de gebruiker (White of Silver Shadow wordt in golf 1 vastgesteld); één plek.
-const TOESTELKLEUR = { glas: 0xe4e4e1, frame: 0xc9cbcf };
+// TOESTELKLEUR: het toestel van de gebruiker is White: wit achterglas en camera-eiland, zilveren aluminium frame. Eén plek.
+const TOESTELKLEUR = { glas: 0xf1f1ee, frame: 0xcfd2d6 };
 phys('backGlass', { color: TOESTELKLEUR.glas, metalness: 0, roughness: 0.42, clearcoat: 1, clearcoatRoughness: 0.3, envMapIntensity: 1.05 });
 phys('coverGlass', { color: 0x0b1117, metalness: 0, roughness: 0.03, transparent: true, opacity: 0.32, depthWrite: false, clearcoat: 1, clearcoatRoughness: 0.02, envMapIntensity: 1.1 });
 phys('glass', { color: 0x0b1117, metalness: 0, roughness: 0.04, transparent: true, opacity: 0.6, depthWrite: false, envMapIntensity: 0.85 });
@@ -274,6 +274,22 @@ function rodBetween(a, b, r, seg = 12) {
   g.translate(m.x, m.y, m.z);
   return g;
 }
+
+/* ---------- vormhelpers in millimeters (voor alle domeinen) ---------- */
+// Afgeronde plaat in bovenaanzicht: breedte w langs x, lengte l langs z, dikte t langs y (gecentreerd), hoekstraal r,
+// randstraal b. Alles in mm; de geometrie is in wereldeenheden en gecachet.
+function mmSlab(w, l, t, r, b = 0.2) {
+  r = Math.max(0.05, Math.min(r, w / 2 - 0.01, l / 2 - 0.01));
+  return cache(`mmSlab${w}|${l}|${t}|${r}|${b}`, () => { const g = roundPlate(rrectPts(mm(w), mm(l), mm(r), 6), mm(t), mm(Math.min(b, t / 2 - 0.03))); g.rotateX(HALF); return g; });
+}
+// Platte doos in mm (breedte x, dikte y, lengte z)
+function mmBox(w, t, l) { return G.box(mm(w), mm(t), mm(l)); }
+// Cilinder in mm langs as ax ('x', 'y' of 'z'), straal r, lengte h
+function mmCyl(ax, r, h, seg = 24) { return G.cyl(ax, mm(r), mm(r), mm(h), seg); }
+// Capsule (stadionvorm) in bovenaanzicht: breedte w (x), lengte l (z), dikte t (y), gecentreerd
+function mmCapsule(w, l, t) { return mmSlab(w, l, t, Math.min(w, l) / 2 - 0.01, Math.min(0.3, t / 3)); }
+// Ring (annulus) in mm met as y: binnenstraal ri, buitenstraal ro, hoogte h
+function mmRing(ri, ro, h, seg = 40) { return annulus(mm(ri), mm(ro), mm(h), 'y', seg); }
 
 /* ---------- onderdelenboom ---------- */
 const NODES = [];

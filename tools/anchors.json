@@ -4,11 +4,21 @@
  ],
  "main": [
   "Achterkant",
+  "Camera's",
+  "Moederbord",
+  "Energie en koeling",
+  "Randapparatuur",
+  "S Pen",
   "Behuizing",
   "Scherm"
  ],
  "root_children_order": [
   "Achterkant",
+  "Camera's",
+  "Moederbord",
+  "Energie en koeling",
+  "Randapparatuur",
+  "S Pen",
   "Behuizing",
   "Scherm"
  ],
@@ -24,8 +34,13 @@
  ],
  "triangle_budgets": {
   "totaal": 450000,
-  "Achterkant": 60000,
+  "Achterkant": 40000,
+  "Camera's": 80000,
+  "Moederbord": 90000,
+  "Energie en koeling": 30000,
+  "Randapparatuur": 50000,
+  "S Pen": 25000,
   "Behuizing": 80000,
-  "Scherm": 40000
+  "Scherm": 30000
  }
 }
