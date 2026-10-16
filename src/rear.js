@@ -113,8 +113,8 @@ function reBuild() {
 
   return A('Achterkant', { d: 'Achterkant van het toestel in White: wit mat achterglas met lijmrand, het verhoogde camera-eiland met metalen lensringen, en daaronder de laag voor draadloos laden en NFC. Het achterglas is de toegang tot het toestel (verwarmen en loswrikken). Omtrek en camerapositie gemeten, dikten geschat.' }, [
     island,
-    P('Achterglas', mmSlab(RE.W, RE.L, RE.gl1 - RE.gl0, RE.R, 0.3), MAT.backGlass, { d: 'Wit mat achterglas (White), 78,1 × 163,6 mm met hoekstraal 8,5 mm en een afgeronde bovenrand. Het wordt bij reparatie verwarmd en losgewrikt; daarna is de rest van het toestel bereikbaar. Dikte 0,7 mm geschat.', p: mmv(0, glY, 0), ex: [0, 0.38, 0] }),
-    P('Lijmrand achterglas', reBand(RE.W - 0.4, RE.L - 0.4, RE.R - 0.2, 1.8, 0.05), MAT.adhesive, { d: 'Dunne lijmrand langs de omtrek die het achterglas op het frame houdt en het toestel waterdicht maakt; laat los na verwarmen. Breedte en dikte geschat.', p: mmv(0, 7.175, 0), ex: [0, 0.2, 0] }),
+    P('Achterglas', mmSlab(RE.W - 1.9, RE.L - 1.9, RE.gl1 - RE.gl0, RE.R - 0.95, 0.3), MAT.backGlass, { d: 'Wit mat achterglas (White) in een sponning van het frame, met een rand van ongeveer 0,9 mm metaal eromheen (geschat) en een afgeronde bovenrand. Het wordt bij reparatie verwarmd en losgewrikt; daarna is de rest van het toestel bereikbaar. Dikte 0,7 mm geschat.', p: mmv(0, glY, 0), ex: [0, 0.38, 0] }),
+    P('Lijmrand achterglas', reBand(RE.W - 2.0, RE.L - 2.0, RE.R - 1.0, 1.8, 0.05), MAT.adhesive, { d: 'Dunne lijmrand langs de omtrek die het achterglas op het frame houdt en het toestel waterdicht maakt; laat los na verwarmen. Breedte en dikte geschat.', p: mmv(0, 7.175, 0), ex: [0, 0.2, 0] }),
     wireless,
   ]);
 }

@@ -53,14 +53,16 @@ function frSOf(path, edge, v) {
   return v >= 0 ? v : S[8].s0 + (v + b);
 }
 // Dwarsdoorsnede van de rand als gesloten lus (t, y): t is de afstand vanaf de buitenkant naar binnen. Vlakke flank,
-// afgeronde boven- en onderkant. Aan de schermzijde (contract met het Scherm): bij y 0 tot 0,85 een lip van 0,3 mm waarachter
+// afgeronde boven- en onderkant. Aan de achterzijde een rand van 0,9 mm met een sponning (y 7,15 tot 7,9) waarin het
+// achterglas ligt. Aan de schermzijde (contract met het Scherm): bij y 0 tot 0,85 een lip van 0,3 mm waarachter
 // het coverglas ligt, bij y 0,85 tot 1,7 een sponning voor paneel en digitizer (binnenkant op x ±37,5 en z ±79,7, dus
 // t 1,55 op de flanken en 2,1 op boven- en onderrand, in de hoeken overgaand), vanaf y 1,7 de volle wanddikte van 2,0 mm.
 // Een punt met derde waarde 1 krijgt als t de sponningdiepte op die plek. Rand 0 en rand iIn zijn de vlakke middenbanden.
 function frProfile() {
   const p = [[0, FR_BAND[0]], [0, FR_BAND[1]]], rb = FR_T - FR_BAND[1];
   for (let i = 1; i <= 6; i++) { const an = PI - i / 6 * HALF; p.push([rb + rb * Math.cos(an), FR_BAND[1] + rb * Math.sin(an)]); }
-  p.push([FR_WALL - 0.2, FR_T], [FR_WALL, FR_T - 0.2]);
+  // achterzijde (contract met de Achterkant): rand van 0,9 mm rond het achterglas, daaronder een sponning tot y 7,15
+  p.push([0.9, FR_T], [0.9, 7.15], [FR_WALL, 7.15]);
   const iIn = p.length;
   p.push([FR_WALL, FR_BAND[1]], [FR_WALL, FR_BAND[0]], [FR_WALL, 1.7], [1.55, 1.7, 1], [1.55, 0.85, 1], [0.3, 0.85], [0.3, 0]);
   for (let i = 1; i <= 6; i++) { const an = i / 6 * HALF; p.push([0.3 - 0.3 * Math.sin(an), 0.9 - 0.9 * Math.cos(an)]); }
