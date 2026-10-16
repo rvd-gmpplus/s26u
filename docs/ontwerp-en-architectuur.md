@@ -121,7 +121,7 @@ alleen geometrie bevatten.
 | Luidspreker onder eruit | Schuif 18 mm omhoog | De onderafdekplaat is een volger; `needs` het achterglas |
 | Batterij eruit | Schuif 22 mm omhoog | `needs` het achterglas |
 | SIM-lade | Schuif 15 mm langs +z | |
-| S Pen | Schuif 70 mm langs +z | Uit de silo op x +28,7 |
+| S Pen | Schuif 70 mm langs +z | Uit de silo in de hoek, as x +32,0 |
 | Scherm eraf | Schuif 16 mm omlaag | De vloer zakt mee |
 
 `needs` gaat één niveau diep. De volledige volgorde van de iFixit-teardown staat in de presets onder Reparatie en in de

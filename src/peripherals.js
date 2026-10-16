@@ -203,19 +203,21 @@ function peBuild() {
 }
 
 /* ---------- S Pen ---------- */
-// as x +28,7, y 4,45, van z -24 (punt, binnenin) tot +81,4 (dop, in de opening van de onderrand); Ø 4,4 met een platte kant naar +y
-const PE_PEN = { x: 28.7, y: 4.45, r: 2.2, plat: 1.75 };
+// as in de afgeronde hoek linksonder (x en y uit FR_PEN in frame.js), van z -24 (punt, binnenin) tot de dop, die schuin is
+// afgesneden langs de buitenboog van de hoek en gelijk ligt met het frame; Ø 4,4 met een platte kant naar +y
+const PE_PEN = { x: FR_PEN.x, y: FR_PEN.y, r: 2.2, plat: 1.75 };
 // doorsnede in (x, y) rond de as: cirkel met een platte koorde boven, geschaald met f
 function pePenDoorsnede(f) {
   const a0 = Math.asin(PE_PEN.plat / PE_PEN.r), pts = [], N = 22;
   for (let i = 0; i <= N; i++) { const a = PI - a0 + (PI + 2 * a0) * i / N; pts.push([PE_PEN.r * f * Math.cos(a), PE_PEN.r * f * Math.sin(a)]); }
   return pts;
 }
-// D-vormig stuk pen van z0 tot z1 (mm) met schaal fz(z) langs de as, op zijn plek
-function pePenG(z0, z1, steps, fz) {
+// D-vormig stuk pen van z0 tot z1 (mm) met schaal fz(z) langs de as, op zijn plek; met cut(x) wordt het eind (z1) schuin
+// afgesneden: de z van elk hoekpunt van de eindring wordt cut(x) met x de plek in het toestel
+function pePenG(z0, z1, steps, fz, cut) {
   const g = new THREE.ExtrudeGeometry(peShape(pePenDoorsnede(1)), { depth: mm(z1 - z0), steps, bevelEnabled: false, curveSegments: 1 });
   const a = g.attributes.position;
-  for (let i = 0; i < a.count; i++) { const z = z0 + a.getZ(i) / MM, f = fz(z); a.setXYZ(i, a.getX(i) * f, a.getY(i) * f, mm(z)); }
+  for (let i = 0; i < a.count; i++) { const z = z0 + a.getZ(i) / MM, f = fz(z); a.setXYZ(i, a.getX(i) * f, a.getY(i) * f, mm(cut && z >= z1 - 1e-9 ? cut(a.getX(i) * f / MM + PE_PEN.x) : z)); }
   g.deleteAttribute('normal'); g.deleteAttribute('uv');
   const s = cleanG(THREE.BufferGeometryUtils.toCreasedNormals(THREE.BufferGeometryUtils.mergeVertices(g, 1e-6), 0.6));
   s.translate(mm(PE_PEN.x), mm(PE_PEN.y), 0);
@@ -227,13 +229,12 @@ function peBuildPen() {
   // neus: van 0,35 maal de straal bij z -21,6 naar de volle straal bij z -14
   const neus = z => { const t = clamp((z + 21.6) / 7.6, 0, 1); return 0.35 + 0.65 * (1 - (1 - t) * (1 - t)); };
   const huis = merge([pePenG(-21.6, -14, 7, neus), pePenG(-14, 76, 1, () => 1)]);
-  // de dop eindigt 0,4 mm binnen de buitenrand, in de opening van het frame
-  const eind = z => { const t = clamp((z - 80.4) / 1.0, 0, 1); return 1 - 0.22 * t * t; };
-  const dop = merge([pePenG(76.05, 80.4, 1, () => 1), pePenG(80.4, 81.4, 4, eind)]);
+  // de dop eindigt schuin op de buitenboog van de hoek (frZOut), 0,02 mm erbinnen, zodat hij gelijk ligt met het frame
+  const dop = pePenG(76.05, FR_HL, 1, () => 1, x => frZOut(x) - 0.02);
   const punt = G.lathe('z', [[0, mm(-24)], [mm(0.28), mm(-24)], [mm(0.4), mm(-23.5)], [mm(0.45), mm(-22.6)], [mm(0.45), mm(-21.5)], [0, mm(-21.5)]], 12, 'pePunt');
   const kringChips = merge([-4, -1, 2].map(z => xf(mmBox(0.8, 0.3, 1.2), at(0, 0.8, z))));
   return A('S Pen', {
-    d: 'S Pen in de silo aan de onderrand: een passieve pen zonder batterij, die met een spoel en een resonantiekring reageert op het veld van de digitizer onder het scherm (EMR). Of deze pen geheel zonder batterij werkt, is een schatting op basis van eerdere Ultra-modellen. Hoort bij het toestel. Maten geschat; Ø 4,4 mm en de lengte volgen de silo in docs/indeling.md.',
+    d: 'S Pen in de silo in de afgeronde hoek linksonder (gezien op het scherm): een passieve pen zonder batterij, die met een spoel en een resonantiekring reageert op het veld van de digitizer onder het scherm (EMR). Of deze pen geheel zonder batterij werkt, is een schatting op basis van eerdere Ultra-modellen. Hoort bij het toestel. Maten geschat; Ø 4,4 mm en de lengte volgen de silo in docs/indeling.md.',
   }, [
     P('Penpunt', punt, MAT.pePunt, { d: 'Verwisselbare zachte penpunt die in de spoel steekt. Maat geschat.', p: at(0, 0, 0), ex: [0, 0, -0.4] }),
     P('Penbehuizing', huis, MAT.pePen, { d: 'Behuizing van de pen met een platte kant, zodat hij maar op één manier in de silo past. Vorm en maat geschat.', ex: [0.1, 0, 0] }),
@@ -250,6 +251,6 @@ function peBuildPen() {
       P('Klikhuls', mmCyl('z', 1.5, 4, 16), MAT.steel, { d: 'Metalen huls van de vergrendeling. Geschat.', p: at(0, 0, 71), ex: [0, 0, -0.12] }),
       P('Klikveer', spring(mm(1.0), mm(0.15), mm(4), 7, 'z'), MAT.steel, { d: 'Drukveer die de pen uit de silo duwt. Geschat.', p: at(0, 0, 75), ex: [0, 0, 0.15] }),
     ]),
-    P('Einddop', dop, MAT.pePen, { d: 'Dop aan het eind van de pen, gelijk met de onderrand van het toestel; hier druk je op om de pen uit te nemen. Vorm geschat.', ex: [0, 0, 0.6] }),
+    P('Einddop', dop, MAT.pePen, { d: 'Dop aan het eind van de pen. Het eind is schuin afgesneden en volgt de afgeronde hoek, zodat de pen gelijk ligt met het frame als hij goed zit (andersom steekt hij uit); hier druk je op om de pen uit te nemen. Vorm geschat.', ex: [0, 0, 0.6] }),
   ]);
 }
