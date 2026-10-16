@@ -7,7 +7,8 @@
    0,6 mm langs de rand telt niet mee (afronding van de randen).
 2. Dikte: buiten het camera-eiland ligt het hoogste punt onder elke straal op 7,9 mm (± 0,15), en zijwaartse stralen op
    halve hoogte raken het frame op de buitenmaat (± 0,3 mm).
-3. Camera-eiland: binnen de capsule van het eiland ligt het hoogste punt boven 7,9 mm.
+3. Camera-eiland: binnen de capsule van het eiland ligt het hoogste punt boven 7,9 mm. De twee kleine lensringen naast het
+   eiland (Ø 9,6) steken boven het achterglas uit en tellen niet mee voor de dikte.
 De maten staan in millimeters; de pagina rekent met MM (core.js).
 """
 import sys, os
@@ -25,6 +26,8 @@ CHECK = r"""() => {
     return Math.hypot(Math.max(qx, 0), Math.max(qz, 0)) + Math.min(Math.max(qx, qz), 0) - R; };
   // camera-eiland (capsule) uit docs/indeling.md
   const isl = { x0: -34.55, x1: -13.75, z0: -77.3, z1: -20.5 };
+  // de twee kleine lensringen (periscoop en laser-AF) staan buiten het eiland op het achterglas en steken iets uit
+  const SMALL = [[-6.2, -67.1], [-6.2, -48.8]], inSmall = (x, z) => SMALL.some(([a, c]) => Math.hypot(x - a, z - c) <= 4.8 + 1.2);
   const inIsland = (x, z, g) => { const cx = (isl.x0 + isl.x1) / 2, r = (isl.x1 - isl.x0) / 2 + g, zc = Math.max(isl.z0 + r - g, Math.min(isl.z1 - r + g, z)); return Math.hypot(x - cx, z - zc) <= r; };
   const err = [], down = new THREE.Vector3(0, -1, 0), o = new THREE.Vector3();
   let n = 0, hits = 0;
@@ -38,7 +41,7 @@ CHECK = r"""() => {
     hits++;
     const y = h.point.y / MM;
     if (inIsland(x, z, -1.2)) { if (y <= T + 0.2) err.push(`camera-eiland niet verhoogd op (${x.toFixed(1)}, ${z.toFixed(1)}): ${y.toFixed(2)} mm`); }
-    else if (!inIsland(x, z, 1.2) && d < -1.5 && Math.abs(y - T) > 0.15) err.push(`dikte ${y.toFixed(2)} mm in plaats van ${T} op (${x.toFixed(1)}, ${z.toFixed(1)}): ${h.object.userData.node.name}`);
+    else if (!inIsland(x, z, 1.2) && !inSmall(x, z) && d < -1.5 && Math.abs(y - T) > 0.15) err.push(`dikte ${y.toFixed(2)} mm in plaats van ${T} op (${x.toFixed(1)}, ${z.toFixed(1)}): ${h.object.userData.node.name}`);
   }
   // zijkanten op halve hoogte
   const side = (dir, ox, oz) => { o.set(ox * MM, 3.95 * MM, oz * MM); rc.set(o, dir); rc.far = 200 * MM; const h = rc.intersectObjects(meshes, false)[0]; return h ? h.point.clone().divideScalar(MM) : null; };
