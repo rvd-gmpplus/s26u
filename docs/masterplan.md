@@ -81,7 +81,7 @@ Parallel in eigen worktrees, met `mergecheck.py` vóór elke samenvoeging.
 - Samsung-servicenummers in `data/pn/units/*.json`, met bewijs A tot D en een bron per nummer.
 - Een onzeker nummer krijgt graad D of blijft weg.
 
-### Golf 6: tests, publiceren, terugkoppelen
+### Golf 6: tests, publiceren, terugkoppelen (klaar op 2026-10-16, behalve de toestelstest)
 
 Succesmaat, openlijk: ALLES GROEN op Linux in de Actions-job `volledig`; op macOS alle 12 beoordeelde tests groen, visdiff
 "platform, niet beoordeeld". Visdiff is op macOS niet beoordelend omdat tekst daar met CoreText rastert en in de basislijn
@@ -99,6 +99,11 @@ met FreeType (zie `docs/testen.md`).
     (hulpmiddelen: `tools/orkestratie/bytecheck.py`, `tools/orkestratie/verwijzingen.py`).
 - Telefoontest: geëmuleerd gedaan in `tools/pubsmoke.py` (Pages-vorm en artifact-verpakking, drie telefoonviewports). Het
   punt "op het toestel zelf" blijft open tot de tabel in `docs/telefoontest.md` is gevuld.
+
+Stand op 2026-10-16: versie 2 samengevoegd (PR #2, `3d3fdef`). Linux-job `volledig` ALLES GROEN (run 38943321854);
+Pages en het artifact `https://claude.ai/artifact/4WvFbz8L3JZLEAGLcHPC4F` zijn met `tools/orkestratie/bytecheck.py` gemeten:
+Pages `gelijk`, artifact `gelijk (na vaste verpakking)`. In de artifact-weergave werkt Beeld opslaan niet (de host staat
+geen downloads toe); op Pages wel. Open: de toestelstest door de gebruiker (19 en 23 oktober, `docs/telefoontest.md`).
 
 #### Premortem golf 6
 

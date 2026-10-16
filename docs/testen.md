@@ -37,6 +37,9 @@ Omgevingsvariabelen:
 
 - Linux (Actions-job `volledig`): alle tests beoordelen, ook visdiff. De basislijn in `docs/baseline/` komt uit die job (`ubuntu-latest`, vernieuwd in golf 6 op 2026-10-16; de oude basislijn uit
   de cloudcontainer gaf op de runner 6,6 tot 8,1 procent verschil, alleen tekst en randen).
+- Linux-VM op de Mac (`tools/linux/vmtests.sh UITMAP [REF]`, Apple `container`, Ubuntu 24.04 amd64 via Rosetta): alle
+  tests beoordelen, ook visdiff. Gemeten op 2026-10-16: ALLES GROEN, visdiff 0,00 procent op alle 27 beelden, dus gelijk aan
+  de runner. Bedoeld als lokale voorproef; het oordeel voor publiceren blijft de Actions-job `volledig`.
 - macOS (lokaal): 12 tests beoordelen en moeten groen zijn. Visdiff meldt "platform, niet beoordeeld": tekst wordt op macOS
   met CoreText gerasterd en in de basislijn met FreeType, dus de pixelverschillen zeggen niets over de pagina.
 - `finaltests.sh` schrijft `bron.txt` (platform, commit en omgeving van de run) en `renderer.txt` (de gemeten renderer) in de
