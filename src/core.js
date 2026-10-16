@@ -20,6 +20,14 @@ const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
 const MM = 1 / 40;
 const mm = v => v * MM;
 const mmv = (...a) => a.map(mm);
+/* ---------- gedeeld contract tussen domeinen: buitenomtrek en S Pen-as (orkestrator, golf 7) ---------- */
+// De buitenomtrek van het frame (afgeronde rechthoek, bevestigd) en de as van de S Pen in de hoek linksonder (x +, gezien op het
+// scherm) hebben meer dan één eigenaar: de Behuizing boort er de opening en de silo, de S Pen legt er de pen en de dop op. Staan
+// ze in één domeinbestand, dan hangt het andere domein daarvan af; daarom staan ze hier. Zie docs/indeling.md, "Gedeeld contract".
+const OUT_HW = 39.05, OUT_HL = 81.8, OUT_R = 8.5;   // halve breedte (x), halve lengte (z) en hoekstraal van de buitenomtrek (mm)
+const PEN_AXIS = { x: 32.0, y: 4.45 };              // as van de S Pen en van de silo (mm), evenwijdig aan z
+// z van het buitenoppervlak van de onderrand bij een gegeven x (mm); in de hoekboog (x > OUT_HW - OUT_R) volgt het de boog
+function outerZ(x) { const a = OUT_HW - OUT_R, b = OUT_HL - OUT_R; return x <= a ? OUT_HL : b + Math.sqrt(OUT_R * OUT_R - (x - a) * (x - a)); }
 const REDUCED = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const canvas = document.getElementById('stage');

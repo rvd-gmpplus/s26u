@@ -612,6 +612,7 @@ function uiFlipTo(on) {
   uiStopPlay(); uiStopTour(); hideHint();
   uiPush();
   uiSetFlip(on);
+  clearPreset();   // de camera kadert op de omgedraaide stand, niet meer op de preset: de URL moet dat tonen
   uiAfterAction();
   return FLIP;
 }
@@ -1891,6 +1892,7 @@ window.__s26u = {
   setOpenMode: on => { hideHint(true); uiSetOpenMode(on); return OPENMODE; },
   // omdraaien: flip(true) scherm boven, flip(false) achterkant boven, flip() wisselt; geeft de nieuwe stand terug
   flip: on => { hideHint(true); return uiFlipTo(on === undefined ? !FLIP : on); },
+  flipPose: a => { uiFlipPose(a); ROOT.obj.updateMatrixWorld(true); },   // test: zet het toestel op hoek a (de lopende animatie zet het bij het volgende frame terug)
   flipInfo: () => ({ flip: FLIP, angle: +uiFlipA.toFixed(4), animating: !!uiFlipAnim, pos: ROOT.obj.position.toArray(), box: [UI_FLIP_BOX.min.toArray(), UI_FLIP_BOX.max.toArray()] }),
   openPlan: x => { const n = typeof x === 'string' ? byName(x) : x; const pl = n && uiOpenPlan(n); return pl ? { opener: pl.n.name, open: pl.open } : null; },
   pnRebuild: uiPnBuild, pnCheck: uiPnCheck, pnOf: x => { const n = typeof x === 'string' ? (uiByPath(x) || byName(x)) : x; const r = n && uiPnRec(n); return r ? { kind: r.kind, unit: r.id, rule: r.rule || null } : null; },

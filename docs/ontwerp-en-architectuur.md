@@ -71,10 +71,15 @@ boven. De afspraken:
   frame. Uitklapvectoren (`ex`, `exv`), openers, labels, batches, isoleren, dimmen en aanwijzen werken dus in beide standen
   zonder aanpassing: het model klapt mee om. Omgedraaid klapt het achterglas naar beneden (-y) en het scherm naar boven (+y).
 - Het toestel ligt daarna op de vloer met zijn laagste punt: het camera-eiland steekt in de omgedraaide stand onder
-  het achterglas uit en raakt y = 0; het scherm ligt dan op de hoogte van het eiland boven de vloer. De doorsnede (x, y) van het gemonteerde toestel (`UI_FLIP_BOX`)
-  komt uit de begrenzende dozen van alle meshes. Tijdens de draai rolt het toestel over de vloer: `uiFlipPose(a)` zet het midden
-  van de doorsnede op de hoogte waarbij het laagste hoekpunt y = 0 raakt, dus er steekt niets door de vloer (de begrenzende
-  doos is iets ruimer dan de afgeronde hoeken, tot 0,3 mm speling midden in de draai).
+  het achterglas uit en raakt y = 0; het scherm ligt dan op de hoogte van het eiland boven de vloer. Tijdens de draai rolt het
+  toestel over de vloer: `uiFlipPose(a)` draait om het midden C van de begrenzende doos (`UI_FLIP_BOX`) en zet dat midden op de
+  hoogte waarbij het laagste punt van de convexe omhullende van de doorsnede (x, y) van alle hoekpunten van alle meshes (`UI_FLIP_HULL`,
+  gemaakt met `hull()` uit `core.js`) y = 0 raakt. Een eerdere versie nam de vier hoeken van de doos; die hebben de afgeronde hoeken
+  van het toestel niet en het toestel zweefde dan tot 2,02 mm boven de vloer. Nu raakt bij elke hoek een hoekpunt de vloer en steekt er niets
+  doorheen (itest meet 36 hoeken, tussen -0,01 en 0,05 mm).
+- De verplaatsing is relatief aan hoek 0 en komt bovenop de beginpositie van `ROOT.obj` (`UI_FLIP_P0`): hoek 0 geeft dus precies de
+  beginstand, ook na heen en weer omdraaien (itest vergelijkt de positie van `ROOT` exact), en het laagste punt blijft op dezelfde
+  hoogte als in het begin.
 - De vloer en de schaduw volgen via `updateGround()` (die rekent met de eindstand van een lopende draai, zie `uiWithFinal`) en
   `uiGroundSide()`: van onder gezien (de achterkant in de omgedraaide stand) tekenen we de vloer niet.
 - Camera: alle richtingen staan in het frame van het toestel (`DIRS`, `cam.dir` van presets, `open.look.dir`, de camknoppen).
@@ -84,11 +89,15 @@ boven. De afspraken:
   mee blijft klappen. Na het omdraaien kadert de camera op de isolatie of het hele toestel: aan in `isoFront`, dus van boven op
   het scherm in een driekwartaanzicht, uit in `iso` (van boven op de achterkant).
 - Toestand: `FLIP` (gewenst), `uiFlipA` (hoek, 0 of PI), `uiFlipAnim`. `uiSnap` bewaart `flip`, dus stap terug draait mee om.
+  Omdraaien (`uiFlipTo`) wist de actieve preset (`clearPreset()`): de camera kadert op de omgedraaide stand en niet meer op de preset, dus
+  de URL krijgt `?flip=1` zonder `?preset=`, en dat geeft bij openen weer wat je zag.
   De animatie duurt 0,9 s en is bij `prefers-reduced-motion` direct (`REDUCED`).
 - URL: `?flip=1` gaat mee in `uiUrlSync` en `uiUrlApply` en combineert met `?preset=` en `?open=`. Onthouden in de browser
   gebeurt niet.
 - Testkoppeling: `__s26u.flip(on?)` (zonder argument wisselt, geeft de nieuwe stand terug), `__s26u.state().flip`,
-  `__s26u.flipInfo()` (hoek, verplaatsing, doorsnede). `tools/itest.py` (controle 11) meet het laagste hoekpunt van alle meshes.
+  `__s26u.flipInfo()` (hoek, verplaatsing, doorsnede), `__s26u.flipPose(a)` (zet het toestel direct op hoek a, om de stand
+  tijdens de draai zonder wachten op frames te toetsen). `tools/itest.py` (controle 11) meet het laagste hoekpunt van alle meshes
+  bij 36 hoeken en vergelijkt de positie van `ROOT` na heen en terug.
 
 ## Hoofdgroepen en eigendom
 

@@ -65,7 +65,7 @@ y 1,75 zakken door een gat in de middenplaat (Ø 14 om hun lensas). Het schermpa
 | Oorspeaker | +4 tot +18 | -80 tot -75 | 2,9 tot 4,9 | Randapparatuur |
 | Batterij | -34 tot +26 | -16 tot +62 | 2,8 tot 7,0 | Energie en koeling |
 | S Pen-silo (in het frame) | +29,3 tot +34,7 | -26 tot +79,8 (het open eind is schuin afgesneden langs de binnenboog van de hoek) | buis buiten Ø 5,4, binnen Ø 4,8, as x +32,0, y 4,45 (y 1,75 tot 7,15), in de afgeronde hoek linksonder gezien op het scherm; de middenplaat heeft hier een sleuf (x +29,1 tot +34,9) | Behuizing |
-| S Pen (in de silo) | as x +32,0, y 4,45 | -24 tot +81,8 bij x +30,55 en lager, tot circa +81,0 bij x +34,2 (de dop is schuin afgesneden langs de buitenboog van de hoek en ligt gelijk met het frame) | Ø 4,4 (schatting) | S Pen |
+| S Pen (in de silo) | as x +32,0, y 4,45 | -24 tot +81,8 (0,02 mm binnen het buitenoppervlak) bij x +30,55 en lager, tot circa +81,0 bij x +34,2 (de dop is schuin afgesneden langs de buitenboog van de hoek en ligt gelijk met het frame) | Ø 4,4 (schatting) | S Pen |
 | Hoofdflexkabel bord naar subbord | -36,8 tot -34,4 | -21 tot +66 | 2,9 tot 3,4 | Randapparatuur |
 | Trilmotor | -34 tot -24 | +63 tot +67 | 3,0 tot 6,0 | Randapparatuur |
 | Luidspreker onder | -34 tot -8 | +68 tot +79 | 2,9 tot 6,9 | Randapparatuur |
@@ -107,6 +107,25 @@ Stapel naar boven, van buiten (achterglas) naar binnen (scherm). Volgorde van de
 | S Pen | [2.3, 0.4, 0.9] |
 | Behuizing | [0, 0.55, 0] |
 | Scherm | [0, -0.4, 0] |
+
+## Gedeeld contract: buitenomtrek en S Pen-as
+
+Twee domeinen leggen dingen op dezelfde plek: de Behuizing boort de S Pen-opening en de silo, de S Pen legt de pen en de schuine
+einddop op de buitenboog. Een domein leest daarom niets uit het bestand van een ander domein (`FR_PEN`, `FR_HL` en `frZOut`
+las `peripherals.js` eerst uit `frame.js`). De gedeelde maten staan als constanten in `src/core.js` (eigenaar: de orkestrator):
+
+| Naam | Waarde | Betekenis |
+|---|---|---|
+| `OUT_HW` | 39,05 | halve breedte (x) van de buitenomtrek, mm |
+| `OUT_HL` | 81,8 | halve lengte (z) van de buitenomtrek, mm |
+| `OUT_R` | 8,5 | hoekstraal van de buitenomtrek, mm |
+| `PEN_AXIS` | `{ x: 32,0; y: 4,45 }` | as van de S Pen en van de silo, evenwijdig aan z, mm |
+| `outerZ(x)` | functie | z van het buitenoppervlak van de onderrand bij een gegeven x: `OUT_HL` tot `OUT_HW - OUT_R`, daarna de hoekboog |
+
+`frame.js` leidt `FR_HW`, `FR_HL`, `FR_R` en `FR_PEN.x/y` hiervan af; `peripherals.js` gebruikt `PEN_AXIS`, `OUT_HL` en `outerZ`
+voor de pen en de schuin afgesneden einddop (0,02 mm binnen het buitenoppervlak). Een domein wijzigt deze waarden niet zelf:
+dat gaat via de orkestrator, met een melding aan beide eigenaren. Het binnenoppervlak (`frZIn`) en de silo blijven in `frame.js`,
+want alleen de Behuizing gebruikt ze.
 
 ## Voorvoegsels per domein
 

@@ -203,9 +203,9 @@ function peBuild() {
 }
 
 /* ---------- S Pen ---------- */
-// as in de afgeronde hoek linksonder (x en y uit FR_PEN in frame.js), van z -24 (punt, binnenin) tot de dop, die schuin is
+// as in de afgeronde hoek linksonder (x en y uit PEN_AXIS in core.js), van z -24 (punt, binnenin) tot de dop, die schuin is
 // afgesneden langs de buitenboog van de hoek en gelijk ligt met het frame; Ø 4,4 met een platte kant naar +y
-const PE_PEN = { x: FR_PEN.x, y: FR_PEN.y, r: 2.2, plat: 1.75 };
+const PE_PEN = { x: PEN_AXIS.x, y: PEN_AXIS.y, r: 2.2, plat: 1.75 };
 // doorsnede in (x, y) rond de as: cirkel met een platte koorde boven, geschaald met f
 function pePenDoorsnede(f) {
   const a0 = Math.asin(PE_PEN.plat / PE_PEN.r), pts = [], N = 22;
@@ -213,11 +213,12 @@ function pePenDoorsnede(f) {
   return pts;
 }
 // D-vormig stuk pen van z0 tot z1 (mm) met schaal fz(z) langs de as, op zijn plek; met cut(x) wordt het eind (z1) schuin
-// afgesneden: de z van elk hoekpunt van de eindring wordt cut(x) met x de plek in het toestel
+// afgesneden: de z van elk hoekpunt van de eindring wordt cut(x) met x de plek in het toestel. De eindring ligt voorbij het
+// midden van de uitgeperste vorm; z1 zelf vergelijken faalt, want de float32-positie wordt 81,79999988 en niet 81,8
 function pePenG(z0, z1, steps, fz, cut) {
   const g = new THREE.ExtrudeGeometry(peShape(pePenDoorsnede(1)), { depth: mm(z1 - z0), steps, bevelEnabled: false, curveSegments: 1 });
   const a = g.attributes.position;
-  for (let i = 0; i < a.count; i++) { const z = z0 + a.getZ(i) / MM, f = fz(z); a.setXYZ(i, a.getX(i) * f, a.getY(i) * f, mm(cut && z >= z1 - 1e-9 ? cut(a.getX(i) * f / MM + PE_PEN.x) : z)); }
+  for (let i = 0; i < a.count; i++) { const z = z0 + a.getZ(i) / MM, f = fz(z); a.setXYZ(i, a.getX(i) * f, a.getY(i) * f, mm(cut && a.getZ(i) > mm(z1 - z0) / 2 ? cut(a.getX(i) * f / MM + PE_PEN.x) : z)); }
   g.deleteAttribute('normal'); g.deleteAttribute('uv');
   const s = cleanG(THREE.BufferGeometryUtils.toCreasedNormals(THREE.BufferGeometryUtils.mergeVertices(g, 1e-6), 0.6));
   s.translate(mm(PE_PEN.x), mm(PE_PEN.y), 0);
@@ -229,8 +230,8 @@ function peBuildPen() {
   // neus: van 0,35 maal de straal bij z -21,6 naar de volle straal bij z -14
   const neus = z => { const t = clamp((z + 21.6) / 7.6, 0, 1); return 0.35 + 0.65 * (1 - (1 - t) * (1 - t)); };
   const huis = merge([pePenG(-21.6, -14, 7, neus), pePenG(-14, 76, 1, () => 1)]);
-  // de dop eindigt schuin op de buitenboog van de hoek (frZOut), 0,02 mm erbinnen, zodat hij gelijk ligt met het frame
-  const dop = pePenG(76.05, FR_HL, 1, () => 1, x => frZOut(x) - 0.02);
+  // de dop eindigt schuin op de buitenboog van de hoek (outerZ in core.js), 0,02 mm erbinnen, zodat hij gelijk ligt met het frame
+  const dop = pePenG(76.05, OUT_HL, 1, () => 1, x => outerZ(x) - 0.02);
   const punt = G.lathe('z', [[0, mm(-24)], [mm(0.28), mm(-24)], [mm(0.4), mm(-23.5)], [mm(0.45), mm(-22.6)], [mm(0.45), mm(-21.5)], [0, mm(-21.5)]], 12, 'pePunt');
   const kringChips = merge([-4, -1, 2].map(z => xf(mmBox(0.8, 0.3, 1.2), at(0, 0.8, z))));
   return A('S Pen', {

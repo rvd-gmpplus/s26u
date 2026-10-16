@@ -16,7 +16,9 @@ Controles (elk met een naam in de uitvoer):
 11. omdraaien (golf 7): scherm boven ligt met het laagste punt op de vloer (alle hoekpunten gemeten), ook uitgeklapt en tijdens de draai;
     Uitklappen blijft lokaal (het achterglas klapt omgedraaid naar beneden), een tik op het scherm selecteert, stap terug neemt de
     stand mee, knop (aria-pressed), schakelaar en sneltoets F, camera van boven op het scherm, camknoppen en alle presets in
-    beide standen, ?flip=1 (ook met preset) laadt omgedraaid en de URL volgt de stand
+    beide standen, ?flip=1 (ook met preset) laadt omgedraaid en de URL volgt de stand; de stand tijdens de draai wordt
+    deterministisch getoetst (uiFlipPose bij 36 hoeken, laagste punt tussen -0,01 en 0,05 mm), heen en terug geeft exact de beginpositie,
+    omdraaien wist de actieve preset
 """
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -139,11 +141,23 @@ def flip_test(s):
     pg.evaluate(f"() => {L}.preset('assembled')"); settle(pg, 800)
     low0 = pg.evaluate(LOWEST)
     check('omdraaien: uit ligt het scherm op de vloer', abs(low0['min']) < 0.002 and not pg.evaluate(f"() => {L}.state().flip"), f"laagste punt {low0['min']:.5f}")
-    # aan, preset Hoofdgroepen, tik op een onderdeel
+    # heen en terug: de positie van ROOT is daarna precies de beginpositie (geen verschuiving van 0,125 mm in x)
+    p0 = pg.evaluate(f"() => {L}.flipInfo().pos")
+    pg.evaluate(f"() => {{ {L}.flip(true); {L}.finishAll(); }}")
+    pf = pg.evaluate(f"() => {L}.flipInfo().pos")
+    pg.evaluate(f"() => {{ {L}.flip(false); {L}.finishAll(); }}")
+    p1 = pg.evaluate(f"() => {L}.flipInfo().pos")
+    check('omdraaien: heen en terug geeft exact de beginpositie van ROOT', p1 == p0 and pf != p0, f'begin {p0}, omgedraaid {pf}, terug {p1}')
+    # aan: de draai begint (de animatie loopt; de stand ertussen wordt hieronder deterministisch getoetst)
     pg.evaluate(f"() => {L}.flip(true)")
-    pg.wait_for_function(f"() => {{ const i = {L}.flipInfo(); return i.angle > 0.3 || !i.animating; }}", timeout=20000)   # software-rendering: een frame kan lang duren
-    mid = pg.evaluate(f"() => ({{ info: {L}.flipInfo(), low: ({LOWEST})() }})")
-    check('omdraaien: tijdens de draai rolt het toestel over de vloer', mid['info']['animating'] and 0.3 < mid['info']['angle'] < 2.9 and mid['low']['min'] > -0.0005 and mid['low']['min'] < 0.01, f"hoek {mid['info']['angle']}, laagste punt {mid['low']['min']:.5f}")
+    info = pg.evaluate(f"() => {L}.flipInfo()")
+    check('omdraaien: aan start de draai (animatie loopt, hoek tussen 0 en pi)', info['flip'] is True and info['animating'] and 0 <= info['angle'] <= 3.1416, f"hoek {info['angle']}")
+    # tijdens de draai rolt het toestel over de vloer: zet uiFlipPose(a) voor 36 hoeken (geen wachten op echte frames, die zijn
+    # in software-rendering traag en bij parallelle runs wisselvallig) en meet het laagste hoekpunt van alle meshes in mm
+    roll = pg.evaluate("""() => { const L = window.__s26u, low = %s, out = [], a0 = L.flipInfo().angle;
+        for (let i = 0; i <= 36; i++) { const a = Math.PI * i / 36; L.flipPose(a); out.push(low().min * 40); }
+        L.flipPose(a0); return out; }""" % LOWEST)
+    check('omdraaien: bij elke hoek (36 stappen) raakt het laagste punt de vloer (geen zweven, niets erdoorheen)', len(roll) == 37 and all(-0.01 < v < 0.05 for v in roll), f"min {min(roll):.4f} mm, max {max(roll):.4f} mm")
     settle(pg, 600)
     st = pg.evaluate(f"() => {L}.state()")
     low = pg.evaluate(LOWEST)
@@ -154,6 +168,10 @@ def flip_test(s):
     low = pg.evaluate(LOWEST)
     ys, ya = pg.evaluate(WORLDY, 'Scherm'), pg.evaluate(WORLDY, 'Achterkant')
     check('omdraaien: uitgeklapt blijft lokaal (achterkant klapt omlaag, scherm omhoog) en niets steekt door de vloer', ya < ys and low['min'] > low['ground'] - 0.0005, f"achterkant y {ya:.2f}, scherm y {ys:.2f}, laagste punt {low['min']:.3f}, vloer {low['ground']:.3f}")
+    # omdraaien wist de actieve preset: de camera kadert niet meer op de preset, dus de URL toont geen ?preset= meer
+    pg.evaluate(f"() => {L}.flip(false)"); settle(pg, 600)
+    sp = pg.evaluate(f"() => ({{ preset: {L}.state().preset, q: location.search }})")
+    check('omdraaien: omdraaien wist de actieve preset en haalt ?preset= uit de URL', sp['preset'] is None and 'preset=' not in sp['q'] and 'flip' not in sp['q'], str(sp))
     # tikken, isoleren, dimmen, openen in de omgedraaide stand
     pg.evaluate(f"() => {{ {L}.flip(false); {L}.preset('assembled'); }}"); settle(pg, 800)
     pg.evaluate(f"() => {L}.flip(true)"); settle(pg, 900)   # de camera kijkt daarna van boven op het scherm

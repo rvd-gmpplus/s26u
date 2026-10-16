@@ -643,7 +643,7 @@ let uiUserCam = false; // de gebruiker heeft de camera zelf verplaatst sinds de 
 // Het hele model draait 180 graden om de lengteas (z) en ligt daarna weer op de vloer: het laagste punt (het camera-eiland,
 // dat in de omgedraaide stand naar beneden steekt) raakt y = 0. Alleen ROOT.obj krijgt een draaiing en verplaatsing; alles
 // eronder blijft in zijn eigen frame, dus uitklapvectoren, openers, batches en labels werken in beide standen ongewijzigd
-// (het model klapt mee om). Tijdens de draai rolt het toestel over de vloer: elk frame ligt het laagste hoekpunt op y = 0.
+// (het model klapt mee om). Tijdens de draai rolt het toestel over de vloer: elk frame ligt het laagste punt van de convexe omhullende van de hoekpunten op de vloer.
 // FLIP is de gewenste stand; uiFlipA de huidige hoek (0 of PI, ertussen tijdens de animatie).
 let FLIP = false, uiFlipA = 0, uiFlipAnim = null;
 const UI_FLIP_BOX = (() => { // doorsnede (x, y) van het gemonteerde toestel, alle meshes (inclusief ingesloten)
@@ -653,14 +653,50 @@ const UI_FLIP_BOX = (() => { // doorsnede (x, y) van het gemonteerde toestel, al
 })();
 const UI_FLIP_C = [(UI_FLIP_BOX.min.x + UI_FLIP_BOX.max.x) / 2, (UI_FLIP_BOX.min.y + UI_FLIP_BOX.max.y) / 2];
 const UI_FLIP_Z = V3(0, 0, 1);
-// Stand van het toestel bij hoek a: draaien om het midden C van de doorsnede, dat zo hoog staat dat het laagste hoekpunt y = 0 raakt.
-function uiFlipPose(a) {
+// Convexe omhullende van de doorsnede (x, y) van alle hoekpunten van alle meshes in de gemonteerde stand (hull() uit core.js).
+// De doos van UI_FLIP_BOX heeft hoeken die het toestel niet heeft (de afgeronde hoeken), dus het toestel zweefde tijdens de draai
+// tot 2,02 mm boven de vloer. Eerst vallen de punten binnen de veelhoek van 32 uiterste punten af (dat verandert de omhullende niet),
+// zodat hull() maar een paar honderd punten sorteert.
+const UI_FLIP_HULL = (() => {
+  let n = 0;
+  for (const m of MESHES) n += m.geometry.attributes.position.count;
+  const xy = new Float64Array(2 * n), v = new THREE.Vector3(), K = 32;
+  const dx = [], dy = [], best = new Array(K).fill(-Infinity), ext = new Array(K).fill(null);
+  for (let k = 0; k < K; k++) { dx.push(Math.cos(2 * PI * k / K)); dy.push(Math.sin(2 * PI * k / K)); }
+  let i = 0;
+  for (const m of MESHES) {
+    const p = m.geometry.attributes.position;
+    for (let j = 0; j < p.count; j++, i++) {
+      v.fromBufferAttribute(p, j).applyMatrix4(m.matrixWorld);
+      xy[2 * i] = v.x; xy[2 * i + 1] = v.y;
+      for (let k = 0; k < K; k++) { const d = v.x * dx[k] + v.y * dy[k]; if (d > best[k]) { best[k] = d; ext[k] = [v.x, v.y]; } }
+    }
+  }
+  const inner = hull(ext), cr = (o, a, b, c, d) => (a - o[0]) * (d - o[1]) - (b - o[1]) * (c - o[0]);
+  const rest = [];
+  for (let q = 0; q < n; q++) {
+    const x = xy[2 * q], y = xy[2 * q + 1];
+    let inside = true;
+    for (let e = 0; e < inner.length && inside; e++) { const a = inner[e], b = inner[(e + 1) % inner.length]; if ((b[0] - a[0]) * (y - a[1]) - (b[1] - a[1]) * (x - a[0]) <= 1e-9) inside = false; }
+    if (!inside) rest.push([x, y]);
+  }
+  return hull(rest.concat(inner));
+})();
+// Stand van het toestel bij hoek a, zonder de beginstand: draaien om het midden C van de doorsnede, dat zo hoog staat dat het
+// laagste punt van de omhullende y = 0 raakt. Geeft [x, y] van ROOT.obj.position.
+function uiFlipRaw(a) {
   const s = Math.sin(a), c = Math.cos(a), [cx, cy] = UI_FLIP_C;
   let low = Infinity;
-  for (const x of [UI_FLIP_BOX.min.x, UI_FLIP_BOX.max.x]) for (const y of [UI_FLIP_BOX.min.y, UI_FLIP_BOX.max.y]) low = Math.min(low, (x - cx) * s + (y - cy) * c);
-  const yc = -low;                       // wereldhoogte van het draaipunt
+  for (const [x, y] of UI_FLIP_HULL) low = Math.min(low, (x - cx) * s + (y - cy) * c);
+  return [-(cx * c - cy * s), -low - (cx * s + cy * c)];
+}
+// De verplaatsing is relatief aan de stand bij hoek 0 en komt daarbovenop de beginpositie van ROOT, zodat hoek 0 precies de
+// beginstand geeft (ook na heen en weer omdraaien) en het laagste punt op dezelfde hoogte blijft als in het begin.
+const UI_FLIP_P0 = ROOT.obj.position.clone(), UI_FLIP_R0 = uiFlipRaw(0);
+function uiFlipPose(a) {
+  const [px, py] = uiFlipRaw(a);
   ROOT.obj.quaternion.setFromAxisAngle(UI_FLIP_Z, a);
-  ROOT.obj.position.set(-(cx * c - cy * s), yc - (cx * s + cy * c), 0);
+  ROOT.obj.position.set(UI_FLIP_P0.x + px - UI_FLIP_R0[0], UI_FLIP_P0.y + py - UI_FLIP_R0[1], UI_FLIP_P0.z);
 }
 // Richting in het frame van het toestel -> wereldrichting: omgedraaid is dat een draaiing van 180 graden om z.
 const uiDirW = d => (FLIP ? V3(-d.x, -d.y, d.z) : d);

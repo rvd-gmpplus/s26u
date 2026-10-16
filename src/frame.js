@@ -4,12 +4,12 @@
 // Alle maten in mm (docs/indeling.md); de ring wordt als eigen geometrie langs de omtrek opgebouwd, zodat het silhouet
 // exact de afgeronde rechthoek van 78,1 × 163,6 mm met hoekstraal 8,5 mm volgt.
 
-const FR_HW = 39.05, FR_HL = 81.8, FR_T = 7.9, FR_R = 8.5, FR_WALL = 2.0;
+const FR_HW = OUT_HW, FR_HL = OUT_HL, FR_T = 7.9, FR_R = OUT_R, FR_WALL = 2.0;   // buitenomtrek uit core.js (gedeeld contract)
 const FR_BAND = [1.8, 7.05];      // y-band van de vlakke flank waarin alle openingen liggen
 const FR_SPLIT = 0.8;             // breedte van een antennesplitsing (mm)
 // S Pen: as in de afgeronde hoek linksonder (gezien op het scherm, +x), 7,05 mm van de flank; de opening is een cirkel
 // met straal 2,5 mm rond de as (pen Ø 4,4 mm, 0,3 mm speling) en wordt evenwijdig aan de pen door de wand geboord.
-const FR_PEN = { x: 32.0, y: 4.45, hole: 2.5, siloR: 2.7, siloRi: 2.4 };
+const FR_PEN = { x: PEN_AXIS.x, y: PEN_AXIS.y, hole: 2.5, siloR: 2.7, siloRi: 2.4 };   // as uit core.js (PEN_AXIS)
 
 std('frSplit', 0xd9dbde, 0, 0.55);           // kunststof van de antennesplitsingen, in de kleur van het frame
 std('frMesh', 0x2b2d31, 0.45, 0.78);         // stofgaas achter luidspreker- en microfoongaatjes
@@ -55,8 +55,7 @@ function frSOf(path, edge, v) {
   if (edge === 'rechts') return S[4].s0 + (b - v);
   return v >= 0 ? v : S[8].s0 + (v + b);
 }
-// z van het buitenoppervlak en van het binnenoppervlak van de onderrand bij een gegeven x (in de hoekboog volgt het de boog)
-function frZOut(x) { const a = FR_HW - FR_R, b = FR_HL - FR_R; return x <= a ? FR_HL : b + Math.sqrt(FR_R * FR_R - (x - a) * (x - a)); }
+// z van het binnenoppervlak van de onderrand bij een gegeven x (in de hoekboog volgt het de boog); het buitenoppervlak is outerZ() in core.js
 function frZIn(x) { const a = FR_HW - FR_R, b = FR_HL - FR_R, r = FR_R - FR_WALL; return x <= a ? FR_HL - FR_WALL : b + Math.sqrt(r * r - (x - a) * (x - a)); }
 // opening op de plek x0 van de onderrand, evenwijdig aan de z-as geboord: omtrek buiten (pts) en binnen (ptsIn) in (s, y) bij
 // dezelfde (x, y), plus kolommen {s, lo, hi} (boven- en onderrand van de opening per x) waarmee het vlak rond de opening in
@@ -162,6 +161,9 @@ function frRingGeos() {
   for (const g of path.segs) { st.push(g.s0); if (g.c) for (let i = 1; i < 20; i++) st.push(g.s0 + i / 20 * g.len); }
   for (const w of wins) { const n = Math.ceil((w.s1 - w.s0) / 0.5); for (let i = 0; i <= n; i++) st.push(w.s0 + i / n * (w.s1 - w.s0)); }
   for (const q of sp) st.push(q.s0, q.s1);
+  // de kolommen van een opening die evenwijdig aan de pen is geboord (buiten en binnen) zijn ook stations, anders raakt de
+  // rand van het vlak rond de opening de stations van de profielstroken niet (T-naden)
+  for (const h of holes) if (h.cols) for (const c of h.cols.concat(h.colsIn)) st.push(c.s);
   st.sort((p, q) => p - q);
   const S = st.filter((v, i) => i === 0 || v - st[i - 1] > 1e-6);
   const ring = frMesh(), ins = sp.map(() => frMesh());
@@ -196,15 +198,19 @@ function frRingGeos() {
       const n = f0 => t ? [-f0[2], 0, -f0[3]] : [f0[2], 0, f0[3]];
       const grid = w.holes.length === 1 && w.holes[0].cols;
       if (grid) {
-        // vlak in smalle stroken: boven en onder de opening per kolompaar een vierhoek, links en rechts een volle strook
+        // vlak in smalle stroken per paar opeenvolgende kolommen: boven en onder de opening een trapezium waarvan de rand langs de
+        // band alle stations van het venster als hoekpunt heeft (waaier vanaf het hoekpunt op de opening), links en rechts van
+        // de opening een volle strook met de linker- of rechterpunt van de opening als waaierpunt. Zo sluit elk hoekpunt aan.
         const h = w.holes[0], cs = (t ? h.colsIn : h.cols).slice().sort((p, q) => p.s - q.s), [y0, y1] = FR_BAND;
-        const q4 = (sa, ya, sb, yb, sc, yc, sd, yd) => ring.quad(W(sa, t, ya), W(sb, t, yb), W(sc, t, yc), W(sd, t, yd), n(frAt(path, (sa + sb + sc + sd) / 4)));
-        q4(w.s0, y0, cs[0].s, y0, cs[0].s, y1, w.s0, y1);
-        q4(cs[cs.length - 1].s, y0, w.s1, y0, w.s1, y1, cs[cs.length - 1].s, y1);
+        const between = (a, b) => ss.filter(v => v > a + 1e-6 && v < b - 1e-6);
+        const fan = (apex, ps) => { for (let i = 0; i + 1 < ps.length; i++) ring.tri(W(apex[0], t, apex[1]), W(ps[i][0], t, ps[i][1]), W(ps[i + 1][0], t, ps[i + 1][1]), n(frAt(path, (apex[0] + ps[i][0] + ps[i + 1][0]) / 3))); };
+        const L = cs[0], R = cs[cs.length - 1], hL = [L.s, (L.lo + L.hi) / 2], hR = [R.s, (R.lo + R.hi) / 2];
+        fan(hL, [[L.s, y0]].concat(between(w.s0, L.s).reverse().map(v => [v, y0]), [[w.s0, y0], [w.s0, y1]], between(w.s0, L.s).map(v => [v, y1]), [[L.s, y1]]));
+        fan(hR, [[R.s, y1]].concat(between(R.s, w.s1).map(v => [v, y1]), [[w.s1, y1], [w.s1, y0]], between(R.s, w.s1).reverse().map(v => [v, y0]), [[R.s, y0]]));
         for (let k = 0; k + 1 < cs.length; k++) {
-          const c = cs[k], d = cs[k + 1];
-          q4(c.s, c.hi, d.s, d.hi, d.s, y1, c.s, y1);
-          q4(c.s, y0, d.s, y0, d.s, d.lo, c.s, c.lo);
+          const c = cs[k], d = cs[k + 1], mid = between(c.s, d.s);
+          fan([c.s, c.hi], [[d.s, d.hi], [d.s, y1]].concat(mid.slice().reverse().map(v => [v, y1]), [[c.s, y1]]));
+          fan([c.s, c.lo], [[c.s, y0]].concat(mid.map(v => [v, y0]), [[d.s, y0], [d.s, d.lo]]));
         }
         continue;
       }
