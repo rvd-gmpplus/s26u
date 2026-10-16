@@ -24,8 +24,8 @@ ander domein.
 | Coverglas | 0 | 0,7 | Scherm | schatting |
 | Optische lijm, polarisator en OLED-paneel | 0,7 | 1,25 | Scherm | schatting |
 | Wacom-digitizer en koper-/grafietfolie onder het paneel | 1,25 | 1,7 | Scherm | schatting |
-| Middenplaat van het frame | 1,7 | 2,4 | Behuizing | schatting |
-| Vapor chamber (op de middenplaat, achterkantzijde) | 2,4 | 2,8 | Energie en koeling | schatting |
+| Middenplaat van het frame (met gaten voor de grote camera's en de selfiecamera, sleuven voor S Pen-silo en displayflex) | 1,7 | 2,4 | Behuizing | schatting |
+| Vapor chamber (op de middenplaat, achterkantzijde; x -30 tot +26, z -70 tot +10, met uitsparingen voor camerakolom, periscoop en selfiecamera) | 2,4 | 2,8 | Energie en koeling | schatting |
 | Binnenruimte: moederbord, batterij, modules | 2,8 | 7,0 | per zone hieronder | schatting |
 | Laadspoel, NFC en grafietfolie | 7,0 | 7,2 | Achterkant | schatting |
 | Achterglas | 7,2 | 7,9 | Achterkant | schatting |
@@ -50,8 +50,8 @@ in de kolom is een schatting (zelfde indeling als de S24 en S25 Ultra).
 | Flitser | -6,5 | -58,3 | Ø 3 | |
 | Kleine lens onder: laser-AF | -6,2 | -48,8 | venster Ø 8,2, ring Ø 9,6 | |
 
-Cameramodules zitten tussen y 1,9 en 7,2 in uitsparingen van moederbord en middenplaat; de hoofdcamera mag tot y 1,2
-zakken (door een gat in de middenplaat). De periscoopmodule ligt plat: x -10 tot -2, z -76 tot -40, y 2,9 tot 6,9.
+Cameramodules zitten tussen y 2,4 en 7,2 in uitsparingen van moederbord en vapor chamber; de drie grote modules mogen tot
+y 1,75 zakken door een gat in de middenplaat (Ø 14 om hun lensas). Het schermpakket (y < 1,7) blijft vrij. De periscoopmodule ligt plat: x -10 tot -2, z -76 tot -40, y 2,9 tot 6,9.
 
 ## Zones in het vlak (x, z) voor de binnenruimte (y 2,8 tot 7,0)
 
@@ -64,8 +64,8 @@ zakken (door een gat in de middenplaat). De periscoopmodule ligt plat: x -10 tot
 | Selfiecamera | -3,5 tot +3,5 | -78 tot -71 | 1,0 tot 4,5 (onder het bord, door het scherm heen kijkend) | Camera's |
 | Oorspeaker | +4 tot +18 | -80 tot -75 | 2,9 tot 4,9 | Randapparatuur |
 | Batterij | -34 tot +26 | -16 tot +62 | 2,8 tot 7,0 | Energie en koeling |
-| S Pen-silo (in het frame) | +27 tot +36,5 | -26 tot +81,8 | 2,0 tot 7,0, buis Ø 6,4 om as x +31,8, y 4,5 | Behuizing |
-| S Pen (in de silo) | as x +31,8, y 4,5 | -24 tot +81,4 | Ø 5,8 | S Pen |
+| S Pen-silo (in het frame) | +29,1 tot +34,5 | -26 tot +81,8 | buis buiten Ø 5,4, binnen Ø 4,8, as x +31,8, y 4,45 (y 1,75 tot 7,15); de middenplaat heeft hier een sleuf | Behuizing |
+| S Pen (in de silo) | as x +31,8, y 4,45 | -24 tot +81,4 | Ø 4,4 (schatting) | S Pen |
 | Hoofdflexkabel bord naar subbord | -36,8 tot -34,4 | -21 tot +66 | 2,9 tot 3,4 | Randapparatuur |
 | Trilmotor | -34 tot -24 | +63 tot +67 | 3,0 tot 6,0 | Randapparatuur |
 | Luidspreker onder | -34 tot -8 | +68 tot +79 | 2,9 tot 6,9 | Randapparatuur |
@@ -82,7 +82,7 @@ zakken (door een gat in de middenplaat). De periscoopmodule ligt plat: x -10 tot
 | Actief paneel | -37,4 tot +37,4 | -79,6 tot +79,6 | 0,7 tot 1,25 | schatting |
 | Selfiecameragat (punch-hole) | midden x 0, z -76 | Ø 3,2 | | gezien op de foto |
 | Ultrasone vingerafdruksensor | -4,5 tot +4,5 | +44 tot +53 | 1,25 tot 1,7 (in een uitsparing van de digitizer) | schatting |
-| Displayflex | -6 tot +6 | gaat aan de onderrand om en naar de achterkant, eindigt bij z +60 | | volgens iFixit alleen van achteren bereikbaar |
+| Displayflex | -6 tot +6 | buigt aan de onderrand om onder het paneel (y < 1,7), gaat door een sleuf in de middenplaat (x -6 tot +6, z 62,5 tot 64,5) en eindigt in een connector op x -6 tot +6, z 62,6 tot 64,4, y 2,4 tot 3,0 | | volgens iFixit alleen van achteren bereikbaar |
 
 ## Knoppen en randen
 
@@ -119,3 +119,9 @@ Stapel naar boven, van buiten (achterglas) naar binnen (scherm). Volgorde van de
 | Moederbord | `board.js` | `bo` | `boBuild()` |
 | Energie en koeling | `power.js` | `pw` | `pwBuild()` |
 | Randapparatuur en S Pen | `peripherals.js` | `pe` | `peBuild()` en `peBuildPen()` |
+
+## Kleine afspraken
+
+- Knoppen steken hoogstens 0,25 mm buiten de flank uit.
+- Schroeven die een afdekplaat vastzetten, horen bij het domein van die plaat.
+- Lijm hoort bij het onderdeel dat hij vastzet.
