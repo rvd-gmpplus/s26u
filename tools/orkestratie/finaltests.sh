@@ -8,8 +8,7 @@ OUT="$(mkdir -p "$1" && cd "$1" && pwd)" || exit 2
 R="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$R" || exit 1
 # Vaste lijst: CI vergelijkt deze namen met de verwachting, zodat een test niet stil uit de set kan vallen.
-# Komen nog: shots en visdiff (golf 6, baselines). Zie docs/testen.md.
-TESTS="lint smoke integ sil overlap inner opentest itest tri pub stats"
+TESTS="lint smoke integ sil overlap inner opentest itest tri pub stats shots visdiff"
 git log --oneline -1 > "$OUT/commit.txt"
 date -u +"%Y-%m-%dT%H:%M:%SZ" > "$OUT/start.txt"
 
@@ -31,7 +30,9 @@ run lint python3 build.py --lint
   run itest python3 tools/itest.py
   run tri python3 tools/tri.py --gate --json "$OUT/tri.json"
   run pub python3 tools/pubsmoke.py
-  run stats python3 tools/orkestratie/stats.py "$R" "$OUT/stats.json" ) &
+  run stats python3 tools/orkestratie/stats.py "$R" "$OUT/stats.json"
+  run shots python3 tools/orkestratie/presetshots.py "$R" "$OUT/presets"
+  run visdiff python3 tools/visdiff.py "$OUT/presets" docs/baseline --uit "$OUT/visdiff" ) &
 wait
 date -u +"%Y-%m-%dT%H:%M:%SZ" > "$OUT/einde.txt"
 fail=0

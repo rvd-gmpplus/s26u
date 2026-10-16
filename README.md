@@ -8,10 +8,26 @@ Onafhankelijk schematisch model, niet van of namens Samsung. Samsung en Galaxy z
 
 ## Stand
 
-Golf 0 van het masterplan is klaar. De bouw, de app en de testset zijn overgenomen uit
-[laguna3](https://github.com/rvd-gmpplus/laguna3), en het toestel staat er als plaatshouder in: drie lagen op de echte
-buitenmaat. De volledige teardown volgt in golf 1 tot 6, zie `docs/masterplan.md`. De kerncijfers staan in
-`docs/cijfers.md`.
+Alle golven van `docs/masterplan.md` zijn uitgevoerd. Het toestel bestaat uit acht hoofdgroepen:
+- achterkant;
+- camera's;
+- moederbord;
+- energie en koeling;
+- randapparatuur;
+- S Pen;
+- behuizing;
+- scherm.
+
+Daarnaast zijn er:
+- openers: achterglas, luidspreker en onderafdekplaat, batterij, SIM-lade, S Pen en scherm;
+- 28 presets in zes categorieën en een rondleiding met de batterijwissel;
+- Samsung-servicenummers met bron per onderdeel.
+
+De kerncijfers staan in `docs/cijfers.md`; wat bevestigd is en wat geschat, staat in `docs/specificaties-en-bronnen.md`.
+
+![Gemonteerd](docs/screenshots/gemonteerd.png)
+![Hoofdgroepen](docs/screenshots/hoofdgroepen.png)
+![Achterglas eraf](docs/screenshots/achterglas-eraf.png)
 
 ## Bouwen en testen
 
@@ -29,7 +45,8 @@ GitHub Pages, dan werkt het.
 
 - `CLAUDE.md`: afspraken voor wie hier bouwt.
 - `docs/masterplan.md`: doel, keuzes, ontwerpbesluiten en de golven.
-- `docs/ontwerp-en-architectuur.md`: bouw, onderdelenboom, schaal en assen, eigendom.
+- `docs/ontwerp-en-architectuur.md`: bouw, onderdelenboom, schaal en assen, eigendom, openers.
+- `docs/indeling.md`: het ruimtelijk contract tussen de domeinen (lagen, zones, camera-eiland).
 - `docs/testen.md`: de testset en wat elke test bewaakt.
 - `docs/specificaties-en-bronnen.md`: geverifieerde gegevens en bronnen.
 - `docs/onderdeelnummers-schema.md`: de CSV met onderdeelnummers.

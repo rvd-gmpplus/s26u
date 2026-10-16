@@ -1,3 +1,4 @@
 # Testset (Playwright, Python). Chromium komt uit /opt/pw-browsers of uit `python3 -m playwright install chromium`.
 playwright==1.64.0
-pillow==12.3.0   # alleen voor tools/orkestratie/docshots.py (screenshots naar 256 kleuren)
+pillow==12.3.0   # tools/visdiff.py en de screenshots naar 256 kleuren
+numpy>=2.0,<3   # tools/visdiff.py (beeldvergelijking met docs/baseline); geen vaste versie, de wielen verschillen per platform

@@ -35,7 +35,7 @@ achterglas, zilveren frame).
 - Plaatshouder `src/phone.js`: drie lagen op de buitenmaat. Vijf overzichtspresets.
 - Testset groen: `lint smoke integ inner opentest tri pub stats`.
 
-### Golf 1: bronnen en skelet
+### Golf 1: bronnen en skelet (klaar)
 1. `docs/specificaties-en-bronnen.md` aanvullen met maten, materialen en demontagevolgorde. Bronnen:
    - de iFixit-teardown en de iFixit-gidsen;
    - de JerryRigEverything- en PBKreviews-teardowns;
@@ -50,7 +50,7 @@ achterglas, zilveren frame).
    - budgetten, voorlopig 450.000 driehoeken in totaal.
 4. `tools/silhouette.py` met referentieprofielen voor voor-, zij- en achteraanzicht uit de maattekening.
 
-### Golven 2 en 3: geometrie per domein
+### Golven 2 en 3: geometrie per domein (klaar)
 Parallel in eigen worktrees, met `mergecheck.py` vóór elke samenvoeging.
 
 | Domein | Bestand | Inhoud |
@@ -67,7 +67,7 @@ Parallel in eigen worktrees, met `mergecheck.py` vóór elke samenvoeging.
   voordat het binnenwerk komt.
 - Golf 3 bouwt het binnenwerk.
 
-### Golf 4: openers, presets, interactie
+### Golf 4: openers, presets, interactie (klaar)
 - Openers, met `open.min` van minstens 0,8 maal de slag:
   - S Pen;
   - SIM-lade;
@@ -77,11 +77,11 @@ Parallel in eigen worktrees, met `mergecheck.py` vóór elke samenvoeging.
 - Ongeveer twintig presets, waaronder een rondleiding "Batterij vervangen" stap voor stap zoals iFixit.
 - `itest.py`, `anchorcheck.py` en `visdiff.py` komen terug, aangepast aan de telefoon.
 
-### Golf 5: onderdeelnummers
+### Golf 5: onderdeelnummers (eerste ronde klaar)
 - Samsung-servicenummers in `data/pn/units/*.json`, met bewijs A tot D en een bron per nummer.
 - Een onzeker nummer krijgt graad D of blijft weg.
 
-### Golf 6: tests, publiceren, terugkoppelen
+### Golf 6: tests, publiceren, terugkoppelen (klaar tot en met de testset; publiceren na samenvoegen in main)
 - Volledige strikte set groen.
 - `docs/cijfers.md` vernieuwen en baselines vastleggen.
 - Publiceren:
@@ -92,3 +92,14 @@ Parallel in eigen worktrees, met `mergecheck.py` vóór elke samenvoeging.
 
 ## Geverifieerde basisfeiten
 Zie `docs/specificaties-en-bronnen.md`; dit plan herhaalt de getallen niet.
+
+## Afwijkingen van het oorspronkelijke plan
+
+- Schaal 40 mm per wereldeenheid in plaats van meter met een apart object voor de constanten (zie Ontwerpbesluiten).
+- De selfiecamera hoort bij Camera's in plaats van bij het Scherm: hij zit onder het moederbord (iFixit).
+- De S Pen-as ligt op x +28,7 in plaats van +31,8, zodat de pen recht uit de onderrand schuift en niet door de afgeronde
+  hoek van het frame.
+- Het achterglas is een scharnier (als een boek open) in plaats van een schuif: zo blijft het binnenwerk in beeld.
+- Extra test: `tools/overlap.py` (doorsteken tussen domeinen). `tools/anchorcheck.py` uit laguna3 is niet overgenomen; `itest.py` is nieuw geschreven voor de telefoon.
+- Onderdeelnummers: alleen service packs uit leverancierslijsten (bewijs B en C); een servicecatalogus van Samsung was niet
+  beschikbaar.

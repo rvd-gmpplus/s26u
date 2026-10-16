@@ -1,6 +1,18 @@
 # Wijzigingen
 
-## Versie 1 (golf 0)
+## Versie 1
+
+Eerste publicatie, golf 0 tot en met 6.
+
+- Acht hoofdgroepen gebouwd in parallelle domeinen (247 onderdelen; aantallen in `docs/cijfers.md`), met een ruimtelijk
+  contract in `docs/indeling.md` en het camera-eiland gemeten op de officiële render.
+- Specificaties tegen het persbericht van Samsung; teardownbevindingen uit verslagen van de iFixit-teardown.
+- Openers: achterglas, luidspreker met onderafdekplaat, batterij, SIM-lade, S Pen, scherm.
+- 28 presets in zes categorieën, rondleiding met de batterijwissel.
+- Samsung-servicenummers (service packs) met bron, keuze White bij kleurafhankelijke delen.
+- Testset uitgebreid met silhouet, overlap, een nieuwe itest en een visuele basislijn.
+
+## Golf 0
 
 - Repo opgezet. De kern (bouw, app, testset, orkestratie) is overgenomen uit laguna3 versie 8 en omgezet naar de telefoon.
   Het gaat om hoofdgroepen, röntgen, camerarichtingen, zoeksynoniemen, teksten, het onderdeelnummerpaneel en materialen.

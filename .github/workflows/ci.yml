@@ -49,4 +49,4 @@ jobs:
         run: python3 tools/tri.py --gate
       - name: testlijst van finaltests.sh
         run: |
-          grep -q 'TESTS="lint smoke integ sil overlap inner opentest itest tri pub stats"' tools/orkestratie/finaltests.sh || { echo "::error::de testlijst in finaltests.sh wijkt af van de verwachting"; exit 1; }
+          grep -q 'TESTS="lint smoke integ sil overlap inner opentest itest tri pub stats shots visdiff"' tools/orkestratie/finaltests.sh || { echo "::error::de testlijst in finaltests.sh wijkt af van de verwachting"; exit 1; }

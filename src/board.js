@@ -30,9 +30,9 @@ const BO_MAIN = [[-9.5, -19], [25.8, -19], [25.8, -79], [18.5, -79], [18.5, -74.
 const BO_COVER = [[-13.5, -19], [25.8, -19], [25.8, -79], [-0.5, -79], [-0.5, -39.5], [-13.5, -39.5]];
 // RF-print en buitenrand van de interposer; binnenrand van de interposer (holte)
 const BO_RF = [0.5, 25.3, -70, -25];
-const BO_CAV = [2.1, 26.5, -68.4, -26.6];
+const BO_CAV = [2.1, 23.7, -68.4, -26.6];
 // schroeven van de bovenafdekplaat (x, z): vier door de interposerrand, één links, één rechtsboven
-const BO_SCREWS = [[1.3, -47.5], [27.3, -47.5], [14.3, -25.8], [14.3, -69.2], [-12, -21.3], [23, -76]];
+const BO_SCREWS = [[1.3, -47.5], [24.5, -47.5], [14.3, -25.8], [14.3, -69.2], [-12, -21.3], [23, -76]];
 const BO_RF_SCREWS = BO_SCREWS.slice(0, 4);
 
 // hoeken van een veelhoek afronden (straal r in mm, n tussenpunten); werkt voor bolle en holle hoeken
@@ -187,8 +187,8 @@ function boTraceGeo() {
     const lines = [
       [0.8, [[-12.8, -24.5], [-12.8, -38.6], [-6, -38.6]]],
       [0.5, [[-11, -36], [-3, -36], [-3, -34], [-11, -34], [-11, -32], [-3, -32], [-3, -30], [-11, -30]]],
-      [0.9, [[0.8, -60], [0.8, -78.0], [16.5, -78.0], [16.5, -76.6], [19.5, -76.6], [19.5, -78.0], [27.8, -78.0], [27.8, -50.2]]],
-      [0.9, [[27.8, -44.8], [27.8, -20.0], [17, -20.0]]],
+      [0.9, [[0.8, -60], [0.8, -78.0], [16.5, -78.0], [16.5, -76.6], [19.5, -76.6], [19.5, -78.0], [25.0, -78.0], [25.0, -50.2]]],
+      [0.9, [[25.0, -44.8], [25.0, -20.0], [17, -20.0]]],
       [0.7, [[3.5, -20.0], [-9, -20.0]]],
       [0.6, [[2.4, -74.5], [2.4, -60]]],
     ];
@@ -271,13 +271,13 @@ function boBuild() {
     P('Veercontacten oorspeaker', merge([12.6, 15.4].map(x => merge([xf(mmBox(1.4, 0.15, 1.4), mmv(x, Y.main1 + 0.075, -73.6)), xf(mmBox(0.5, 0.7, 1.0), mmv(x, Y.main1 + 0.5, -73.6), [0.35, 0, 0])]))), MAT.gold, {
       d: 'Twee verende contacten die tegen de aansluitingen van de oorspeaker drukken.' + est, ex: [0, 0.1, -0.08],
     }),
-    P('Antenneconnector hoofdprint', boCoaxGeo(), MAT.steel, { d: 'Coaxiale connector voor de antennekabel naar de bovenrand.' + est, p: mmv(26.6, Y.main1, -72.5), ex: [0.04, 0.1, -0.06] }),
+    P('Antenneconnector hoofdprint', boCoaxGeo(), MAT.steel, { d: 'Coaxiale connector voor de antennekabel naar de bovenrand.' + est, p: mmv(23.8, Y.main1, -72.5), ex: [0.04, 0.1, -0.06] }),
   ]);
 
   const mainKeep = [
-    [6.2, 21.8, -59.8, -44.2], [3.4, 25.6, -42.3, -28.8], [3.5, 25.5, -68, -61],
+    [6.2, 21.8, -59.8, -44.2], [3.4, 22.8, -42.3, -28.8], [3.5, 22.7, -68, -61],
     [-12.1, -6.9, -38, -35.2], [-6.3, -0.9, -38, -35.2], [-12.1, -6.9, -32.6, -29.8], [-6.3, -0.9, -32.6, -29.8],
-    [-9.5, -0.9, -25.8, -22.6], [10, 18, -23.4, -19.8], [5.3, 9.9, -73.9, -71.3], [11.8, 16.2, -74.4, -72.8], [25.5, 27.7, -73.6, -71.4],
+    [-9.5, -0.9, -25.8, -22.6], [10, 18, -23.4, -19.8], [5.3, 9.9, -73.9, -71.3], [11.8, 16.2, -74.4, -72.8], [22.7, 24.9, -73.6, -71.4],
     ...BO_SCREWS.map(([x, z]) => [x - 1.1, x + 1.1, z - 1.1, z + 1.1]),
   ];
   const mainPas = boPassives('Main', BO_MAIN, mainKeep, [BO_RF, BO_CAV], Y.main1, 20261016, 0.66, 0.8);
@@ -309,8 +309,8 @@ function boBuild() {
 
   // ---------- RF-print ----------
   const rfY = Y.rf1;
-  const rfKeep = [[3.6, 12.4, -65.4, -56.6], [14.5, 26.5, -66.5, -53], [4.5, 11.5, -50.5, -43.5], [18, 22, -42, -38], [14.5, 24.5, -32.5, -27.5],
-    ...[[3.2, -28], [25.4, -28], [25.4, -42.5], [3.2, -54]].map(([x, z]) => [x - 1.1, x + 1.1, z - 1.1, z + 1.1]),
+  const rfKeep = [[3.6, 12.4, -65.4, -56.6], [14.5, 23.7, -66.5, -53], [4.5, 11.5, -50.5, -43.5], [18, 22, -42, -38], [14.5, 24.5, -32.5, -27.5],
+    ...[[3.2, -28], [22.6, -28], [22.6, -42.5], [3.2, -54]].map(([x, z]) => [x - 1.1, x + 1.1, z - 1.1, z + 1.1]),
     ...BO_RF_SCREWS.map(([x, z]) => [x - 1.1, x + 1.1, z - 1.1, z + 1.1])];
   const rfPas = boPassives('RF', rfOut, rfKeep, null, rfY, 7041, 0.72, 0.72);
   const rf = A('RF-print', {
@@ -334,7 +334,7 @@ function boBuild() {
     ]),
     chip('NFC-controller', 'Stuurt de NFC-antenne in de achterkant aan (contactloos betalen).' + est, 3.5, 3.5, 0.35, 20, -40, rfY, [0, 0.1, 0]),
     chip('GNSS-ontvanger', 'Ontvanger voor plaatsbepaling via satellieten.' + est, 3.2, 3.2, 0.35, 16.8, -30, rfY, [0, 0.1, 0.02]),
-    P('Antenneconnectoren RF-print', merge([[3.2, -28], [25.4, -28], [25.4, -42.5], [3.2, -54]].map(([x, z]) => xf(boCoaxGeo(), mmv(x, rfY, z)))), MAT.steel, {
+    P('Antenneconnectoren RF-print', merge([[3.2, -28], [22.6, -28], [22.6, -42.5], [3.2, -54]].map(([x, z]) => xf(boCoaxGeo(), mmv(x, rfY, z)))), MAT.steel, {
       d: 'Vier coaxiale connectoren voor de kabels naar de antennes in het frame en de afdekplaat.' + est, ex: [0, 0.1, 0],
     }),
     P('Condensatoren RF-print', rfPas.cap, MAT.boCap, { d: 'Kleine keramische condensatoren voor ontkoppeling en aanpassing van de radiosignalen. Aantal en plaats zijn een illustratie.', ex: [0, 0.07, 0] }),

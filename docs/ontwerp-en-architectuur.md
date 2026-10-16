@@ -73,7 +73,8 @@ afgesteld. Ze blijven daardoor kloppen zonder dat iemand ze opnieuw moet afstell
 | Behuizing | `frame.js` | ja |
 | Scherm | `display.js` | ja |
 
-Golf 0 heeft alleen Achterkant, Behuizing en Scherm, als plaatshouders in `phone.js`. De kleuren per hoofdgroep staan in
+Elke hoofdgroep komt uit zijn domeinbestand; zolang een bouwfunctie ontbreekt, zet `phone.js` een plaatshouder in de zone van
+het domein (zo kon elk domein in een eigen worktree met de volledige testset werken). De kleuren per hoofdgroep staan in
 `SYS_COLORS` (`app1.js`); de legenda toont alleen de groepen die bestaan. `tools/orkestratie/mergecheck.py` kent de
 domeinen en de alleen-lezenbestanden.
 
@@ -108,3 +109,25 @@ zijn:
 - `nietgevonden`.
 
 Het paneel noemt Samsung-servicenummers en nummers van andere fabrikanten, met bewijs A tot D.
+
+## Openers
+
+De openers staan in `PH_OPENERS` in `phone.js`. De orkestrator zet ze na de bouw op de knopen, zodat de domeinbestanden
+alleen geometrie bevatten.
+
+| Opener | Beweging | Opmerking |
+|---|---|---|
+| Achterglas eraf | Scharnier over de +x-rand, 165 graden | Komt omgekeerd naast het toestel te liggen, met de laadspoel eraan |
+| Luidspreker onder eruit | Schuif 18 mm omhoog | De onderafdekplaat is een volger; `needs` het achterglas |
+| Batterij eruit | Schuif 22 mm omhoog | `needs` het achterglas |
+| SIM-lade | Schuif 15 mm langs +z | |
+| S Pen | Schuif 70 mm langs +z | Uit de silo op x +28,7 |
+| Scherm eraf | Schuif 16 mm omlaag | De vloer zakt mee |
+
+`needs` gaat één niveau diep. De volledige volgorde van de iFixit-teardown staat in de presets onder Reparatie en in de
+rondleiding.
+
+## Indeling en botsingen
+
+`docs/indeling.md` is het ruimtelijk contract: lagen in de dikte, zones per domein, het gemeten camera-eiland en de
+afspraken op de raakvlakken. `tools/overlap.py` bewaakt dat onderdelen van verschillende domeinen niet door elkaar steken.
