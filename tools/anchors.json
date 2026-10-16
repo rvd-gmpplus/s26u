@@ -1,0 +1,211 @@
+{
+ "root": [
+  "Samsung Galaxy S26 Ultra"
+ ],
+ "main": [
+  "Achterkant",
+  "Camera's",
+  "Moederbord",
+  "Energie en koeling",
+  "Randapparatuur",
+  "S Pen",
+  "Behuizing",
+  "Scherm"
+ ],
+ "root_children_order": [
+  "Achterkant",
+  "Camera's",
+  "Moederbord",
+  "Energie en koeling",
+  "Randapparatuur",
+  "S Pen",
+  "Behuizing",
+  "Scherm"
+ ],
+ "rear": [
+  "Achterglas",
+  "Camera-eiland",
+  "Eilandglas",
+  "Lijmrand achterglas",
+  "Draadloos laden en NFC",
+  "Laadspoel",
+  "NFC-antenne",
+  "Afdekglas hoofdcamera",
+  "Afdekglas periscoop 5×"
+ ],
+ "camera": [
+  "Camerakolom",
+  "Cameraframebeugel",
+  "Ultragroothoekcamera 50 MP",
+  "Hoofdcamera 200 MP",
+  "Telecamera 10 MP (3×)",
+  "Periscoopcamera 50 MP (5×)",
+  "Laser-AF-sensor",
+  "Flitser",
+  "Selfiecamera 12 MP"
+ ],
+ "board": [
+  "Hoofdprint",
+  "Interposer",
+  "RF-print",
+  "Bovenafdekplaat",
+  "SoC Snapdragon 8 Elite Gen 5 for Galaxy",
+  "LPDDR5X-werkgeheugen 16 GB",
+  "UFS 4-opslag 1 TB",
+  "Batterijconnector (bord)",
+  "Connector hoofdflex (bord)"
+ ],
+ "power": [
+  "Batterij",
+  "Batterijcel",
+  "Kunststof omhulling",
+  "Treklip",
+  "Beveiligingsprint (PCM)",
+  "Batterijconnector",
+  "Vapor chamber",
+  "Wiekstructuur",
+  "Koelstapel processor",
+  "Thermische pad"
+ ],
+ "peripherals": [
+  "USB-C-subbord",
+  "USB-C-poort",
+  "SIM-lade",
+  "Nano-SIM",
+  "SIM-kaartlezer",
+  "Luidspreker onder",
+  "Oorspeaker",
+  "Trilmotor",
+  "Hoofdflexkabels",
+  "Hoofdflex",
+  "Onderafdekplaat"
+ ],
+ "pen": [
+  "Penpunt",
+  "Penbehuizing",
+  "Digitizerspoel",
+  "Einddop"
+ ],
+ "frame": [
+  "Middenframe",
+  "Framering",
+  "Middenplaat",
+  "S Pen-silo",
+  "S Pen-uitwerper",
+  "Volumeknop",
+  "Aan/uit-knop",
+  "Knoppenflex"
+ ],
+ "display": [
+  "Coverglas",
+  "OLED-paneel",
+  "Wacom-digitizer",
+  "Vingerafdruksensor",
+  "Displayflex",
+  "Displayconnector"
+ ],
+ "contains": [
+  [
+   "Achterkant",
+   "Camera-eiland"
+  ],
+  [
+   "Achterkant",
+   "Laadspoel"
+  ],
+  [
+   "Camera's",
+   "Hoofdcamera 200 MP"
+  ],
+  [
+   "Camera's",
+   "Selfiecamera 12 MP"
+  ],
+  [
+   "Moederbord",
+   "SoC Snapdragon 8 Elite Gen 5 for Galaxy"
+  ],
+  [
+   "Energie en koeling",
+   "Batterij"
+  ],
+  [
+   "Energie en koeling",
+   "Vapor chamber"
+  ],
+  [
+   "Randapparatuur",
+   "USB-C-poort"
+  ],
+  [
+   "Randapparatuur",
+   "SIM-lade"
+  ],
+  [
+   "Behuizing",
+   "Middenframe"
+  ],
+  [
+   "Behuizing",
+   "S Pen-silo"
+  ],
+  [
+   "Scherm",
+   "OLED-paneel"
+  ],
+  [
+   "Scherm",
+   "Vingerafdruksensor"
+  ]
+ ],
+ "content": {},
+ "openers": [
+  "Samsung Galaxy S26 Ultra/Achterkant",
+  "Samsung Galaxy S26 Ultra/Energie en koeling/Batterij",
+  "Samsung Galaxy S26 Ultra/Randapparatuur/SIM-lade",
+  "Samsung Galaxy S26 Ultra/Randapparatuur/Luidspreker onder",
+  "Samsung Galaxy S26 Ultra/S Pen",
+  "Samsung Galaxy S26 Ultra/Scherm"
+ ],
+ "preset_ids": [
+  "assembled",
+  "main",
+  "xray",
+  "everything",
+  "tour",
+  "back",
+  "island",
+  "wireless",
+  "frame",
+  "screen",
+  "board",
+  "soc",
+  "power",
+  "cooling",
+  "periph",
+  "usbc",
+  "pen",
+  "cameras",
+  "mainCam",
+  "periscope",
+  "selfie",
+  "rep1",
+  "rep2",
+  "rep3",
+  "rep4",
+  "openSim",
+  "openPen",
+  "openAll"
+ ],
+ "triangle_budgets": {
+  "totaal": 450000,
+  "Achterkant": 40000,
+  "Camera's": 80000,
+  "Moederbord": 90000,
+  "Energie en koeling": 30000,
+  "Randapparatuur": 50000,
+  "S Pen": 25000,
+  "Behuizing": 80000,
+  "Scherm": 30000
+ }
+}
