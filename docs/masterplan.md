@@ -104,7 +104,7 @@ met FreeType (zie `docs/testen.md`).
 
 | Oorzaak | Stand | Waar |
 |---|---|---|
-| 1. Visdiff geeft op een andere renderer valse rood of vals groen | Mechanisme klaar; dicht na de eerste groene run van `volledig` (`.github/workflows/ci.yml`, `tools/orkestratie/finaltests.sh`). Geeft die job op ongewijzigd `edb37f2` al een beeld boven 1,5 procent, dan stopt punt 1 en kiest de gebruiker; een Actions-basislijn breekt het vaste punt over de Linux-container en gebeurt alleen na die keuze. | `.github/workflows/ci.yml`, `tools/orkestratie/finaltests.sh` |
+| 1. Visdiff geeft op een andere renderer valse rood of vals groen | Gesloten na keuze van de gebruiker (2026-10-16): de nulmeting op ongewijzigd `edb37f2` in `volledig` (run 38933145474) gaf 27 van 27 beelden rood, 6,6 tot 8,1 procent, alleen tekst en randen; de oude basislijn kwam uit de cloudcontainer. Golf 6 en v1 zijn op de runner pixel voor pixel gelijk (maximaal kanaalverschil 0, run 38939049262). Basislijn vernieuwd uit die run; referentieplatform is nu `ubuntu-latest` van GitHub Actions. | `docs/baseline/`, `.github/workflows/ci.yml` |
 | 2. Een gedempte consolemelding verbergt een echte fout | Gesloten: smal filter met de exacte zin "GPU stall due to ReadPixels" en een tegenproef met `S26U_TEGENPROEF=1` (handmatig, `finaltests.sh` draait hem niet) | `tools/orkestratie/renderer.py`, `tools/harness.py` |
 | 3. De testversie wijkt af van wat de telefoon krijgt (geen doctype, viewport) | Gesloten: doctype, charset en viewport in `src/head.html`, testversie is de ruwe Pages-vorm, lintcontrole | `src/head.html`, `build.py` |
 | 4. De artifact-host weigert of verandert de pagina | Geaccepteerd (buiten onze controle): een weigering wordt vastgelegd en het punt blijft open. Overdracht: de gebruiker beslist of Pages volstaat. | `tools/pubsmoke.py`, `docs/telefoontest.md` |
@@ -116,7 +116,7 @@ Struikeldraden:
 
 | Signaal | Drempel | Moment | Eigenaar | Actie |
 |---|---|---|---|---|
-| Visdiff op ongewijzigd `edb37f2` in de Linux-job | Boven 1,5 procent afwijkende pixels | Eerste run van `volledig` | Orkestrator, dan gebruiker | Punt 1 stopt; gebruiker kiest over een Actions-basislijn |
+| Visdiff op ongewijzigd `edb37f2` in de Linux-job | Boven 1,5 procent afwijkende pixels | Eerste run van `volledig` | Orkestrator, dan gebruiker | Afgegaan op 2026-10-16; gebruiker koos een Actions-basislijn |
 | Consolefilter slikt meer dan de ene zin | `S26U_TEGENPROEF=1 python3 tools/smoke.py` blijft groen (hoort rood te worden) | Bij elke wijziging van `IGNORE`, `IGNORE_DARWIN` of `ARGS` in `tools/harness.py` en vóór de PR | Orkestrator | Filter terug naar de exacte zin |
 | Testversie en Pages-vorm verschillen | `pubsmoke` of lint rood | Elke push | Orkestrator | Eerst `src/head.html` herstellen |
 | Artifact-host weigert de bytes | Eén weigering | Na publiceren | Orkestrator | Vastleggen; punt open; melden aan gebruiker |
