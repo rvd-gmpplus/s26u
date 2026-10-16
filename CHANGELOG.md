@@ -1,5 +1,14 @@
 # Wijzigingen
 
+## Versie 3
+
+- De S Pen zit in de afgeronde hoek linksonder (as x +32,0): de opening ligt in de hoekboog en de einddop is schuin
+  afgesneden, zodat hij gelijk ligt met het frame (zoals bij het echte toestel).
+- Omdraaien: het toestel draait 180 graden om de lange as, zodat het scherm boven ligt. Knop in de bovenbalk, schakelaar
+  in Weergave, sneltoets F en `?flip=1` in de URL; presets en camera draaien mee.
+- Lokale Linux-VM voor de volledige set (`tools/linux/vmtests.sh`).
+- Aantallen: zie `docs/cijfers.md`.
+
 ## Versie 2
 
 - Doctype, charset en viewport in `src/head.html`: de telefoon gebruikt de standaardmodus.
