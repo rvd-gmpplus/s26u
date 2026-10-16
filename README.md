@@ -31,6 +31,16 @@ De kerncijfers staan in `docs/cijfers.md`; wat bevestigd is en wat geschat, staa
 ![Hoofdgroepen](docs/screenshots/hoofdgroepen.png)
 ![Achterglas eraf](docs/screenshots/achterglas-eraf.png)
 
+## Bediening
+
+- Klik op een onderdeel: de groep klapt uit. Dubbelklik: direct naar het onderdeel. Rechtsklik, Shift+klik of vasthouden: inklappen.
+- Slepen draait, rechts slepen verschuift, scrollen zoomt. Met de modus Openen (toets O) openen het achterglas, de SIM-lade,
+  de S Pen en de andere openers.
+- Omdraaien (knop naast ? bovenin, rij in Weergave of toets F): het toestel draait 180 graden om de lengteas en ligt met het
+  scherm boven. Uitklappen, openers, presets en de camerastanden werken ook omgedraaid. De link krijgt `?flip=1`; die combineert met
+  `?preset=` en `?open=`.
+- Cijfertoetsen kiezen een preset, Backspace is stap terug, ? opent het hulpvenster met alle toetsen.
+
 ## Bouwen en testen
 
 ```

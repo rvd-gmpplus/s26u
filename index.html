@@ -1,6 +1,6 @@
 <!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Galaxy S26 Ultra explosietekening</title>
-<meta name="s26u-version" content="2 (bron 60852be)">
+<meta name="s26u-version" content="2 (bron 19adfd0)">
 <meta name="description" content="Interactieve 3D-explosietekening van een Samsung Galaxy S26 Ultra: scherm, frame, moederbord, batterij, koeling, camera's en S Pen laag voor laag uit elkaar. Onafhankelijk schematisch model.">
 <meta property="og:title" content="Galaxy S26 Ultra explosietekening">
 <meta property="og:description" content="Interactieve 3D-explosietekening van een Samsung Galaxy S26 Ultra: scherm, frame, moederbord, batterij, koeling, camera's en S Pen laag voor laag uit elkaar. Onafhankelijk schematisch model.">
@@ -491,6 +491,7 @@ input[type=range]{width:100%;accent-color:var(--ink)}
     </div></div>
     <div class="top-actions">
       <button class="iconbtn" id="help" aria-label="Uitleg over de bediening" aria-haspopup="dialog">?</button>
+      <button class="iconbtn" id="btnFlip" aria-label="Omdraaien: scherm boven" aria-pressed="false" title="Toestel omdraaien: scherm boven of achterkant boven (sneltoets F)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8.5"/><path d="M20 4v4.5h-4.5"/><path d="M20 12a8 8 0 0 1-13.7 5.6L4 15.5"/><path d="M4 20v-4.5h4.5"/></svg></button>
       <button class="iconbtn" id="btnParts" aria-label="Onderdelenlijst openen" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg></button>
       <button class="iconbtn" id="btnView" aria-label="Weergave-instellingen openen" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
     </div>
@@ -537,6 +538,7 @@ input[type=range]{width:100%;accent-color:var(--ink)}
       </section>
       <section id="tab-view" role="tabpanel" aria-labelledby="tabbtn-view" hidden>
         <div class="ctl">
+          <label class="row" for="tFlip"><span>Omdraaien<small>Scherm boven in plaats van achterkant boven (toets F)</small></span><input class="switch" type="checkbox" role="switch" id="tFlip"></label>
           <label class="row" for="spread"><span>Spreiding<small>Afstand tussen uitgeklapte delen</small></span><output id="spreadOut">100%</output></label>
           <input id="spread" type="range" min="40" max="220" step="5" value="100">
           <label class="row" for="tLabels"><span>Labels<small>Namen bij de laatst uitgeklapte groep</small></span><input class="switch" type="checkbox" role="switch" id="tLabels" checked></label>
@@ -610,7 +612,7 @@ input[type=range]{width:100%;accent-color:var(--ink)}
   <div id="press" hidden><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="28"/></svg></div>
   <div id="helpDlg" hidden><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
     <h2 id="helpTitle">Bediening</h2>
-    <p class="ver">Galaxy S26 Ultra explosietekening, versie 2 (bron 60852be)</p>
+    <p class="ver">Galaxy S26 Ultra explosietekening, versie 2 (bron 19adfd0)</p>
     <div id="helpMouse"><h3>Met de muis</h3><dl>
       <dt>Klik</dt><dd>De groep van het onderdeel klapt uit; de rest blijft staan. Staat die groep al open, dan wordt het onderdeel uitgelicht.</dd>
       <dt>Dubbelklik</dt><dd>Direct naar dit onderdeel: alle groepen erboven gaan laag voor laag open.</dd>
@@ -634,6 +636,7 @@ input[type=range]{width:100%;accent-color:var(--ink)}
       <dt><kbd>Backspace</kbd></dt><dd>Stap terug.</dd>
       <dt><kbd>&uarr;</kbd> <kbd>&darr;</kbd> <kbd>&larr;</kbd> <kbd>&rarr;</kbd></dt><dd>Door de onderdelen lopen: bovenliggende groep, eerste deel, vorige of volgende op hetzelfde niveau.</dd>
       <dt><kbd>O</kbd></dt><dd>Wisselt tussen Uitklappen en Openen. In Openen opent <kbd>Enter</kbd> de opener van de selectie en sluit <kbd>Shift</kbd>+<kbd>Enter</kbd> hem.</dd>
+      <dt><kbd>F</kbd></dt><dd>Draait het toestel om: scherm boven of achterkant boven. De knop bovenin en de schakelaar Omdraaien in Weergave doen hetzelfde. Daarna kijkt de camera van boven op het scherm; de knoppen en presets tonen hetzelfde deel van het toestel als voorheen, nu van de andere kant. De link krijgt ?flip=1.</dd>
       <dt><kbd>Esc</kbd></dt><dd>Menu sluiten of het hele toestel selecteren.</dd>
       <dt id="helpKeysT"></dt><dd id="helpKeys"></dd>
       <dt><kbd>/</kbd></dt><dd>Zoek een onderdeel in de onderdelenlijst.</dd>
@@ -3169,11 +3172,16 @@ const VIEW = { l: 0, r: 0, t: 0, b: 0 };
 let W = 1, H = 1;
 // De telefoon ligt met het scherm op de vloer (y = 0), achterkant boven (+y), bovenrand naar -z. front kijkt op het scherm,
 // rear op de achterkant, top op de bovenrand, under op de onderrand.
-const DIRS = { iso: V3(0.8, 1.15, 0.9), front: V3(0.0001, -1, 0.04), rear: V3(0.0001, 1, 0.04), side: V3(1, 0.14, 0.02), top: V3(0.05, 0.3, -1), under: V3(0.05, 0.3, 1), isoRear: V3(-0.8, 1.15, -0.9) };
+// Alle richtingen staan in het frame van het toestel (de gemonteerde stand). Is het toestel omgedraaid (zie Omdraaien),
+// dan draait uiDirW ze 180 graden om de lengteas (z) mee, zodat elke richting hetzelfde deel van het toestel toont.
+// isoFront: ¾-aanzicht op het scherm (de camera kijkt na het omdraaien van boven op het scherm).
+const DIRS = { iso: V3(0.8, 1.15, 0.9), front: V3(0.0001, -1, 0.04), rear: V3(0.0001, 1, 0.04), side: V3(1, 0.14, 0.02), top: V3(0.05, 0.3, -1), under: V3(0.05, 0.3, 1), isoRear: V3(-0.8, 1.15, -0.9), isoFront: V3(0.7, -1, 0.7) };
 let uiSpreadEnd = 1;
 // Eindstand voorspellen: posities na afloop van alle lopende animaties, met de zichtbaarheid van de eindstand.
 function uiPredHidden(n) { const p = n.parent; return !!(n.inner && p && p.target === 0 && uiInScope(p) && !uiOpenNear(p, true)); }
 function uiWithFinal(fn) {
+  const flipSave = uiFlipAnim ? [ROOT.obj.position.clone(), ROOT.obj.quaternion.clone()] : null;
+  if (flipSave) uiFlipPose(uiFlipAnim.a1);   // een lopende draai: rekenen met de eindstand
   const moved = uiOpenFinalNodes();
   for (const n of moved) { (n._q || (n._q = new THREE.Quaternion())).copy(n.obj.quaternion); n._s = n.obj.scale.clone(); n._u = n.ou; }
   for (const n of ALL) if (n.parent) {
@@ -3185,6 +3193,7 @@ function uiWithFinal(fn) {
   try { return fn(); } finally {
     for (const n of ALL) if (n.parent) n.obj.position.copy(n._p);
     for (const n of moved) { n.obj.quaternion.copy(n._q); n.obj.scale.copy(n._s); n.ou = n._u; }
+    if (flipSave) { ROOT.obj.position.copy(flipSave[0]); ROOT.obj.quaternion.copy(flipSave[1]); }
     ROOT.obj.updateMatrixWorld(true);
   }
 }
@@ -3301,13 +3310,62 @@ let uiLastFit = null;
 function focusNodes(nodes, dir, pad, opt = {}) {
   const pts = uiCollect(nodes, true);
   if (!pts.length) uiCollect(nodes.map(() => ROOT), true, pts);
-  const f = uiFitPoints(pts, dir, pad || 1.08, opt);
+  const f = uiFitPoints(pts, dir ? uiDirW(dir) : null, pad || 1.08, opt);
   if (f) animCam(f.pos, f.target, opt.dur, opt.delay);
   uiLastFit = { nodes: nodes.slice(), dir: dir ? dir.clone() : null, pad: pad || 1.08, opt: opt.min ? { min: opt.min } : {} };
   updateGround();
 }
 function contextNodes() { return ISO.length ? ISO : [ROOT]; }
 let uiUserCam = false; // de gebruiker heeft de camera zelf verplaatst sinds de laatste inpassing
+
+/* ---------- omdraaien: scherm boven of achterkant boven ---------- */
+// Het hele model draait 180 graden om de lengteas (z) en ligt daarna weer op de vloer: het laagste punt (het camera-eiland,
+// dat in de omgedraaide stand naar beneden steekt) raakt y = 0. Alleen ROOT.obj krijgt een draaiing en verplaatsing; alles
+// eronder blijft in zijn eigen frame, dus uitklapvectoren, openers, batches en labels werken in beide standen ongewijzigd
+// (het model klapt mee om). Tijdens de draai rolt het toestel over de vloer: elk frame ligt het laagste hoekpunt op y = 0.
+// FLIP is de gewenste stand; uiFlipA de huidige hoek (0 of PI, ertussen tijdens de animatie).
+let FLIP = false, uiFlipA = 0, uiFlipAnim = null;
+const UI_FLIP_BOX = (() => { // doorsnede (x, y) van het gemonteerde toestel, alle meshes (inclusief ingesloten)
+  const b = new THREE.Box3(), t = new THREE.Box3();
+  for (const m of MESHES) { if (!m.geometry.boundingBox) m.geometry.computeBoundingBox(); b.union(t.copy(m.geometry.boundingBox).applyMatrix4(m.matrixWorld)); }
+  return b;
+})();
+const UI_FLIP_C = [(UI_FLIP_BOX.min.x + UI_FLIP_BOX.max.x) / 2, (UI_FLIP_BOX.min.y + UI_FLIP_BOX.max.y) / 2];
+const UI_FLIP_Z = V3(0, 0, 1);
+// Stand van het toestel bij hoek a: draaien om het midden C van de doorsnede, dat zo hoog staat dat het laagste hoekpunt y = 0 raakt.
+function uiFlipPose(a) {
+  const s = Math.sin(a), c = Math.cos(a), [cx, cy] = UI_FLIP_C;
+  let low = Infinity;
+  for (const x of [UI_FLIP_BOX.min.x, UI_FLIP_BOX.max.x]) for (const y of [UI_FLIP_BOX.min.y, UI_FLIP_BOX.max.y]) low = Math.min(low, (x - cx) * s + (y - cy) * c);
+  const yc = -low;                       // wereldhoogte van het draaipunt
+  ROOT.obj.quaternion.setFromAxisAngle(UI_FLIP_Z, a);
+  ROOT.obj.position.set(-(cx * c - cy * s), yc - (cx * s + cy * c), 0);
+}
+// Richting in het frame van het toestel -> wereldrichting: omgedraaid is dat een draaiing van 180 graden om z.
+const uiDirW = d => (FLIP ? V3(-d.x, -d.y, d.z) : d);
+function uiSetFlip(on, opt = {}) {
+  on = !!on;
+  if (on === FLIP) return false;
+  FLIP = on;
+  if (opt.instant || REDUCED) { uiFlipAnim = null; uiFlipA = on ? PI : 0; uiFlipPose(uiFlipA); ROOT.obj.updateMatrixWorld(true); }
+  else uiFlipAnim = { a0: uiFlipA, a1: on ? PI : 0, k: 0, dur: 0.9 * Math.max(0.45, Math.abs((on ? PI : 0) - uiFlipA) / PI) };
+  updateGround();
+  if (!opt.noCam) focusNodes(contextNodes(), on ? DIRS.isoFront : DIRS.iso, 1.04, { dur: 1.1 });
+  return true;
+}
+function uiStepFlip(dt) {
+  if (!uiFlipAnim) return false;
+  const f = uiFlipAnim;
+  f.k = Math.min(1, f.k + dt / f.dur);
+  uiFlipA = f.k >= 1 ? f.a1 : f.a0 + (f.a1 - f.a0) * ease(f.k);
+  uiFlipPose(uiFlipA);
+  if (f.k >= 1) { uiFlipAnim = null; updateGround(); }
+  return true;
+}
+function uiFlipFinish() {
+  if (!uiFlipAnim) return;
+  uiFlipA = uiFlipAnim.a1; uiFlipAnim = null; uiFlipPose(uiFlipA); ROOT.obj.updateMatrixWorld(true); updateGround();
+}
 
 /* ---------- vloer ---------- */
 // Vloer en schaduw als DataTexture uit JavaScript (geen 2D-canvas: dat tekenen kostte in software-WebGL bij het
@@ -3399,7 +3457,7 @@ function uiSnap() {
     lift: uiLifted ? uiLifted.id : null,
     iso: ISO.map(n => n.id), dim: DIM ? DIM.id : null, xray: XRAY, sys: SYSCOL, spread: SPREAD, om: OPENMODE,
     sel: (SEL || ROOT).id, ctx: CTX ? CTX.id : null, force: uiLabelForce, preset: ACTIVE_PRESET,
-    cam: [camera.position.clone(), controls.target.clone()],
+    cam: [camera.position.clone(), controls.target.clone()], flip: FLIP,
   };
 }
 function uiPush() {
@@ -3415,6 +3473,7 @@ function uiRestore(s, instant) {
   for (const [id, x, y, z] of s.pull) { const n = uiById.get(id); if (n) { n.pull.set(x, y, z); uiOffTo(n, 0.7); } }
   uiDrop();
   if (s.lift != null) { const n = uiById.get(s.lift); if (n) uiLift(n); }
+  uiSetFlip(!!s.flip, { noCam: true, instant: instant });   // de stand omdraaien hoort bij de stap; de camera komt uit s.cam
   XRAY = s.xray; SYSCOL = s.sys; OPENMODE = !!s.om;
   uiSetDim(s.dim != null ? uiById.get(s.dim) : null);
   if (SPREAD !== s.spread) uiSetSpread(s.spread, true);
@@ -4095,6 +4154,12 @@ function uiPnLvl(mk, lvl) {
 function uiSyncToggles() {
   $('tXray').checked = XRAY; $('tSys').checked = SYSCOL; els.legend.hidden = !SYSCOL;
   const sp = Math.round(SPREAD * 100); $('spread').value = String(sp); $('spreadOut').textContent = sp + '%';
+  uiSyncFlip();
+}
+// Omdraaien: de knop in de bovenbalk (aria-pressed), de schakelaar in Weergave en de adresbalk volgen FLIP
+function uiSyncFlip() {
+  $('tFlip').checked = FLIP;
+  if ($('btnFlip').getAttribute('aria-pressed') !== String(FLIP)) $('btnFlip').setAttribute('aria-pressed', String(FLIP));
 }
 function uiAfterAction() {
   renderPanel();
@@ -4445,6 +4510,18 @@ function syncSheetHeight() {
 /* ---------- weergave-bediening ---------- */
 $('spread').addEventListener('input', e => { uiSetSpread(e.target.value / 100, false); $('spreadOut').textContent = e.target.value + '%'; requestRender(); });
 $('spread').addEventListener('change', () => { updateGround(); focusNodes(contextNodes()); });
+// Omdraaien (knop, schakelaar, sneltoets F, ?flip=1): scherm boven of achterkant boven. Eén handeling in de geschiedenis.
+function uiFlipTo(on) {
+  on = !!on;
+  if (on === FLIP) { uiSyncFlip(); return FLIP; }
+  uiStopPlay(); uiStopTour(); hideHint();
+  uiPush();
+  uiSetFlip(on);
+  uiAfterAction();
+  return FLIP;
+}
+$('btnFlip').onclick = () => uiFlipTo(!FLIP);
+$('tFlip').addEventListener('change', e => uiFlipTo(e.target.checked));
 $('tLabels').addEventListener('change', e => { LABELS = e.target.checked; requestRender(); });
 $('tXray').addEventListener('change', e => { uiPush(); XRAY = e.target.checked; clearPreset(); applyMats(); uiAfterAction(); });
 $('tSys').addEventListener('change', e => { uiPush(); SYSCOL = e.target.checked; clearPreset(); applyMats(); uiAfterAction(); });
@@ -5008,6 +5085,7 @@ window.addEventListener('keydown', e => {
   if (e.key === 'Backspace') { e.preventDefault(); uiStopPlay(); uiStopTour(); uiUndo(); return; }
   if (e.key === '?') { e.preventDefault(); uiHelp(true); return; }
   if (e.key === 'o' || e.key === 'O') { e.preventDefault(); hideHint(); uiSetOpenMode(!OPENMODE); return; }
+  if (e.key === 'f' || e.key === 'F') { e.preventDefault(); uiFlipTo(!FLIP); return; }
   // U17: / springt naar het zoekveld van de onderdelenlijst (op de telefoon gaat het paneel daarvoor open)
   if (e.key === '/') { e.preventDefault(); hideHint(); showTab('tree'); if (uiSheetBottom()) setSheet('open'); els.search.focus(); els.search.select(); return; }
   // pijltjes (niet op een bedieningselement): door de boom lopen. Omhoog = bovenliggende groep, omlaag = eerste deel,
@@ -5475,6 +5553,7 @@ function uiTick(dt) {
   if (stepOpen(dt)) active = true;
   if (uiStepPlay(dt)) active = true;
   if (stepCam(dt)) active = true;
+  if (uiStepFlip(dt)) active = true;
   if (stepGround(dt)) active = true;
   if (uiStepFade(dt)) active = true; // U4
   if (uiVisDirty) { applyVisibility(); active = true; }
@@ -5537,7 +5616,8 @@ let uiUrlLast = null;
 function uiUrlSync() {
   let u; try { u = new URL(location.href); } catch (_) { return; }
   if (!/^https?:$/.test(u.protocol)) return;
-  const q = u.searchParams; q.delete('preset'); q.delete('open');
+  const q = u.searchParams; q.delete('preset'); q.delete('open'); q.delete('flip');
+  if (FLIP) q.set('flip', '1');
   if (ACTIVE_PRESET && appPresetById.has(ACTIVE_PRESET) && ACTIVE_PRESET !== 'assembled') q.set('preset', ACTIVE_PRESET);
   else if (OPENMODE) {
     const open = OPENERS.filter(n => n.ot > 0).map(n => uiNameCount.get(n.name) === 1 ? n.name : uiPathOf(n).replace(/^[^/]+\//, ''));
@@ -5551,6 +5631,15 @@ function uiUrlSync() {
 function uiUrlApply() {
   let q; try { q = new URLSearchParams(location.search); } catch (_) { return; }
   const pid = q.get('preset'), open = q.get('open');
+  // ?flip=1: direct omgedraaid (scherm boven); combineerbaar met preset en open, die daarna in de omgedraaide stand kadreren
+  if (q.get('flip') === '1') {
+    uiSetFlip(true, { instant: true, noCam: true });
+    const f = uiFitPoints(uiCollect([ROOT], true), uiDirW(DIRS.isoFront), 1.04);
+    if (f) { camera.position.copy(f.pos); controls.target.copy(f.target); controls.update(); }
+    uiLastFit = { nodes: [ROOT], dir: DIRS.isoFront.clone(), pad: 1.04, opt: {} };
+    ACTIVE_PRESET = null;
+    uiAfterAction();
+  }
   if (pid) {
     const p = appPresetById.get(pid);
     if (p && !p.tour && appPresetOk(p)) { appApplyPreset(p, { noHistory: true }); finishAll(); return; }
@@ -5589,6 +5678,7 @@ uiWarmMaterials();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { for (const n of ALL) n._lw = null; uiUiChanged(); layoutView(); });
 
 function finishAll() {
+  uiFlipFinish();
   if (uiRefitTimer) uiRefitNow();
   for (const n of uiAnim) { n.delay = 0; n.k = 1; n.amt = n.target; n.u = n.amt; placeKids(n); }
   uiAnim.clear();
@@ -5637,7 +5727,7 @@ function uiState() {
   return {
     open: ASMS.filter(n => n.target > 0.5).map(n => n.name), selected: (SEL || ROOT).name, iso: ISO.map(n => n.name), xray: XRAY,
     explode: { group: w.name, value: L ? +(uiExplodeX(w) / L).toFixed(4) : 0, levels: L }, history: uiHist.length,
-    lifted: uiLifted ? uiLifted.name : null, preset: ACTIVE_PRESET, dim: DIM ? DIM.name : null, mode: MODE, openMode: OPENMODE, openers: OPENERS.filter(n => n.ot > 0).map(n => n.name), tour: !!appTour, playing: !!uiPlayS, sys: SYSCOL,
+    lifted: uiLifted ? uiLifted.name : null, preset: ACTIVE_PRESET, dim: DIM ? DIM.name : null, mode: MODE, openMode: OPENMODE, openers: OPENERS.filter(n => n.ot > 0).map(n => n.name), tour: !!appTour, playing: !!uiPlayS, sys: SYSCOL, flip: FLIP,
   };
 }
 function uiFrameOf(names) {
@@ -5704,6 +5794,9 @@ window.__s26u = {
   // openmodus (kern): leiders met hun stand; setOpen(naam, 0..1, direct); openAll(0..1, direct)
   openers: () => OPENERS.map(n => ({ name: n.name, label: n.opn.label || n.name, type: n.opn.type, open: +n.ou.toFixed(4), target: n.ot, followers: n.opn.followers.map(f => f.name) })),
   setOpenMode: on => { hideHint(true); uiSetOpenMode(on); return OPENMODE; },
+  // omdraaien: flip(true) scherm boven, flip(false) achterkant boven, flip() wisselt; geeft de nieuwe stand terug
+  flip: on => { hideHint(true); return uiFlipTo(on === undefined ? !FLIP : on); },
+  flipInfo: () => ({ flip: FLIP, angle: +uiFlipA.toFixed(4), animating: !!uiFlipAnim, pos: ROOT.obj.position.toArray(), box: [UI_FLIP_BOX.min.toArray(), UI_FLIP_BOX.max.toArray()] }),
   openPlan: x => { const n = typeof x === 'string' ? byName(x) : x; const pl = n && uiOpenPlan(n); return pl ? { opener: pl.n.name, open: pl.open } : null; },
   pnRebuild: uiPnBuild, pnCheck: uiPnCheck, pnOf: x => { const n = typeof x === 'string' ? (uiByPath(x) || byName(x)) : x; const r = n && uiPnRec(n); return r ? { kind: r.kind, unit: r.id, rule: r.rule || null } : null; },
   setOpen: (name, v, instant) => { const r = uiSetOpen(name, v, instant); uiSyncOpenUi(); renderPanel(); requestRender(); return r; },
