@@ -1,6 +1,6 @@
 # s26u: afspraken voor wie hier bouwt
 
-Interactieve 3D-explosietekening van een Samsung Galaxy S26 Ultra (1 TB, 16 GB RAM, lichte kleur) in three.js r147. Alle
+Interactieve 3D-explosietekening van een Samsung Galaxy S26 Ultra (1 TB, 16 GB RAM, White) in three.js r147. Alle
 geometrie staat in code; `build.py` plakt `src/head.html` en `src/*.js` (volgorde `ORDER`) tot één `index.html`. De kern
 (bouw, app, testset) is in golf 0 eenmalig gekopieerd uit `rvd-gmpplus/laguna3` en evolueert hier los verder. Nederlands is
 de taal van code-commentaar, beschrijvingen, docs en commits. Geen em-dashes in tekst.

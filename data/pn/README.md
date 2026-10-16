@@ -10,7 +10,8 @@ schema van de CSV staat in `docs/onderdeelnummers-schema.md`.
 | `map.json` | Pad zonder wortel -> `[eenheid, 'zelf' \| 'deel' \| 'set', regel]` |
 | `info.json` | Pad zonder wortel -> `[[label, waarde, bron, zekerheid]]` |
 
-Golf 0 heeft nog geen eenheden. Golf 5 vult ze, met deze regels:
+Golf 5 heeft de eerste eenheden gevuld (`units/S1-servicepacks.json`): Samsung-servicenummers van service packs uit lijsten van
+onderdelenleveranciers. Regels:
 - elk nummer heeft een bron met https;
 - bewijs A tot D zoals in het paneel;
 - een onzeker nummer krijgt graad D of blijft weg;

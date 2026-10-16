@@ -3,7 +3,7 @@
 `docs/onderdeelnummers.csv` is de platte uitvoer van de nummergegevens in `data/pn/`, bedoeld voor wie de nummers buiten de
 pagina wil gebruiken. De pagina leest dezelfde gegevens als `PN_DATA` uit `src/partnumbers.js`. Beide bestanden maakt
 `python3 tools/orkestratie/build_pn.py`; niemand bewerkt ze met de hand. `python3 tools/pncheck.py` bouwt ze in het geheugen
-opnieuw en vergelijkt byte voor byte. In golf 0 zijn er nog geen nummers: elke rij heeft status `niet onderzocht`.
+opnieuw en vergelijkt byte voor byte. De aantallen staan in `docs/cijfers.md` en in de uitvoer van `build_pn.py`.
 
 ## Bestandsvorm
 
@@ -41,7 +41,7 @@ De wortel `Samsung Galaxy S26 Ultra` staat niet in de CSV; alle paden zijn zonde
 | 10 | `soort` | `Samsung` voor een servicenummer uit `oe`, `fabrikant` voor een nummer uit `am` |
 | 11 | `merk` | Merk van het nummer |
 | 12 | `nummer` | Het nummer, letterlijk zoals de bron het schrijft |
-| 13 | `bewijs` | A: in een servicecatalogus voor dit model op de juiste plaats; B: Samsung-servicenummer van zo'n artikel; C: kruisverwijzing; D: alleen uit een advertentie of teardown |
+| 13 | `bewijs` | A: in een servicecatalogus van Samsung voor dit model; B: minstens twee onafhankelijke onderdelenleveranciers noemen het nummer voor dit model; C: één leverancier; D: alleen uit een advertentie voor een gebruikt onderdeel of een teardown |
 | 14 | `opmerking` | Korte Nederlandse aanduiding bij het nummer; geen letterlijke catalogustekst |
 | 15 | `var` | Varianten en waarvan de keuze afhangt (modelcode, regio, kleur) |
 | 16 | `per` | Verpakking of aantal per toestel |

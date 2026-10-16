@@ -207,7 +207,7 @@ function renderPn(n) {
       for (const [merk, num, note, lvl] of u.am) { const tr = tb.insertRow(); if (isKz(null, [merk, num])) tr.className = 'pn-kz'; tr.appendChild(mk('td', null, merk)); tr.appendChild(mk('td', 'num', num)); const td = mk('td'); if (lvl) td.appendChild(uiPnLvl(mk, lvl)); tr.appendChild(td); const tn = mk('td', null, note || ''); if (tr.className === 'pn-kz') tn.appendChild(mk('em', null, (note ? ' ' : '') + 'gekozen')); tr.appendChild(tn); }
       box.appendChild(t);
     }
-    box.appendChild(mk('p', 'pn-txt', 'Bewijs: A staat in een servicecatalogus voor dit model op de juiste plaats; B is het Samsung-servicenummer van zo\'n artikel; C is een kruisverwijzing van een A- of B-nummer; D komt alleen uit een advertentie of een teardown en is niet in een catalogus gecontroleerd.'));
+    box.appendChild(mk('p', 'pn-txt', 'Bewijs: A staat in een servicecatalogus van Samsung voor dit model; B is een Samsung-servicenummer dat minstens twee onafhankelijke onderdelenleveranciers voor dit model noemen; C noemt één leverancier; D komt alleen uit een advertentie voor een gebruikt onderdeel of een teardown.'));
   }
   if (u && u.var) { box.appendChild(mk('h4', null, kz ? 'Varianten in de catalogus' : 'Variant')); box.appendChild(mk('p', 'pn-txt', u.var)); }
   if (u && u.per) { box.appendChild(mk('h4', null, 'Verpakking')); box.appendChild(mk('p', 'pn-txt', u.per)); }
@@ -240,7 +240,7 @@ function renderPn(n) {
 }
 function uiPnLvl(mk, lvl) {
   const e = mk('span', 'pn-lvl', lvl);
-  e.title = { A: 'In een servicecatalogus voor dit model, op de juiste plaats', B: 'Samsung-servicenummer van een artikel dat voor dit model in de catalogus staat', C: 'Kruisverwijzing van een A- of B-nummer', D: 'Alleen uit een advertentie of een teardown; niet in een catalogus gecontroleerd' }[lvl] || '';
+  e.title = { A: 'In een servicecatalogus van Samsung voor dit model', B: 'Bij minstens twee onafhankelijke onderdelenleveranciers voor dit model', C: 'Bij één onderdelenleverancier', D: 'Alleen uit een advertentie voor een gebruikt onderdeel of een teardown' }[lvl] || '';
   return e;
 }
 

@@ -1,8 +1,8 @@
 # Masterplan s26u
 
 Doel: een interactieve 3D-explosietekening van de Samsung Galaxy S26 Ultra op het niveau van een volledige teardown, met de
-werkwijze en kwaliteitslat van `rvd-gmpplus/laguna3`. Het toestel is dat van de gebruiker: 1 TB met 16 GB RAM, lichte kleur
-(White of Silver Shadow, vast te stellen in golf 1).
+werkwijze en kwaliteitslat van `rvd-gmpplus/laguna3`. Het toestel is dat van de gebruiker: 1 TB met 16 GB RAM, White (wit
+achterglas, zilveren frame).
 
 ## Keuzes van de gebruiker
 
@@ -10,7 +10,7 @@ werkwijze en kwaliteitslat van `rvd-gmpplus/laguna3`. Het toestel is dat van de 
 |---|---|
 | Detailniveau | Volledige teardown: alle lagen zoals iFixit (scherm, frame, moederbord, batterij, koeling, camera's, S Pen, kleine delen) |
 | Hergebruik van laguna3 | Kern één keer kopiëren, daarna los; laguna3 blijft ongewijzigd |
-| Uitvoering | Eigen toestel: 1 TB, lichte kleur |
+| Uitvoering | Eigen toestel: 1 TB, White met zilveren frame |
 
 ## Ontwerpbesluiten
 
@@ -42,7 +42,7 @@ werkwijze en kwaliteitslat van `rvd-gmpplus/laguna3`. Het toestel is dat van de 
    - de specificatiepagina's van Samsung;
    - de maattekening (hoekstraal, camera-eiland, knoppen).
 2. Open punten sluiten:
-   - kleur: White of Silver Shadow;
+   - kleur: White met zilveren frame (vastgesteld door de gebruiker);
    - materiaal van het frame;
    - diafragma van de hoofdcamera (f/1,4 of f/1,7 volgens verschillende bronnen).
 3. Het volledige skelet van de boom vastleggen (`data/tree.json`) en `tools/anchors.json` uitbreiden:

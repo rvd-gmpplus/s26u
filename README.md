@@ -1,6 +1,6 @@
 # Galaxy S26 Ultra explosietekening
 
-Interactieve 3D-explosietekening van een Samsung Galaxy S26 Ultra (1 TB, 16 GB RAM, lichte kleur) in de browser. Klik op een
+Interactieve 3D-explosietekening van een Samsung Galaxy S26 Ultra (1 TB, 16 GB RAM, White) in de browser. Klik op een
 onderdeel om zijn groep uit te klappen, dubbelklik om er direct heen te gaan, rechtsklik of houd vast om in te klappen. Alle
 geometrie staat in JavaScript; er worden geen 3D-bestanden, foto's of productteksten gebruikt.
 

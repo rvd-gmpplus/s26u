@@ -1,1 +1,57 @@
-{}
+{
+ "Scherm": [
+  "S1-servicepacks:DISPLAY",
+  "zelf",
+  ""
+ ],
+ "Scherm/Lijmrand coverglas": [
+  "S1-servicepacks:DISPADH",
+  "zelf",
+  ""
+ ],
+ "Behuizing": [
+  "S1-servicepacks:DISPLAYFRAME",
+  "set",
+  "scherm en middenframe als één eenheid"
+ ],
+ "Behuizing/Middenframe": [
+  "S1-servicepacks:FRAME",
+  "zelf",
+  ""
+ ],
+ "Energie en koeling/Batterij": [
+  "S1-servicepacks:BATTERY",
+  "zelf",
+  ""
+ ],
+ "Achterkant/Achterglas": [
+  "S1-servicepacks:BACKCOVER",
+  "zelf",
+  ""
+ ],
+ "Achterkant/Camera-eiland": [
+  "S1-servicepacks:BACKCOVER",
+  "deel",
+  "de cameraglazen zitten in het service pack van het achterglas"
+ ],
+ "Achterkant/Lijmrand achterglas": [
+  "S1-servicepacks:BACKADH",
+  "zelf",
+  ""
+ ],
+ "Camera's/Selfiecamera 12 MP/Lijmlaag": [
+  "S1-servicepacks:FCAMADH",
+  "zelf",
+  ""
+ ],
+ "Randapparatuur/USB-C-subbord": [
+  "S1-servicepacks:USBBOARD",
+  "zelf",
+  ""
+ ],
+ "Randapparatuur/USB-C-subbord/USB-C-poort/Waterdichting USB-C": [
+  "S1-servicepacks:USBADH",
+  "set",
+  "lijm en afdichting bij de laadpoort"
+ ]
+}
