@@ -18,8 +18,8 @@ import os, re, sys, shutil, subprocess, tempfile, hashlib, base64
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, 'src')
-# golf 2 en 3 voegen de domeinbestanden toe vóór phone.js: frame.js, rear.js, display.js, camera.js, board.js, power.js, peripherals.js
-ORDER = ['core.js', 'phone.js', 'partnumbers.js', 'app1.js', 'presets.js', 'app2.js']
+# domeinbestanden vóór phone.js (de orkestrator die hun bouwfuncties aanroept); zie docs/indeling.md
+ORDER = ['core.js', 'frame.js', 'rear.js', 'display.js', 'camera.js', 'board.js', 'power.js', 'peripherals.js', 'phone.js', 'partnumbers.js', 'app1.js', 'presets.js', 'app2.js']
 LIBS = ['build/three.min.js', 'examples/js/controls/OrbitControls.js', 'examples/js/environments/RoomEnvironment.js', 'examples/js/geometries/RoundedBoxGeometry.js', 'examples/js/utils/BufferGeometryUtils.js']
 THREE_VERSION = '0.147.0'  # r147: de laatste three.js met de niet-module examples/js (OrbitControls enz.)
 CDN = f'https://cdn.jsdelivr.net/npm/three@{THREE_VERSION}/'

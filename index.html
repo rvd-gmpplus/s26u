@@ -1,5 +1,5 @@
 <title>Galaxy S26 Ultra explosietekening</title>
-<meta name="s26u-version" content="1 (bron f9a058c)">
+<meta name="s26u-version" content="1 (bron aee497f)">
 <meta name="description" content="Interactieve 3D-explosietekening van een Samsung Galaxy S26 Ultra: scherm, frame, moederbord, batterij, koeling, camera's en S Pen laag voor laag uit elkaar. Onafhankelijk schematisch model.">
 <meta property="og:title" content="Galaxy S26 Ultra explosietekening">
 <meta property="og:description" content="Interactieve 3D-explosietekening van een Samsung Galaxy S26 Ultra: scherm, frame, moederbord, batterij, koeling, camera's en S Pen laag voor laag uit elkaar. Onafhankelijk schematisch model.">
@@ -608,7 +608,7 @@ input[type=range]{width:100%;accent-color:var(--ink)}
   <div id="press" hidden><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="28"/></svg></div>
   <div id="helpDlg" hidden><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
     <h2 id="helpTitle">Bediening</h2>
-    <p class="ver">Galaxy S26 Ultra explosietekening, versie 1 (bron f9a058c)</p>
+    <p class="ver">Galaxy S26 Ultra explosietekening, versie 1 (bron aee497f)</p>
     <div id="helpMouse"><h3>Met de muis</h3><dl>
       <dt>Klik</dt><dd>De groep van het onderdeel klapt uit; de rest blijft staan. Staat die groep al open, dan wordt het onderdeel uitgelicht.</dd>
       <dt>Dubbelklik</dt><dd>Direct naar dit onderdeel: alle groepen erboven gaan laag voor laag open.</dd>
@@ -977,6 +977,27 @@ function addKid(p, c) { p.kids.push(c); c.parent = p; p.obj.add(c.obj); }
 // Zijde van een symmetrisch paar, gezien op het scherm met de bovenrand van je af: +x is dan links (de telefoon ligt met het
 // scherm naar beneden, bovenrand naar -z; vanaf de achterkant gezien is +x rechts).
 const sideName = s => (s > 0 ? 'links' : 'rechts');
+
+/* ===================== Behuizing (frBuild) ===================== */
+// Domeinbestand; zie docs/indeling.md voor de zones en voorvoegsels. Zolang de bouwfunctie ontbreekt, zet phone.js een plaatshouder neer.
+
+/* ===================== Achterkant (reBuild) ===================== */
+// Domeinbestand; zie docs/indeling.md voor de zones en voorvoegsels. Zolang de bouwfunctie ontbreekt, zet phone.js een plaatshouder neer.
+
+/* ===================== Scherm (diBuild) ===================== */
+// Domeinbestand; zie docs/indeling.md voor de zones en voorvoegsels. Zolang de bouwfunctie ontbreekt, zet phone.js een plaatshouder neer.
+
+/* ===================== Camera's (caBuild) ===================== */
+// Domeinbestand; zie docs/indeling.md voor de zones en voorvoegsels. Zolang de bouwfunctie ontbreekt, zet phone.js een plaatshouder neer.
+
+/* ===================== Moederbord (boBuild) ===================== */
+// Domeinbestand; zie docs/indeling.md voor de zones en voorvoegsels. Zolang de bouwfunctie ontbreekt, zet phone.js een plaatshouder neer.
+
+/* ===================== Energie en koeling (pwBuild) ===================== */
+// Domeinbestand; zie docs/indeling.md voor de zones en voorvoegsels. Zolang de bouwfunctie ontbreekt, zet phone.js een plaatshouder neer.
+
+/* ===================== Randapparatuur en S Pen (peBuild, peBuildPen) ===================== */
+// Domeinbestand; zie docs/indeling.md voor de zones en voorvoegsels. Zolang de bouwfunctie ontbreekt, zet phone.js een plaatshouder neer.
 
 /* ===================== het hele toestel ===================== */
 // Orkestrator: zet de acht hoofdgroepen in hun volgorde en geeft ze hun uitklaprichting. Elke hoofdgroep komt uit een
