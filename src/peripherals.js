@@ -203,8 +203,8 @@ function peBuild() {
 }
 
 /* ---------- S Pen ---------- */
-// as x +31,8, y 4,45, van z -24 (punt, binnenin) tot +78,6 (dop, net binnen de hoekwand); Ø 4,4 met een platte kant naar +y
-const PE_PEN = { x: 31.8, y: 4.45, r: 2.2, plat: 1.75 };
+// as x +28,7, y 4,45, van z -24 (punt, binnenin) tot +81,4 (dop, in de opening van de onderrand); Ø 4,4 met een platte kant naar +y
+const PE_PEN = { x: 28.7, y: 4.45, r: 2.2, plat: 1.75 };
 // doorsnede in (x, y) rond de as: cirkel met een platte koorde boven, geschaald met f
 function pePenDoorsnede(f) {
   const a0 = Math.asin(PE_PEN.plat / PE_PEN.r), pts = [], N = 22;
@@ -227,10 +227,9 @@ function peBuildPen() {
   // neus: van 0,35 maal de straal bij z -21,6 naar de volle straal bij z -14
   const neus = z => { const t = clamp((z + 21.6) / 7.6, 0, 1); return 0.35 + 0.65 * (1 - (1 - t) * (1 - t)); };
   const huis = merge([pePenG(-21.6, -14, 7, neus), pePenG(-14, 76, 1, () => 1)]);
-  // De silo loopt door de afgeronde hoek van het frame (de hoek begint bij x +30,55); de dop eindigt daarom op z 78,6,
-  // vóór de binnenkant van de hoekwand, ongeveer 3 mm achter de buitenrand (afwijking van docs/indeling.md, zie daar).
-  const eind = z => { const t = clamp((z - 77.8) / 0.8, 0, 1); return 1 - 0.22 * t * t; };
-  const dop = merge([pePenG(76.05, 77.8, 1, () => 1), pePenG(77.8, 78.6, 4, eind)]);
+  // de dop eindigt 0,4 mm binnen de buitenrand, in de opening van het frame
+  const eind = z => { const t = clamp((z - 80.4) / 1.0, 0, 1); return 1 - 0.22 * t * t; };
+  const dop = merge([pePenG(76.05, 80.4, 1, () => 1), pePenG(80.4, 81.4, 4, eind)]);
   const punt = G.lathe('z', [[0, mm(-24)], [mm(0.28), mm(-24)], [mm(0.4), mm(-23.5)], [mm(0.45), mm(-22.6)], [mm(0.45), mm(-21.5)], [0, mm(-21.5)]], 12, 'pePunt');
   const kringChips = merge([-4, -1, 2].map(z => xf(mmBox(0.8, 0.3, 1.2), at(0, 0.8, z))));
   return A('S Pen', {

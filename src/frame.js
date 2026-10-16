@@ -101,8 +101,8 @@ function frOpenings(path) {
   // onderrand: USB-C, microfoon, SIM-lade, S Pen, luidsprekergaatjes
   add('USB-C', frHoleRect(S('onder', 0), 3.9, 9.0, 3.2, 1.6, 6), [S('onder', 0), 3.9]);
   add('microfoon onder', frHoleCirc(S('onder', -6.5), 3.95, 0.35, 10), [S('onder', -6.5), 3.95]);
-  add('SIM-lade', frHoleRect(S('onder', 15), 3.8, 14, 1.2, 0.5, 3), [S('onder', 15), 3.8]);
-  add('S Pen', frHoleCirc(S('onder', 31.8), 4.45, 2.5, 28), [S('onder', 31.8), 4.45]);
+  add('SIM-lade', frHoleRect(S('onder', 15), 3.8, 14.6, 1.5, 0.5, 3), [S('onder', 15), 3.8]);
+  add('S Pen', frHoleCirc(S('onder', 28.7), 4.45, 2.5, 28), [S('onder', 28.7), 4.45]);
   for (let k = 0; k < 8; k++) { const x = -10 - 2.8 * k, s = S('onder', x); add('luidspreker', frHoleCirc(s, 3.95, 0.65, 12), [s, 3.95]); }
   // bovenrand: microfoon (niet op x 0, daar zit de straal van de silhouettest niet in de weg)
   add('microfoon boven', frHoleCirc(S('boven', 12), 3.95, 0.35, 10), [S('boven', 12), 3.95]);
@@ -117,7 +117,7 @@ function frOpenings(path) {
     ['Antennesplitsing linkerflank onder', S('links', 48)],
     ['Antennesplitsing rechterflank boven', S('rechts', -60)],
     ['Antennesplitsing rechterflank onder', S('rechts', 44)],
-    ['Antennesplitsing onder links', S('onder', 26)],
+    ['Antennesplitsing hoek onder links', path.segs[1].s0 + path.segs[1].len / 2],
     ['Antennesplitsing hoek onder rechts', path.segs[3].s0 + path.segs[3].len / 2],
   ];
   return { holes: H, splits };
@@ -197,11 +197,11 @@ function frRingGeos() {
 
 /* ---------- middenplaat ---------- */
 function frArc(cx, cz, r, a0, a1, n) { const p = []; for (let i = 0; i <= n; i++) { const an = a0 + i / n * (a1 - a0); p.push([cx + r * Math.cos(an), cz + r * Math.sin(an)]); } return p; }
-// Plaat in de binnenruimte (x ±37, z ±79,8, hoekstraal 6,5), met een open sleuf langs de S Pen-silo (x 28,9 tot 34,7,
+// Plaat in de binnenruimte (x ±37, z ±79,8, hoekstraal 6,5), met een open sleuf langs de S Pen-silo (x 25,8 tot 31,6,
 // vanaf z -26,2 tot de onderrand), gaten om de drie grote camera's en de selfiecamera en een sleuf voor de displayflex.
 function frPlateGeo() {
   return cache('frPlate', () => {
-    const X = 37, Z = 79.8, r = 6.5, cx = X - r, cz = Z - r, sx0 = 28.9, sx1 = 34.7, sz = -26.2;
+    const X = 37, Z = 79.8, r = 6.5, cx = X - r, cz = Z - r, sx0 = 25.8, sx1 = 31.6, sz = -26.2;
     const te = Math.acos((sx1 - cx) / r);
     const pts = [[X, -cz], [X, cz], ...frArc(cx, cz, r, 0, te, 8), [sx1, sz], [sx0, sz], [sx0, Z], ...frArc(-cx, cz, r, HALF, PI, 10),
       ...frArc(-cx, -cz, r, PI, 1.5 * PI, 10), ...frArc(cx, -cz, r, 1.5 * PI, 2 * PI, 10)];
@@ -219,8 +219,8 @@ function frPlateGeo() {
 function frSiloGeo() {
   return cache('frSiloTube', () => {
     const z0 = -26, z1 = 80.5, L = z1 - z0;
-    const tubeG = xf(annulus(mm(2.4), mm(2.7), mm(L), 'z', 28), mmv(31.8, 4.45, (z0 + z1) / 2));
-    const capG = xf(G.cyl('z', mm(2.7), mm(2.7), mm(0.3), 28), mmv(31.8, 4.45, z0 + 0.15));
+    const tubeG = xf(annulus(mm(2.4), mm(2.7), mm(L), 'z', 28), mmv(28.7, 4.45, (z0 + z1) / 2));
+    const capG = xf(G.cyl('z', mm(2.7), mm(2.7), mm(0.3), 28), mmv(28.7, 4.45, z0 + 0.15));
     return merge([tubeG, capG]);
   });
 }
@@ -276,9 +276,9 @@ function frBuild() {
   const silo = A('S Pen-silo', { d: 'Buis in het frame waarin de S Pen zit, open aan de onderrand en met een uitwerper aan het binnenste eind. ' + est, ex: [0.55, 0.35, 0] }, [
     P('Silobuis', frSiloGeo(), MAT.frSilo, { d: 'Kunststof buis van 5,4 mm buiten en 4,8 mm binnen, van z -26 tot in de onderrand, aan het binnenste eind dicht. ' + est, ex: [0.08, 0, 0] }),
     A('S Pen-uitwerper', { d: 'Klik-uitwerper: druk de pen in en hij klikt vast, druk nog eens en de veer duwt hem een stukje naar buiten. Werking en vorm zijn geschat.', ex: [0, 0, -0.55] }, [
-      P('Uitwerperveer', spring(mm(1.4), mm(0.12), mm(0.8), 3, 'z'), MAT.steel, { d: 'Drukveer die de pen naar buiten duwt. ' + est, p: mmv(31.8, 4.45, -25.3), ex: [0, 0, -0.12] }),
-      P('Klikring', cache('frClick', () => merge([xf(annulus(mm(1.3), mm(2.2), mm(0.4), 'z', 20), mmv(31.8, 4.45, -24.7)), xf(mmBox(0.5, 0.5, 0.6), mmv(31.8, 6.3, -24.7))])), MAT.plastic, { d: 'Ring met hartvormige kliknok die de pen vasthoudt of loslaat. ' + est, ex: [0, 0, -0.24] }),
-      P('Duwkop', cache('frPush', () => xf(annulus(mm(0.8), mm(2.1), mm(0.4), 'z', 20), mmv(31.8, 4.45, -24.3))), MAT.steel, { d: 'Kopje waar de punt van de S Pen tegen drukt. ' + est, ex: [0, 0, -0.36] }),
+      P('Uitwerperveer', spring(mm(1.4), mm(0.12), mm(0.8), 3, 'z'), MAT.steel, { d: 'Drukveer die de pen naar buiten duwt. ' + est, p: mmv(28.7, 4.45, -25.3), ex: [0, 0, -0.12] }),
+      P('Klikring', cache('frClick', () => merge([xf(annulus(mm(1.3), mm(2.2), mm(0.4), 'z', 20), mmv(28.7, 4.45, -24.7)), xf(mmBox(0.5, 0.5, 0.6), mmv(28.7, 6.3, -24.7))])), MAT.plastic, { d: 'Ring met hartvormige kliknok die de pen vasthoudt of loslaat. ' + est, ex: [0, 0, -0.24] }),
+      P('Duwkop', cache('frPush', () => xf(annulus(mm(0.8), mm(2.1), mm(0.4), 'z', 20), mmv(28.7, 4.45, -24.3))), MAT.steel, { d: 'Kopje waar de punt van de S Pen tegen drukt. ' + est, ex: [0, 0, -0.36] }),
     ]),
   ]);
   // zijknoppen aan de -x-flank (rechts als je op het scherm kijkt)

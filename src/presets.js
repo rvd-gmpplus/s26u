@@ -13,17 +13,45 @@
 //   menu's en geeft checkPresets() geen fout; checkPresets(true) toetst ook deze presets.
 // Alleen ankernamen uit contract §8 / tools/anchors.json. Een preset waarvan een naam niet oplost, verschijnt niet in de menu's.
 const appPhone = 'Samsung Galaxy S26 Ultra';
-// Golf 0: alleen het overzicht. De categorieën Buitenkant, Binnenwerk, Camera's, Reparatie en Openen komen met golf 2 tot 4.
-const appCats = ['Overzicht'];
+const appCats = ['Overzicht', 'Buitenkant', 'Binnenwerk', "Camera's", 'Reparatie', 'Openen'];
+// Camerarichtingen: de telefoon ligt met het scherm op de vloer; +y kijkt op de achterkant, -y op het scherm.
 const PRESETS = [
   // Overzicht
   { id: 'assembled', cat: 'Overzicht', label: 'Gemonteerd', key: '0', note: 'Het complete toestel in elkaar, met de achterkant naar boven.', cam: { dir: [0.8, 1.15, 0.9], pad: 1.04 } },
-  { id: 'main', cat: 'Overzicht', label: 'Hoofdgroepen', key: '1', note: 'De hoofdgroepen uit elkaar, laag voor laag van achterglas tot scherm.', open: [appPhone], labels: appPhone, cam: { dir: [1, 0.75, 0.9], pad: 1.04 } },
+  { id: 'main', cat: 'Overzicht', label: 'Hoofdgroepen', key: '1', note: 'De acht hoofdgroepen uit elkaar, van achterglas tot scherm.', open: [appPhone], labels: appPhone, cam: { dir: [1, 0.75, 0.9], pad: 1.04 } },
   { id: 'xray', cat: 'Overzicht', label: 'Röntgen', key: '8', note: 'Achterglas, frame en scherm doorzichtig: het binnenwerk in het gemonteerde toestel.', xray: true, cam: { dir: [0.8, 1.15, 0.9], pad: 1.03 } },
   { id: 'everything', cat: 'Overzicht', label: 'Alles uit elkaar', key: '9', note: 'Elke groep uitgeklapt tot op het kleinste onderdeel, gekleurd per hoofdgroep.', deep: [appPhone], sys: true, labels: appPhone, cam: { dir: [1, 0.8, 0.9], pad: 1.0 } },
-  { id: 'tour', cat: 'Overzicht', label: 'Rondleiding', note: 'Speelt de belangrijkste presets na elkaar af, met uitleg bij elke stap.', tour: true },
+  { id: 'tour', cat: 'Overzicht', label: 'Rondleiding', note: 'Speelt de belangrijkste presets na elkaar af, van buiten naar binnen en de batterijwissel.', tour: true },
+  // Buitenkant
+  { id: 'back', cat: 'Buitenkant', label: 'Achterkant', key: '2', note: 'Wit achterglas met het camera-eiland, de lijmrand en de laadspoel met NFC, uit elkaar.', iso: ['Achterkant'], open: ['Achterkant'], labels: 'Achterkant', cam: { dir: [0.8, 1.1, 0.9], pad: 1.04 } },
+  { id: 'island', cat: 'Buitenkant', label: 'Camera-eiland', note: 'Het verhoogde eiland met drie grote lensringen; ernaast de periscoop, de flitser en de laser-AF.', iso: ['Camera-eiland'], deep: ['Camera-eiland'], labels: 'Camera-eiland', cam: { dir: [0.5, 1, 0.7], pad: 1.08 } },
+  { id: 'wireless', cat: 'Buitenkant', label: 'Draadloos laden en NFC', note: 'Laadspoel, ferrietplaat, NFC-antenne en grafietfolie onder het achterglas.', iso: ['Draadloos laden en NFC'], open: ['Draadloos laden en NFC'], labels: 'Draadloos laden en NFC', cam: { dir: [0.5, 1, 0.8], pad: 1.06 } },
+  { id: 'frame', cat: 'Buitenkant', label: 'Frame en knoppen', note: 'Aluminium framering met antennesplitsingen, middenplaat, S Pen-silo en zijknoppen.', iso: ['Behuizing'], open: ['Behuizing', 'Middenframe'], labels: 'Behuizing', cam: { dir: [0.9, 1, 0.9], pad: 1.04 } },
+  { id: 'screen', cat: 'Buitenkant', label: 'Scherm', key: '6', note: '6,9 inch QHD+ Dynamic AMOLED 2X: coverglas, paneelpakket, digitizer, vingerafdruksensor en displayflex.', iso: ['Scherm'], open: ['Scherm', 'Displaymodule'], labels: 'Displaymodule', cam: { dir: [0.7, -1, 0.7], pad: 1.04 } },
+  // Binnenwerk
+  { id: 'board', cat: 'Binnenwerk', label: 'Moederbord', key: '3', note: 'Sandwich van hoofdprint, interposer en RF-print, met afschermkappen en de bovenafdekplaat.', iso: ['Moederbord'], open: ['Moederbord'], labels: 'Moederbord', cam: { dir: [0.9, 1.1, 0.7], pad: 1.06 } },
+  { id: 'soc', cat: 'Binnenwerk', label: 'Chip en geheugen', note: 'Snapdragon 8 Elite Gen 5 for Galaxy met 16 GB werkgeheugen erop, en 1 TB opslag.', iso: ['Hoofdprint'], open: ['Hoofdprint', 'SoC met geheugen'], labels: 'SoC met geheugen', select: 'SoC met geheugen', frame: ['Hoofdprint'], cam: { dir: [0.6, 1, 0.5], pad: 1.06 } },
+  { id: 'power', cat: 'Binnenwerk', label: 'Batterij', key: '4', note: '5000 mAh: cel, kunststof omhulling met lijm, treklip en beveiligingsprint, uit elkaar.', iso: ['Batterij'], deep: ['Batterij'], labels: 'Batterij', cam: { dir: [0.8, 1.1, 0.9], pad: 1.05 } },
+  { id: 'cooling', cat: 'Binnenwerk', label: 'Koeling', note: 'Herontworpen vapor chamber met de koelstapel onder de processor.', iso: ['Vapor chamber', 'Koelstapel processor'], deep: ['Vapor chamber', 'Koelstapel processor'], labels: 'Vapor chamber', cam: { dir: [0.7, 1.1, 0.6], pad: 1.05 } },
+  { id: 'periph', cat: 'Binnenwerk', label: 'Onderin en aan de randen', note: 'USB-C-subbord, SIM-lade, luidsprekers, trilmotor en de hoofdflex.', iso: ['Randapparatuur'], open: ['Randapparatuur'], labels: 'Randapparatuur', cam: { dir: [0.6, 1.1, 1], pad: 1.05 } },
+  { id: 'usbc', cat: 'Binnenwerk', label: 'USB-C-subbord', note: 'Subbord met USB-C-poort, SIM-kaartlezer en microfoon, uit elkaar.', iso: ['USB-C-subbord'], deep: ['USB-C-subbord'], labels: 'USB-C-subbord', cam: { dir: [0.5, 0.9, 1], pad: 1.06 } },
+  { id: 'pen', cat: 'Binnenwerk', label: 'S Pen', key: '7', note: 'De pen uit elkaar: punt, behuizing, knop, digitizerspoel, resonantiekring en klikmechanisme.', iso: ['S Pen'], deep: ['S Pen'], labels: 'S Pen', cam: { dir: [1, 0.6, 0.3], pad: 1.05 } },
+  // Camera's
+  { id: 'cameras', cat: "Camera's", label: "Alle camera's", key: '5', note: '200 MP hoofdcamera, 50 MP ultragroothoek, 10 MP 3×, 50 MP periscoop 5×, laser-AF, flitser en de 12 MP selfiecamera.', iso: ["Camera's"], open: ["Camera's", 'Camerakolom'], labels: "Camera's", cam: { dir: [0.8, 1, 0.6], pad: 1.06 } },
+  { id: 'mainCam', cat: "Camera's", label: 'Hoofdcamera 200 MP', note: 'Lensbuis, OIS- en AF-actuator, ir-filter en beeldsensor van de hoofdcamera (f/1,4), uit elkaar.', iso: ['Hoofdcamera 200 MP'], deep: ['Hoofdcamera 200 MP'], labels: 'Hoofdcamera 200 MP', cam: { dir: [0.8, 0.8, 0.6], pad: 1.08 } },
+  { id: 'periscope', cat: "Camera's", label: 'Periscoop 5×', note: 'Het licht gaat via een prisma 90 graden om naar een lensgroep en sensor die plat liggen (f/2,9).', iso: ['Periscoopcamera 50 MP (5×)'], deep: ['Periscoopcamera 50 MP (5×)'], labels: 'Periscoopcamera 50 MP (5×)', cam: { dir: [1, 0.7, 0.4], pad: 1.08 } },
+  { id: 'selfie', cat: "Camera's", label: 'Selfiecamera', note: '12 MP selfiecamera (f/2,2) onder het moederbord, kijkt door het gat in het scherm.', iso: ['Selfiecamera 12 MP'], deep: ['Selfiecamera 12 MP'], labels: 'Selfiecamera 12 MP', cam: { dir: [0.7, -0.8, 0.6], pad: 1.1 } },
+  // Reparatie (volgorde van de iFixit-teardown)
+  { id: 'rep1', cat: 'Reparatie', label: '1. Achterglas eraf', note: 'Het achterglas wordt verwarmd en losgewrikt; daaronder liggen laadspoel, moederbordafdekplaat en batterij.', opens: ['Achterkant'], frame: [appPhone], cam: { dir: [0.35, 1.2, 0.75], pad: 1.04 } },
+  { id: 'rep2', cat: 'Reparatie', label: '2. Luidspreker eruit', note: 'Onderafdekplaat en luidspreker onderin gaan eruit; daarna zijn de batterijkabels vrij.', opens: ['Luidspreker onder'], frame: ['Behuizing', 'Luidspreker onder'], cam: { dir: [0.3, 1.2, 0.9], pad: 1.06 } },
+  { id: 'rep3', cat: 'Reparatie', label: '3. Batterij eruit', note: 'De batterij komt met de treklip uit de kunststof omhulling met lijm (volgens iFixit eenvoudig).', opens: ['Luidspreker onder', 'Batterij'], frame: ['Behuizing', 'Batterij'], cam: { dir: [0.45, 1.2, 0.8], pad: 1.06 } },
+  { id: 'rep4', cat: 'Reparatie', label: 'Scherm eraf', note: 'Het scherm komt pas los als vrijwel alles eruit is: de connector zit aan de achterkant (iFixit).', opens: ['Scherm'], cam: { dir: [0.7, -0.9, 0.8], pad: 1.05 } },
+  // Openen
+  { id: 'openSim', cat: 'Openen', label: 'SIM-lade', note: 'De SIM-lade met nano-SIM schuift uit de onderrand.', opens: ['SIM-lade'] },
+  { id: 'openPen', cat: 'Openen', label: 'S Pen', note: 'De S Pen schuift uit de silo in de onderrand.', opens: ['S Pen'] },
+  { id: 'openAll', cat: 'Openen', label: 'Alles open', note: 'Alle openers tegelijk open.', opens: 'all', frame: [appPhone], cam: { dir: [1, 0.9, 1], pad: 1.04 } },
 ];
-const appTourSteps = ['assembled', 'main', 'xray', 'everything', 'assembled'];
+const appTourSteps = ['assembled', 'main', 'back', 'cameras', 'board', 'cooling', 'rep1', 'rep2', 'rep3', 'openPen', 'everything', 'assembled'];
 const appPresetById = new Map(PRESETS.map(p => [p.id, p]));
 
 function appPresetNames(p) {

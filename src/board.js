@@ -7,7 +7,7 @@
 //   y 3,6 tot 5,2   interposer (rand) tussen de twee printen
 //   y 5,2 tot 5,9   RF-print, met de radiochips en kapjes aan de bovenkant (tot y 6,4)
 //   y 6,4 tot 7,0   bovenafdekplaat van kunststof met antennesporen en schroeven
-// Het bord wijkt voor de camerakolom, de periscoop, de selfiecamera, de oorspeaker en de S Pen-silo (x tot +28,6).
+// Het bord wijkt voor de camerakolom, de periscoop, de selfiecamera, de oorspeaker en de S Pen-silo (x tot +25,8).
 // Alle maten in mm in het modelframe; omgerekend met mm() en mmv().
 
 std('boCover', 0x24262a, 0, 0.62);
@@ -23,13 +23,13 @@ const BO_Y = { pad0: 2.83, main0: 2.9, main1: 3.6, rf0: 5.2, rf1: 5.9, top: 6.4,
 
 // omtrek hoofdprint (x, z in mm, tegen de klok in gezien van boven): links het stuk onder de camerakolom tot x -13,5,
 // boven de inkeping voor periscoop en laser-AF (x tot -0,5), de selfiecamera (tot x +4, z -70,5) en de oorspeaker
-// (x +3,5 tot +18,5, z -74,5); rechts tot x +28,6 vóór de S Pen-silo
+// (x +3,5 tot +18,5, z -74,5); rechts tot x +25,8 vóór de S Pen-silo
 // de inkeping x -13,5 tot -9,5 bij z -21 tot -19 laat de hoofdflex door naar zijn connector (Randapparatuur)
-const BO_MAIN = [[-9.5, -19], [28.6, -19], [28.6, -79], [18.5, -79], [18.5, -74.5], [4, -74.5], [4, -70.5], [-0.5, -70.5], [-0.5, -39.5], [-13.5, -39.5], [-13.5, -21], [-9.5, -21]];
+const BO_MAIN = [[-9.5, -19], [25.8, -19], [25.8, -79], [18.5, -79], [18.5, -74.5], [4, -74.5], [4, -70.5], [-0.5, -70.5], [-0.5, -39.5], [-13.5, -39.5], [-13.5, -21], [-9.5, -21]];
 // bovenafdekplaat: dezelfde omtrek, maar over de selfiecamera en de oorspeaker heen (die blijven onder y 4,9)
-const BO_COVER = [[-13.5, -19], [28.6, -19], [28.6, -79], [-0.5, -79], [-0.5, -39.5], [-13.5, -39.5]];
+const BO_COVER = [[-13.5, -19], [25.8, -19], [25.8, -79], [-0.5, -79], [-0.5, -39.5], [-13.5, -39.5]];
 // RF-print en buitenrand van de interposer; binnenrand van de interposer (holte)
-const BO_RF = [0.5, 28.1, -70, -25];
+const BO_RF = [0.5, 25.3, -70, -25];
 const BO_CAV = [2.1, 26.5, -68.4, -26.6];
 // schroeven van de bovenafdekplaat (x, z): vier door de interposerrand, één links, één rechtsboven
 const BO_SCREWS = [[1.3, -47.5], [27.3, -47.5], [14.3, -25.8], [14.3, -69.2], [-12, -21.3], [23, -76]];

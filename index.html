@@ -1,5 +1,5 @@
 <title>Galaxy S26 Ultra explosietekening</title>
-<meta name="s26u-version" content="1 (bron b0f28f1)">
+<meta name="s26u-version" content="1 (bron ea8eb3e)">
 <meta name="description" content="Interactieve 3D-explosietekening van een Samsung Galaxy S26 Ultra: scherm, frame, moederbord, batterij, koeling, camera's en S Pen laag voor laag uit elkaar. Onafhankelijk schematisch model.">
 <meta property="og:title" content="Galaxy S26 Ultra explosietekening">
 <meta property="og:description" content="Interactieve 3D-explosietekening van een Samsung Galaxy S26 Ultra: scherm, frame, moederbord, batterij, koeling, camera's en S Pen laag voor laag uit elkaar. Onafhankelijk schematisch model.">
@@ -485,7 +485,7 @@ input[type=range]{width:100%;accent-color:var(--ink)}
     </div>
     <div class="open-row"><div class="seg" id="openSeg" role="radiogroup" aria-label="Wat doet een klik: uitklappen of openen">
       <button role="radio" aria-checked="true" tabindex="0" data-omode="expand" title="Een klik klapt de groep van het onderdeel uit (sneltoets O wisselt)">Uitklappen</button>
-      <button role="radio" aria-checked="false" tabindex="-1" data-omode="open" title="Een klik opent een lade, de S Pen en andere openers (sneltoets O wisselt)">Openen</button>
+      <button role="radio" aria-checked="false" tabindex="-1" data-omode="open" title="Een klik opent het achterglas, de SIM-lade, de S Pen en andere openers (sneltoets O wisselt)">Openen</button>
     </div></div>
     <div class="top-actions">
       <button class="iconbtn" id="help" aria-label="Uitleg over de bediening" aria-haspopup="dialog">?</button>
@@ -608,7 +608,7 @@ input[type=range]{width:100%;accent-color:var(--ink)}
   <div id="press" hidden><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="28"/></svg></div>
   <div id="helpDlg" hidden><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
     <h2 id="helpTitle">Bediening</h2>
-    <p class="ver">Galaxy S26 Ultra explosietekening, versie 1 (bron b0f28f1)</p>
+    <p class="ver">Galaxy S26 Ultra explosietekening, versie 1 (bron ea8eb3e)</p>
     <div id="helpMouse"><h3>Met de muis</h3><dl>
       <dt>Klik</dt><dd>De groep van het onderdeel klapt uit; de rest blijft staan. Staat die groep al open, dan wordt het onderdeel uitgelicht.</dd>
       <dt>Dubbelklik</dt><dd>Direct naar dit onderdeel: alle groepen erboven gaan laag voor laag open.</dd>
@@ -1081,8 +1081,8 @@ function frOpenings(path) {
   // onderrand: USB-C, microfoon, SIM-lade, S Pen, luidsprekergaatjes
   add('USB-C', frHoleRect(S('onder', 0), 3.9, 9.0, 3.2, 1.6, 6), [S('onder', 0), 3.9]);
   add('microfoon onder', frHoleCirc(S('onder', -6.5), 3.95, 0.35, 10), [S('onder', -6.5), 3.95]);
-  add('SIM-lade', frHoleRect(S('onder', 15), 3.8, 14, 1.2, 0.5, 3), [S('onder', 15), 3.8]);
-  add('S Pen', frHoleCirc(S('onder', 31.8), 4.45, 2.5, 28), [S('onder', 31.8), 4.45]);
+  add('SIM-lade', frHoleRect(S('onder', 15), 3.8, 14.6, 1.5, 0.5, 3), [S('onder', 15), 3.8]);
+  add('S Pen', frHoleCirc(S('onder', 28.7), 4.45, 2.5, 28), [S('onder', 28.7), 4.45]);
   for (let k = 0; k < 8; k++) { const x = -10 - 2.8 * k, s = S('onder', x); add('luidspreker', frHoleCirc(s, 3.95, 0.65, 12), [s, 3.95]); }
   // bovenrand: microfoon (niet op x 0, daar zit de straal van de silhouettest niet in de weg)
   add('microfoon boven', frHoleCirc(S('boven', 12), 3.95, 0.35, 10), [S('boven', 12), 3.95]);
@@ -1097,7 +1097,7 @@ function frOpenings(path) {
     ['Antennesplitsing linkerflank onder', S('links', 48)],
     ['Antennesplitsing rechterflank boven', S('rechts', -60)],
     ['Antennesplitsing rechterflank onder', S('rechts', 44)],
-    ['Antennesplitsing onder links', S('onder', 26)],
+    ['Antennesplitsing hoek onder links', path.segs[1].s0 + path.segs[1].len / 2],
     ['Antennesplitsing hoek onder rechts', path.segs[3].s0 + path.segs[3].len / 2],
   ];
   return { holes: H, splits };
@@ -1177,11 +1177,11 @@ function frRingGeos() {
 
 /* ---------- middenplaat ---------- */
 function frArc(cx, cz, r, a0, a1, n) { const p = []; for (let i = 0; i <= n; i++) { const an = a0 + i / n * (a1 - a0); p.push([cx + r * Math.cos(an), cz + r * Math.sin(an)]); } return p; }
-// Plaat in de binnenruimte (x ±37, z ±79,8, hoekstraal 6,5), met een open sleuf langs de S Pen-silo (x 28,9 tot 34,7,
+// Plaat in de binnenruimte (x ±37, z ±79,8, hoekstraal 6,5), met een open sleuf langs de S Pen-silo (x 25,8 tot 31,6,
 // vanaf z -26,2 tot de onderrand), gaten om de drie grote camera's en de selfiecamera en een sleuf voor de displayflex.
 function frPlateGeo() {
   return cache('frPlate', () => {
-    const X = 37, Z = 79.8, r = 6.5, cx = X - r, cz = Z - r, sx0 = 28.9, sx1 = 34.7, sz = -26.2;
+    const X = 37, Z = 79.8, r = 6.5, cx = X - r, cz = Z - r, sx0 = 25.8, sx1 = 31.6, sz = -26.2;
     const te = Math.acos((sx1 - cx) / r);
     const pts = [[X, -cz], [X, cz], ...frArc(cx, cz, r, 0, te, 8), [sx1, sz], [sx0, sz], [sx0, Z], ...frArc(-cx, cz, r, HALF, PI, 10),
       ...frArc(-cx, -cz, r, PI, 1.5 * PI, 10), ...frArc(cx, -cz, r, 1.5 * PI, 2 * PI, 10)];
@@ -1199,8 +1199,8 @@ function frPlateGeo() {
 function frSiloGeo() {
   return cache('frSiloTube', () => {
     const z0 = -26, z1 = 80.5, L = z1 - z0;
-    const tubeG = xf(annulus(mm(2.4), mm(2.7), mm(L), 'z', 28), mmv(31.8, 4.45, (z0 + z1) / 2));
-    const capG = xf(G.cyl('z', mm(2.7), mm(2.7), mm(0.3), 28), mmv(31.8, 4.45, z0 + 0.15));
+    const tubeG = xf(annulus(mm(2.4), mm(2.7), mm(L), 'z', 28), mmv(28.7, 4.45, (z0 + z1) / 2));
+    const capG = xf(G.cyl('z', mm(2.7), mm(2.7), mm(0.3), 28), mmv(28.7, 4.45, z0 + 0.15));
     return merge([tubeG, capG]);
   });
 }
@@ -1256,9 +1256,9 @@ function frBuild() {
   const silo = A('S Pen-silo', { d: 'Buis in het frame waarin de S Pen zit, open aan de onderrand en met een uitwerper aan het binnenste eind. ' + est, ex: [0.55, 0.35, 0] }, [
     P('Silobuis', frSiloGeo(), MAT.frSilo, { d: 'Kunststof buis van 5,4 mm buiten en 4,8 mm binnen, van z -26 tot in de onderrand, aan het binnenste eind dicht. ' + est, ex: [0.08, 0, 0] }),
     A('S Pen-uitwerper', { d: 'Klik-uitwerper: druk de pen in en hij klikt vast, druk nog eens en de veer duwt hem een stukje naar buiten. Werking en vorm zijn geschat.', ex: [0, 0, -0.55] }, [
-      P('Uitwerperveer', spring(mm(1.4), mm(0.12), mm(0.8), 3, 'z'), MAT.steel, { d: 'Drukveer die de pen naar buiten duwt. ' + est, p: mmv(31.8, 4.45, -25.3), ex: [0, 0, -0.12] }),
-      P('Klikring', cache('frClick', () => merge([xf(annulus(mm(1.3), mm(2.2), mm(0.4), 'z', 20), mmv(31.8, 4.45, -24.7)), xf(mmBox(0.5, 0.5, 0.6), mmv(31.8, 6.3, -24.7))])), MAT.plastic, { d: 'Ring met hartvormige kliknok die de pen vasthoudt of loslaat. ' + est, ex: [0, 0, -0.24] }),
-      P('Duwkop', cache('frPush', () => xf(annulus(mm(0.8), mm(2.1), mm(0.4), 'z', 20), mmv(31.8, 4.45, -24.3))), MAT.steel, { d: 'Kopje waar de punt van de S Pen tegen drukt. ' + est, ex: [0, 0, -0.36] }),
+      P('Uitwerperveer', spring(mm(1.4), mm(0.12), mm(0.8), 3, 'z'), MAT.steel, { d: 'Drukveer die de pen naar buiten duwt. ' + est, p: mmv(28.7, 4.45, -25.3), ex: [0, 0, -0.12] }),
+      P('Klikring', cache('frClick', () => merge([xf(annulus(mm(1.3), mm(2.2), mm(0.4), 'z', 20), mmv(28.7, 4.45, -24.7)), xf(mmBox(0.5, 0.5, 0.6), mmv(28.7, 6.3, -24.7))])), MAT.plastic, { d: 'Ring met hartvormige kliknok die de pen vasthoudt of loslaat. ' + est, ex: [0, 0, -0.24] }),
+      P('Duwkop', cache('frPush', () => xf(annulus(mm(0.8), mm(2.1), mm(0.4), 'z', 20), mmv(28.7, 4.45, -24.3))), MAT.steel, { d: 'Kopje waar de punt van de S Pen tegen drukt. ' + est, ex: [0, 0, -0.36] }),
     ]),
   ]);
   // zijknoppen aan de -x-flank (rechts als je op het scherm kijkt)
@@ -1786,7 +1786,7 @@ function caBuild() {
 //   y 3,6 tot 5,2   interposer (rand) tussen de twee printen
 //   y 5,2 tot 5,9   RF-print, met de radiochips en kapjes aan de bovenkant (tot y 6,4)
 //   y 6,4 tot 7,0   bovenafdekplaat van kunststof met antennesporen en schroeven
-// Het bord wijkt voor de camerakolom, de periscoop, de selfiecamera, de oorspeaker en de S Pen-silo (x tot +28,6).
+// Het bord wijkt voor de camerakolom, de periscoop, de selfiecamera, de oorspeaker en de S Pen-silo (x tot +25,8).
 // Alle maten in mm in het modelframe; omgerekend met mm() en mmv().
 
 std('boCover', 0x24262a, 0, 0.62);
@@ -1802,13 +1802,13 @@ const BO_Y = { pad0: 2.83, main0: 2.9, main1: 3.6, rf0: 5.2, rf1: 5.9, top: 6.4,
 
 // omtrek hoofdprint (x, z in mm, tegen de klok in gezien van boven): links het stuk onder de camerakolom tot x -13,5,
 // boven de inkeping voor periscoop en laser-AF (x tot -0,5), de selfiecamera (tot x +4, z -70,5) en de oorspeaker
-// (x +3,5 tot +18,5, z -74,5); rechts tot x +28,6 vóór de S Pen-silo
+// (x +3,5 tot +18,5, z -74,5); rechts tot x +25,8 vóór de S Pen-silo
 // de inkeping x -13,5 tot -9,5 bij z -21 tot -19 laat de hoofdflex door naar zijn connector (Randapparatuur)
-const BO_MAIN = [[-9.5, -19], [28.6, -19], [28.6, -79], [18.5, -79], [18.5, -74.5], [4, -74.5], [4, -70.5], [-0.5, -70.5], [-0.5, -39.5], [-13.5, -39.5], [-13.5, -21], [-9.5, -21]];
+const BO_MAIN = [[-9.5, -19], [25.8, -19], [25.8, -79], [18.5, -79], [18.5, -74.5], [4, -74.5], [4, -70.5], [-0.5, -70.5], [-0.5, -39.5], [-13.5, -39.5], [-13.5, -21], [-9.5, -21]];
 // bovenafdekplaat: dezelfde omtrek, maar over de selfiecamera en de oorspeaker heen (die blijven onder y 4,9)
-const BO_COVER = [[-13.5, -19], [28.6, -19], [28.6, -79], [-0.5, -79], [-0.5, -39.5], [-13.5, -39.5]];
+const BO_COVER = [[-13.5, -19], [25.8, -19], [25.8, -79], [-0.5, -79], [-0.5, -39.5], [-13.5, -39.5]];
 // RF-print en buitenrand van de interposer; binnenrand van de interposer (holte)
-const BO_RF = [0.5, 28.1, -70, -25];
+const BO_RF = [0.5, 25.3, -70, -25];
 const BO_CAV = [2.1, 26.5, -68.4, -26.6];
 // schroeven van de bovenafdekplaat (x, z): vier door de interposerrand, één links, één rechtsboven
 const BO_SCREWS = [[1.3, -47.5], [27.3, -47.5], [14.3, -25.8], [14.3, -69.2], [-12, -21.3], [23, -76]];
@@ -2545,8 +2545,8 @@ function peBuild() {
 }
 
 /* ---------- S Pen ---------- */
-// as x +31,8, y 4,45, van z -24 (punt, binnenin) tot +78,6 (dop, net binnen de hoekwand); Ø 4,4 met een platte kant naar +y
-const PE_PEN = { x: 31.8, y: 4.45, r: 2.2, plat: 1.75 };
+// as x +28,7, y 4,45, van z -24 (punt, binnenin) tot +81,4 (dop, in de opening van de onderrand); Ø 4,4 met een platte kant naar +y
+const PE_PEN = { x: 28.7, y: 4.45, r: 2.2, plat: 1.75 };
 // doorsnede in (x, y) rond de as: cirkel met een platte koorde boven, geschaald met f
 function pePenDoorsnede(f) {
   const a0 = Math.asin(PE_PEN.plat / PE_PEN.r), pts = [], N = 22;
@@ -2569,10 +2569,9 @@ function peBuildPen() {
   // neus: van 0,35 maal de straal bij z -21,6 naar de volle straal bij z -14
   const neus = z => { const t = clamp((z + 21.6) / 7.6, 0, 1); return 0.35 + 0.65 * (1 - (1 - t) * (1 - t)); };
   const huis = merge([pePenG(-21.6, -14, 7, neus), pePenG(-14, 76, 1, () => 1)]);
-  // De silo loopt door de afgeronde hoek van het frame (de hoek begint bij x +30,55); de dop eindigt daarom op z 78,6,
-  // vóór de binnenkant van de hoekwand, ongeveer 3 mm achter de buitenrand (afwijking van docs/indeling.md, zie daar).
-  const eind = z => { const t = clamp((z - 77.8) / 0.8, 0, 1); return 1 - 0.22 * t * t; };
-  const dop = merge([pePenG(76.05, 77.8, 1, () => 1), pePenG(77.8, 78.6, 4, eind)]);
+  // de dop eindigt 0,4 mm binnen de buitenrand, in de opening van het frame
+  const eind = z => { const t = clamp((z - 80.4) / 1.0, 0, 1); return 1 - 0.22 * t * t; };
+  const dop = merge([pePenG(76.05, 80.4, 1, () => 1), pePenG(80.4, 81.4, 4, eind)]);
   const punt = G.lathe('z', [[0, mm(-24)], [mm(0.28), mm(-24)], [mm(0.4), mm(-23.5)], [mm(0.45), mm(-22.6)], [mm(0.45), mm(-21.5)], [0, mm(-21.5)]], 12, 'pePunt');
   const kringChips = merge([-4, -1, 2].map(z => xf(mmBox(0.8, 0.3, 1.2), at(0, 0.8, z))));
   return A('S Pen', {
@@ -2627,6 +2626,27 @@ const PH_GROUPS = [
   ['Scherm', 'diBuild', [-39, 39, 0, 1.7, -81.5, 81.5], () => MAT.oled, [0, -0.4, 0]],
 ];
 
+// Openers (golf 4): schuiven in het frame van de ouder, in wereldeenheden via mm(). De orkestrator zet ze hier na de bouw,
+// zodat de domeinbestanden alleen geometrie bevatten. min is 0,85 maal de slag (regel: minstens 0,8). De volgorde van
+// demonteren volgt de iFixit-teardown: achterglas eraf, onderafdekplaat en luidspreker eruit, dan de batterij. `needs`
+// gaat één niveau diep (openen opent eerst het achterglas); de presets en de rondleiding tonen de volledige volgorde.
+function phSlide(label, move, look, extra = {}) {
+  const v = move.map(mm), len = Math.hypot(...v);
+  return Object.assign({ type: 'slide', move: v, min: 0.85 * len, label, look }, extra);
+}
+const PH_OPENERS = {
+  // het achterglas klapt als een boek open over de +x-rand en komt omgekeerd naast het toestel te liggen
+  'Achterkant': { type: 'hinge', pivot: mmv(39.05, 7.9, 0), axis: [0, 0, 1], angle: -165 * PI / 180, min: 0.85 * 165 * PI / 180, label: 'Achterglas eraf', look: { dir: [0.35, 1.2, 0.75], nodes: ['Achterkant', 'Moederbord', 'Batterij'] } },
+  // na het achterglas: de onderafdekplaat en de luidspreker eruit (de luidspreker schuift de plaat mee), dan de batterij
+  'Luidspreker onder': phSlide('Luidspreker onder eruit', [0, 18, 0], { dir: [-0.5, 1.1, 1], nodes: ['Luidspreker onder', 'Onderafdekplaat', 'Batterij'] }, { needs: 'Achterkant' }),
+  // volger: zijn ondergrens is informatie, geen eis (de leider heeft er een)
+  'Onderafdekplaat': Object.assign(phSlide('Onderafdekplaat eruit', [0, 26, 10], null, { follow: 'Luidspreker onder' }), { min: undefined }),
+  'Batterij': phSlide('Batterij eruit', [0, 22, 0], { dir: [0.9, 1.0, 0.8], nodes: ['Batterij', 'Vapor chamber'] }, { needs: 'Achterkant' }),
+  'SIM-lade': phSlide('SIM-lade', [0, 0, 15], { dir: [0.5, 0.45, 1], nodes: ['SIM-lade', 'USB-C-poort'] }),
+  'S Pen': phSlide('S Pen', [0, 0, 70], { dir: [1, 0.55, 0.6], nodes: ['S Pen'] }),
+  'Scherm': phSlide('Scherm eraf', [0, -16, 0], { dir: [0.7, -0.9, 0.8], nodes: ['Scherm', 'Middenplaat'] }),
+};
+
 function buildPhone() {
   const kids = PH_GROUPS.map(([name, fn, zone, mat, ex]) => {
     const f = typeof window[fn] === 'function' ? window[fn] : null;
@@ -2635,6 +2655,8 @@ function buildPhone() {
     g.ex = V3(...ex);
     return g;
   });
+  const byN = new Map(); (function walk(n) { if (!byN.has(n.name)) byN.set(n.name, n); n.kids.forEach(walk); })({ name: '', kids });
+  for (const [name, o] of Object.entries(PH_OPENERS)) { const n = byN.get(name); if (n) n.opn = o; }
   return A('Samsung Galaxy S26 Ultra', {
     d: 'Samsung Galaxy S26 Ultra in White (wit achterglas, zilveren frame), 1 TB met 16 GB RAM. Schematisch model: de buitenmaat, het camera-eiland en de specificaties zijn nagekeken, de binnenindeling volgt teardowns en is op veel plaatsen geschat (zie de beschrijving per onderdeel). Klik op een onderdeel om het uit te klappen, dubbelklik om er direct naartoe te gaan, rechtsklik of houd vast om weer in te klappen.',
     spec: [['L × B × D', '163,6 × 78,1 × 7,9 mm'], ['Gewicht', '214 g'], ['Kleur', 'White'], ['Scherm', '6,9 inch QHD+ Dynamic AMOLED 2X, 1–120 Hz'], ['Chip', 'Snapdragon 8 Elite Gen 5 for Galaxy'], ['Geheugen', '16 GB RAM, 1 TB opslag'], ['Batterij', '5000 mAh (typisch), 4855 mAh (nominaal)'], ['Laden', 'tot 75% in ongeveer 30 min met een 60W-adapter'], ['Camera\'s achter', '200 MP f/1,4 · 50 MP ultragroothoek f/1,9 · 50 MP 5× f/2,9 · 10 MP 3× f/2,4'], ['Selfiecamera', '12 MP f/2,2']],
@@ -3599,17 +3621,45 @@ function uiBatchStats() {
 //   menu's en geeft checkPresets() geen fout; checkPresets(true) toetst ook deze presets.
 // Alleen ankernamen uit contract §8 / tools/anchors.json. Een preset waarvan een naam niet oplost, verschijnt niet in de menu's.
 const appPhone = 'Samsung Galaxy S26 Ultra';
-// Golf 0: alleen het overzicht. De categorieën Buitenkant, Binnenwerk, Camera's, Reparatie en Openen komen met golf 2 tot 4.
-const appCats = ['Overzicht'];
+const appCats = ['Overzicht', 'Buitenkant', 'Binnenwerk', "Camera's", 'Reparatie', 'Openen'];
+// Camerarichtingen: de telefoon ligt met het scherm op de vloer; +y kijkt op de achterkant, -y op het scherm.
 const PRESETS = [
   // Overzicht
   { id: 'assembled', cat: 'Overzicht', label: 'Gemonteerd', key: '0', note: 'Het complete toestel in elkaar, met de achterkant naar boven.', cam: { dir: [0.8, 1.15, 0.9], pad: 1.04 } },
-  { id: 'main', cat: 'Overzicht', label: 'Hoofdgroepen', key: '1', note: 'De hoofdgroepen uit elkaar, laag voor laag van achterglas tot scherm.', open: [appPhone], labels: appPhone, cam: { dir: [1, 0.75, 0.9], pad: 1.04 } },
+  { id: 'main', cat: 'Overzicht', label: 'Hoofdgroepen', key: '1', note: 'De acht hoofdgroepen uit elkaar, van achterglas tot scherm.', open: [appPhone], labels: appPhone, cam: { dir: [1, 0.75, 0.9], pad: 1.04 } },
   { id: 'xray', cat: 'Overzicht', label: 'Röntgen', key: '8', note: 'Achterglas, frame en scherm doorzichtig: het binnenwerk in het gemonteerde toestel.', xray: true, cam: { dir: [0.8, 1.15, 0.9], pad: 1.03 } },
   { id: 'everything', cat: 'Overzicht', label: 'Alles uit elkaar', key: '9', note: 'Elke groep uitgeklapt tot op het kleinste onderdeel, gekleurd per hoofdgroep.', deep: [appPhone], sys: true, labels: appPhone, cam: { dir: [1, 0.8, 0.9], pad: 1.0 } },
-  { id: 'tour', cat: 'Overzicht', label: 'Rondleiding', note: 'Speelt de belangrijkste presets na elkaar af, met uitleg bij elke stap.', tour: true },
+  { id: 'tour', cat: 'Overzicht', label: 'Rondleiding', note: 'Speelt de belangrijkste presets na elkaar af, van buiten naar binnen en de batterijwissel.', tour: true },
+  // Buitenkant
+  { id: 'back', cat: 'Buitenkant', label: 'Achterkant', key: '2', note: 'Wit achterglas met het camera-eiland, de lijmrand en de laadspoel met NFC, uit elkaar.', iso: ['Achterkant'], open: ['Achterkant'], labels: 'Achterkant', cam: { dir: [0.8, 1.1, 0.9], pad: 1.04 } },
+  { id: 'island', cat: 'Buitenkant', label: 'Camera-eiland', note: 'Het verhoogde eiland met drie grote lensringen; ernaast de periscoop, de flitser en de laser-AF.', iso: ['Camera-eiland'], deep: ['Camera-eiland'], labels: 'Camera-eiland', cam: { dir: [0.5, 1, 0.7], pad: 1.08 } },
+  { id: 'wireless', cat: 'Buitenkant', label: 'Draadloos laden en NFC', note: 'Laadspoel, ferrietplaat, NFC-antenne en grafietfolie onder het achterglas.', iso: ['Draadloos laden en NFC'], open: ['Draadloos laden en NFC'], labels: 'Draadloos laden en NFC', cam: { dir: [0.5, 1, 0.8], pad: 1.06 } },
+  { id: 'frame', cat: 'Buitenkant', label: 'Frame en knoppen', note: 'Aluminium framering met antennesplitsingen, middenplaat, S Pen-silo en zijknoppen.', iso: ['Behuizing'], open: ['Behuizing', 'Middenframe'], labels: 'Behuizing', cam: { dir: [0.9, 1, 0.9], pad: 1.04 } },
+  { id: 'screen', cat: 'Buitenkant', label: 'Scherm', key: '6', note: '6,9 inch QHD+ Dynamic AMOLED 2X: coverglas, paneelpakket, digitizer, vingerafdruksensor en displayflex.', iso: ['Scherm'], open: ['Scherm', 'Displaymodule'], labels: 'Displaymodule', cam: { dir: [0.7, -1, 0.7], pad: 1.04 } },
+  // Binnenwerk
+  { id: 'board', cat: 'Binnenwerk', label: 'Moederbord', key: '3', note: 'Sandwich van hoofdprint, interposer en RF-print, met afschermkappen en de bovenafdekplaat.', iso: ['Moederbord'], open: ['Moederbord'], labels: 'Moederbord', cam: { dir: [0.9, 1.1, 0.7], pad: 1.06 } },
+  { id: 'soc', cat: 'Binnenwerk', label: 'Chip en geheugen', note: 'Snapdragon 8 Elite Gen 5 for Galaxy met 16 GB werkgeheugen erop, en 1 TB opslag.', iso: ['Hoofdprint'], open: ['Hoofdprint', 'SoC met geheugen'], labels: 'SoC met geheugen', select: 'SoC met geheugen', frame: ['Hoofdprint'], cam: { dir: [0.6, 1, 0.5], pad: 1.06 } },
+  { id: 'power', cat: 'Binnenwerk', label: 'Batterij', key: '4', note: '5000 mAh: cel, kunststof omhulling met lijm, treklip en beveiligingsprint, uit elkaar.', iso: ['Batterij'], deep: ['Batterij'], labels: 'Batterij', cam: { dir: [0.8, 1.1, 0.9], pad: 1.05 } },
+  { id: 'cooling', cat: 'Binnenwerk', label: 'Koeling', note: 'Herontworpen vapor chamber met de koelstapel onder de processor.', iso: ['Vapor chamber', 'Koelstapel processor'], deep: ['Vapor chamber', 'Koelstapel processor'], labels: 'Vapor chamber', cam: { dir: [0.7, 1.1, 0.6], pad: 1.05 } },
+  { id: 'periph', cat: 'Binnenwerk', label: 'Onderin en aan de randen', note: 'USB-C-subbord, SIM-lade, luidsprekers, trilmotor en de hoofdflex.', iso: ['Randapparatuur'], open: ['Randapparatuur'], labels: 'Randapparatuur', cam: { dir: [0.6, 1.1, 1], pad: 1.05 } },
+  { id: 'usbc', cat: 'Binnenwerk', label: 'USB-C-subbord', note: 'Subbord met USB-C-poort, SIM-kaartlezer en microfoon, uit elkaar.', iso: ['USB-C-subbord'], deep: ['USB-C-subbord'], labels: 'USB-C-subbord', cam: { dir: [0.5, 0.9, 1], pad: 1.06 } },
+  { id: 'pen', cat: 'Binnenwerk', label: 'S Pen', key: '7', note: 'De pen uit elkaar: punt, behuizing, knop, digitizerspoel, resonantiekring en klikmechanisme.', iso: ['S Pen'], deep: ['S Pen'], labels: 'S Pen', cam: { dir: [1, 0.6, 0.3], pad: 1.05 } },
+  // Camera's
+  { id: 'cameras', cat: "Camera's", label: "Alle camera's", key: '5', note: '200 MP hoofdcamera, 50 MP ultragroothoek, 10 MP 3×, 50 MP periscoop 5×, laser-AF, flitser en de 12 MP selfiecamera.', iso: ["Camera's"], open: ["Camera's", 'Camerakolom'], labels: "Camera's", cam: { dir: [0.8, 1, 0.6], pad: 1.06 } },
+  { id: 'mainCam', cat: "Camera's", label: 'Hoofdcamera 200 MP', note: 'Lensbuis, OIS- en AF-actuator, ir-filter en beeldsensor van de hoofdcamera (f/1,4), uit elkaar.', iso: ['Hoofdcamera 200 MP'], deep: ['Hoofdcamera 200 MP'], labels: 'Hoofdcamera 200 MP', cam: { dir: [0.8, 0.8, 0.6], pad: 1.08 } },
+  { id: 'periscope', cat: "Camera's", label: 'Periscoop 5×', note: 'Het licht gaat via een prisma 90 graden om naar een lensgroep en sensor die plat liggen (f/2,9).', iso: ['Periscoopcamera 50 MP (5×)'], deep: ['Periscoopcamera 50 MP (5×)'], labels: 'Periscoopcamera 50 MP (5×)', cam: { dir: [1, 0.7, 0.4], pad: 1.08 } },
+  { id: 'selfie', cat: "Camera's", label: 'Selfiecamera', note: '12 MP selfiecamera (f/2,2) onder het moederbord, kijkt door het gat in het scherm.', iso: ['Selfiecamera 12 MP'], deep: ['Selfiecamera 12 MP'], labels: 'Selfiecamera 12 MP', cam: { dir: [0.7, -0.8, 0.6], pad: 1.1 } },
+  // Reparatie (volgorde van de iFixit-teardown)
+  { id: 'rep1', cat: 'Reparatie', label: '1. Achterglas eraf', note: 'Het achterglas wordt verwarmd en losgewrikt; daaronder liggen laadspoel, moederbordafdekplaat en batterij.', opens: ['Achterkant'], frame: [appPhone], cam: { dir: [0.35, 1.2, 0.75], pad: 1.04 } },
+  { id: 'rep2', cat: 'Reparatie', label: '2. Luidspreker eruit', note: 'Onderafdekplaat en luidspreker onderin gaan eruit; daarna zijn de batterijkabels vrij.', opens: ['Luidspreker onder'], frame: ['Behuizing', 'Luidspreker onder'], cam: { dir: [0.3, 1.2, 0.9], pad: 1.06 } },
+  { id: 'rep3', cat: 'Reparatie', label: '3. Batterij eruit', note: 'De batterij komt met de treklip uit de kunststof omhulling met lijm (volgens iFixit eenvoudig).', opens: ['Luidspreker onder', 'Batterij'], frame: ['Behuizing', 'Batterij'], cam: { dir: [0.45, 1.2, 0.8], pad: 1.06 } },
+  { id: 'rep4', cat: 'Reparatie', label: 'Scherm eraf', note: 'Het scherm komt pas los als vrijwel alles eruit is: de connector zit aan de achterkant (iFixit).', opens: ['Scherm'], cam: { dir: [0.7, -0.9, 0.8], pad: 1.05 } },
+  // Openen
+  { id: 'openSim', cat: 'Openen', label: 'SIM-lade', note: 'De SIM-lade met nano-SIM schuift uit de onderrand.', opens: ['SIM-lade'] },
+  { id: 'openPen', cat: 'Openen', label: 'S Pen', note: 'De S Pen schuift uit de silo in de onderrand.', opens: ['S Pen'] },
+  { id: 'openAll', cat: 'Openen', label: 'Alles open', note: 'Alle openers tegelijk open.', opens: 'all', frame: [appPhone], cam: { dir: [1, 0.9, 1], pad: 1.04 } },
 ];
-const appTourSteps = ['assembled', 'main', 'xray', 'everything', 'assembled'];
+const appTourSteps = ['assembled', 'main', 'back', 'cameras', 'board', 'cooling', 'rep1', 'rep2', 'rep3', 'openPen', 'everything', 'assembled'];
 const appPresetById = new Map(PRESETS.map(p => [p.id, p]));
 
 function appPresetNames(p) {
@@ -3839,7 +3889,7 @@ function uiDeepestOpen(p) { let a = null; pathFrom(p).forEach(x => { if (x.asm &
 
 /* ---------- selectie en paneel ---------- */
 // U7: de uitleg bij het hele toestel in de modus Openen (de beschrijving in systems.js noemt het uitklappen)
-const uiOpenRootDesc = 'Samsung Galaxy S26 Ultra, 1 TB met 16 GB RAM, in een lichte kleur. Openen: klik op een opener (zoals de SIM-lade of de S Pen) om hem te openen; nog een klik sluit hem weer. Rechtsklik, Shift+klik of vasthouden sluit de binnenste open opener. Zolang er geen openers zijn, doet deze modus niets.';
+const uiOpenRootDesc = 'Samsung Galaxy S26 Ultra in White, 1 TB met 16 GB RAM. Openen: klik op het achterglas, de onderafdekplaat, de luidspreker onder, de batterij, de SIM-lade, de S Pen of het scherm om het te openen of eruit te halen; nog een klik sluit het weer. De volgorde volgt de teardown: eerst het achterglas, dan onderafdekplaat en luidspreker, dan pas de batterij. Rechtsklik, Shift+klik of vasthouden sluit de binnenste open opener.';
 function select(n, opts = {}) {
   n = n || uiScopeRoot();
   if (uiLifted && uiLifted !== n) uiDrop();

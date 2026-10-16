@@ -45,7 +45,7 @@ function uiDeepestOpen(p) { let a = null; pathFrom(p).forEach(x => { if (x.asm &
 
 /* ---------- selectie en paneel ---------- */
 // U7: de uitleg bij het hele toestel in de modus Openen (de beschrijving in systems.js noemt het uitklappen)
-const uiOpenRootDesc = 'Samsung Galaxy S26 Ultra, 1 TB met 16 GB RAM, in een lichte kleur. Openen: klik op een opener (zoals de SIM-lade of de S Pen) om hem te openen; nog een klik sluit hem weer. Rechtsklik, Shift+klik of vasthouden sluit de binnenste open opener. Zolang er geen openers zijn, doet deze modus niets.';
+const uiOpenRootDesc = 'Samsung Galaxy S26 Ultra in White, 1 TB met 16 GB RAM. Openen: klik op het achterglas, de onderafdekplaat, de luidspreker onder, de batterij, de SIM-lade, de S Pen of het scherm om het te openen of eruit te halen; nog een klik sluit het weer. De volgorde volgt de teardown: eerst het achterglas, dan onderafdekplaat en luidspreker, dan pas de batterij. Rechtsklik, Shift+klik of vasthouden sluit de binnenste open opener.';
 function select(n, opts = {}) {
   n = n || uiScopeRoot();
   if (uiLifted && uiLifted !== n) uiDrop();
