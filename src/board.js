@@ -24,7 +24,8 @@ const BO_Y = { pad0: 2.83, main0: 2.9, main1: 3.6, rf0: 5.2, rf1: 5.9, top: 6.4,
 // omtrek hoofdprint (x, z in mm, tegen de klok in gezien van boven): links het stuk onder de camerakolom tot x -13,5,
 // boven de inkeping voor periscoop en laser-AF (x tot -0,5), de selfiecamera (tot x +4, z -70,5) en de oorspeaker
 // (x +3,5 tot +18,5, z -74,5); rechts tot x +28,6 vóór de S Pen-silo
-const BO_MAIN = [[-13.5, -19], [28.6, -19], [28.6, -79], [18.5, -79], [18.5, -74.5], [4, -74.5], [4, -70.5], [-0.5, -70.5], [-0.5, -39.5], [-13.5, -39.5]];
+// de inkeping x -13,5 tot -9,5 bij z -21 tot -19 laat de hoofdflex door naar zijn connector (Randapparatuur)
+const BO_MAIN = [[-9.5, -19], [28.6, -19], [28.6, -79], [18.5, -79], [18.5, -74.5], [4, -74.5], [4, -70.5], [-0.5, -70.5], [-0.5, -39.5], [-13.5, -39.5], [-13.5, -21], [-9.5, -21]];
 // bovenafdekplaat: dezelfde omtrek, maar over de selfiecamera en de oorspeaker heen (die blijven onder y 4,9)
 const BO_COVER = [[-13.5, -19], [28.6, -19], [28.6, -79], [-0.5, -79], [-0.5, -39.5], [-13.5, -39.5]];
 // RF-print en buitenrand van de interposer; binnenrand van de interposer (holte)

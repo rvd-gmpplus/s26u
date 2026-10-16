@@ -22,7 +22,142 @@
   "Behuizing",
   "Scherm"
  ],
- "contains": [],
+ "rear": [
+  "Achterglas",
+  "Camera-eiland",
+  "Eilandglas",
+  "Lijmrand achterglas",
+  "Draadloos laden en NFC",
+  "Laadspoel",
+  "NFC-antenne",
+  "Afdekglas hoofdcamera",
+  "Afdekglas periscoop 5×"
+ ],
+ "camera": [
+  "Camerakolom",
+  "Cameraframebeugel",
+  "Ultragroothoekcamera 50 MP",
+  "Hoofdcamera 200 MP",
+  "Telecamera 10 MP (3×)",
+  "Periscoopcamera 50 MP (5×)",
+  "Laser-AF-sensor",
+  "Flitser",
+  "Selfiecamera 12 MP"
+ ],
+ "board": [
+  "Hoofdprint",
+  "Interposer",
+  "RF-print",
+  "Bovenafdekplaat",
+  "SoC Snapdragon 8 Elite Gen 5 for Galaxy",
+  "LPDDR5X-werkgeheugen 16 GB",
+  "UFS 4-opslag 1 TB",
+  "Batterijconnector (bord)",
+  "Connector hoofdflex (bord)"
+ ],
+ "power": [
+  "Batterij",
+  "Batterijcel",
+  "Kunststof omhulling",
+  "Treklip",
+  "Beveiligingsprint (PCM)",
+  "Batterijconnector",
+  "Vapor chamber",
+  "Wiekstructuur",
+  "Koelstapel processor",
+  "Thermische pad"
+ ],
+ "peripherals": [
+  "USB-C-subbord",
+  "USB-C-poort",
+  "SIM-lade",
+  "Nano-SIM",
+  "SIM-kaartlezer",
+  "Luidspreker onder",
+  "Oorspeaker",
+  "Trilmotor",
+  "Hoofdflexkabels",
+  "Hoofdflex",
+  "Onderafdekplaat"
+ ],
+ "pen": [
+  "Penpunt",
+  "Penbehuizing",
+  "Digitizerspoel",
+  "Einddop"
+ ],
+ "frame": [
+  "Middenframe",
+  "Framering",
+  "Middenplaat",
+  "S Pen-silo",
+  "S Pen-uitwerper",
+  "Volumeknop",
+  "Aan/uit-knop",
+  "Knoppenflex"
+ ],
+ "display": [
+  "Coverglas",
+  "OLED-paneel",
+  "Wacom-digitizer",
+  "Vingerafdruksensor",
+  "Displayflex",
+  "Displayconnector"
+ ],
+ "contains": [
+  [
+   "Achterkant",
+   "Camera-eiland"
+  ],
+  [
+   "Achterkant",
+   "Laadspoel"
+  ],
+  [
+   "Camera's",
+   "Hoofdcamera 200 MP"
+  ],
+  [
+   "Camera's",
+   "Selfiecamera 12 MP"
+  ],
+  [
+   "Moederbord",
+   "SoC Snapdragon 8 Elite Gen 5 for Galaxy"
+  ],
+  [
+   "Energie en koeling",
+   "Batterij"
+  ],
+  [
+   "Energie en koeling",
+   "Vapor chamber"
+  ],
+  [
+   "Randapparatuur",
+   "USB-C-poort"
+  ],
+  [
+   "Randapparatuur",
+   "SIM-lade"
+  ],
+  [
+   "Behuizing",
+   "Middenframe"
+  ],
+  [
+   "Behuizing",
+   "S Pen-silo"
+  ],
+  [
+   "Scherm",
+   "OLED-paneel"
+  ],
+  [
+   "Scherm",
+   "Vingerafdruksensor"
+  ]
+ ],
  "content": {},
  "openers": [],
  "preset_ids": [

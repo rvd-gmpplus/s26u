@@ -258,7 +258,6 @@ function frBuild() {
     P('Waterdichting USB-C', usbSeal, MAT.rubber, { d: 'Rubberen pakkingring rond de USB-C-opening aan de binnenkant van de onderrand; de USB-C-poort drukt ertegen. ' + est, ex: [0, 0, -0.25] }),
     P('Stofgaas luidspreker', cache('frSpkMesh', () => xf(mmBox(21, 2.6, 0.12), mmv(-19.8, 3.95, 79.74))), MAT.frMesh, { d: 'Fijn gaas achter de luidsprekergaatjes in de onderrand, tegen stof en water. ' + est, ex: [0, 0, -0.3] }),
     P('Stofgaas microfoon onder', cache('frMicMeshO', () => xf(G.cyl('z', mm(0.9), mm(0.9), mm(0.12), 14), mmv(-6.5, 3.95, 79.74))), MAT.frMesh, { d: 'Gaasje achter het microfoongaatje in de onderrand. ' + est, ex: [0, 0, -0.25] }),
-    P('Stofgaas microfoon boven', cache('frMicMeshB', () => xf(G.cyl('z', mm(0.9), mm(0.9), mm(0.12), 14), mmv(12, 3.95, -79.74))), MAT.frMesh, { d: 'Gaasje achter het microfoongaatje in de bovenrand. ' + est, ex: [0, 0, 0.25] }),
   ]);
   const middenframe = A('Middenframe', { d: 'De zijrand van het toestel: één aluminium ring over de volle dikte met de openingen voor poorten, gaatjes en knoppen, onderbroken door kunststof antennesplitsingen.', ex: [0, 0.12, 0] }, [
     P('Framering', ring, MAT.frameAlu, {

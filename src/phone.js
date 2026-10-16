@@ -18,14 +18,14 @@ function phPlaceholder(name, zone, mat) {
 }
 const PH_GROUPS = [
   // [hoofdgroep, bouwfunctie, plaatshouderzone, materiaal, uitklapvector]
-  ['Achterkant', 'reBuild', [-39, 39, 7.2, 7.9, -81.5, 81.5], () => MAT.backGlass, [0, 2.6, 0]],
-  ["Camera's", 'caBuild', [-34, -14, 2.0, 7.2, -77, -21], () => MAT.lensGlass, [-0.9, 2.0, -0.4]],
-  ['Moederbord', 'boBuild', [-12, 36, 2.9, 6.4, -79, -27], () => MAT.pcb, [0, 1.6, -0.3]],
-  ['Energie en koeling', 'pwBuild', [-34, 26, 2.8, 7.0, -16, 62], () => MAT.battery, [0, 1.1, 0.3]],
-  ['Randapparatuur', 'peBuild', [-34, 24, 2.9, 6.9, 64, 79], () => MAT.plastic, [0.2, 1.3, 1.1]],
-  ['S Pen', 'peBuildPen', [29.6, 34.0, 2.25, 6.65, -24, 81.4], () => MAT.plasticGrey, [1.9, 0.5, 0.6]],
-  ['Behuizing', 'frBuild', [-39, 39, 1.7, 2.4, -81.5, 81.5], () => MAT.frameAlu, [0, 0.5, 0]],
-  ['Scherm', 'diBuild', [-39, 39, 0, 1.7, -81.5, 81.5], () => MAT.oled, [0, -0.35, 0]],
+  ['Achterkant', 'reBuild', [-39, 39, 7.2, 7.9, -81.5, 81.5], () => MAT.backGlass, [0, 2.9, 0]],
+  ["Camera's", 'caBuild', [-34, -14, 2.0, 7.2, -77, -21], () => MAT.lensGlass, [-1.9, 2.3, -1.2]],
+  ['Moederbord', 'boBuild', [-12, 36, 2.9, 6.4, -79, -27], () => MAT.pcb, [1.6, 1.9, -1.1]],
+  ['Energie en koeling', 'pwBuild', [-34, 26, 2.8, 7.0, -16, 62], () => MAT.battery, [0, 1.35, 0.4]],
+  ['Randapparatuur', 'peBuild', [-34, 24, 2.9, 6.9, 64, 79], () => MAT.plastic, [-1.7, 1.0, 1.6]],
+  ['S Pen', 'peBuildPen', [29.6, 34.0, 2.25, 6.65, -24, 81.4], () => MAT.plasticGrey, [2.3, 0.4, 0.9]],
+  ['Behuizing', 'frBuild', [-39, 39, 1.7, 2.4, -81.5, 81.5], () => MAT.frameAlu, [0, 0.55, 0]],
+  ['Scherm', 'diBuild', [-39, 39, 0, 1.7, -81.5, 81.5], () => MAT.oled, [0, -0.4, 0]],
 ];
 
 function buildPhone() {

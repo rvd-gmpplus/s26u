@@ -691,6 +691,12 @@ const blob = new THREE.Mesh(new THREE.PlaneGeometry(mm(110), mm(195)), new THREE
 blob.rotation.x = -HALF; blob.renderOrder = -1;
 scene.add(blob);
 let groundTarget = 0;
+// Van onderen gezien (op het scherm) liggen vloer en schaduw tussen camera en toestel; dan tekenen we ze niet.
+function uiGroundSide() {
+  const below = camera.position.y < ground.position.y - 1e-3;
+  ground.visible = !below;
+  if (below) blob.visible = false;
+}
 function updateGround() {
   // gemonteerd ligt de telefoon op de vloer (y = 0); alleen als iets onder de vloer uitklapt zakt de vloer mee
   const b = predictedBox([ROOT]);

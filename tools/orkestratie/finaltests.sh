@@ -8,9 +8,8 @@ OUT="$(mkdir -p "$1" && cd "$1" && pwd)" || exit 2
 R="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$R" || exit 1
 # Vaste lijst: CI vergelijkt deze namen met de verwachting, zodat een test niet stil uit de set kan vallen.
-# Golf 0. Komen terug zodra er iets te toetsen is: sil (golf 2, silhouetprofielen), itest (golf 4, interactie op echte
-# onderdelen), shots, visdiff en anchor (golf 6, baselines). Zie docs/testen.md.
-TESTS="lint smoke integ inner opentest tri pub stats"
+# Komen nog: itest (golf 4, interactie op echte onderdelen), shots, visdiff en anchor (golf 6, baselines). Zie docs/testen.md.
+TESTS="lint smoke integ sil overlap inner opentest tri pub stats"
 git log --oneline -1 > "$OUT/commit.txt"
 date -u +"%Y-%m-%dT%H:%M:%SZ" > "$OUT/start.txt"
 
@@ -25,9 +24,11 @@ run() { # run NAAM COMMANDO...  : uitvoer naar NAAM.txt, laatste regel "exit N (
 run lint python3 build.py --lint
 ( run smoke python3 tools/smoke.py
   run integ python3 tools/integrity.py
+  run sil python3 tools/silhouette.py
   run inner python3 tools/ui_inner.py --open --strict
   run opentest python3 tools/opentest.py --strikt-min --out "$OUT/opentest" ) &
-( run tri python3 tools/tri.py --gate --json "$OUT/tri.json"
+( run overlap python3 tools/overlap.py
+  run tri python3 tools/tri.py --gate --json "$OUT/tri.json"
   run pub python3 tools/pubsmoke.py
   run stats python3 tools/orkestratie/stats.py "$R" "$OUT/stats.json" ) &
 wait

@@ -631,6 +631,7 @@ uiSyncTheme();
 function uiSlug(s) { return uiNorm(s).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'beeld'; }
 function uiSaveImage() {
   const n = SEL || ROOT, r = uiPnRec(n), nums = r && r.kind === 'zelf' && r.u ? [...(r.u.oe || []).map(x => x[0]), ...(r.u.am || []).map(x => x[0] + ' ' + x[1])] : [];
+  uiGroundSide();
   renderer.render(scene, camera); // op verzoek tekenen: de buffer wordt na het tonen niet bewaard
   const dpr = renderer.getPixelRatio(), w = canvas.width, h = canvas.height, bar = Math.round(44 * dpr);
   const c2 = document.createElement('canvas'); c2.width = w; c2.height = h + bar;
@@ -1649,6 +1650,7 @@ function loop(now) {
   if (active || needs || controls.autoRotate) {
     uiSetDpr(uiPickDpr(active));
     uiNearFar();
+    uiGroundSide();
     renderer.render(scene, camera);
     updateLabels();
     needs = false; drew = true;

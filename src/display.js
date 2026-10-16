@@ -85,8 +85,8 @@ function diBuild() {
 
   // paneelpakket: zelfde omtrek als het actieve paneel (x ±37,4, z ±79,6)
   const panelO = diOutline(74.8, 159.2, 7.0, null, 16);
-  const oca = diLayer('Oca', panelO, [holeP(3.4)], 0.7, 0.75);
-  const pol = diLayer('Pol', panelO, [holeP(3.4)], 0.75, 0.85);
+  const oca = diLayer('Oca', panelO, [holeP(3.4)], 0.7, 0.72); // dunner getekend: vlakken op minder dan 0,03 mm van de polarisator geven z-fighting
+  const pol = diLayer('Pol', panelO, [holeP(3.4)], 0.75, 0.845);
   const oled = diLayer('Oled', panelO, [holeP(DI_HOLE.d)], 0.85, 1.25);
   // digitizer en folie: iets kleiner, met uitsparingen voor selfiecamera, vingerafdruksensor en de displayflex
   const cut = () => [diRectPath(DI_SELFIE.x0, DI_SELFIE.x1, DI_SELFIE.z0, DI_SELFIE.z1, 1.2), diRectPath(DI_FP.x0 - 0.1, DI_FP.x1 + 0.1, DI_FP.z0 - 0.1, DI_FP.z1 + 0.1, 0.4)];

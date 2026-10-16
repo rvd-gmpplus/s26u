@@ -65,12 +65,12 @@ y 1,75 zakken door een gat in de middenplaat (Ø 14 om hun lensas). Het schermpa
 | Oorspeaker | +4 tot +18 | -80 tot -75 | 2,9 tot 4,9 | Randapparatuur |
 | Batterij | -34 tot +26 | -16 tot +62 | 2,8 tot 7,0 | Energie en koeling |
 | S Pen-silo (in het frame) | +29,1 tot +34,5 | -26 tot +81,8 | buis buiten Ø 5,4, binnen Ø 4,8, as x +31,8, y 4,45 (y 1,75 tot 7,15); de middenplaat heeft hier een sleuf | Behuizing |
-| S Pen (in de silo) | as x +31,8, y 4,45 | -24 tot +81,4 | Ø 4,4 (schatting) | S Pen |
+| S Pen (in de silo) | as x +31,8, y 4,45 | -24 tot +78,6 (de dop blijft binnen de hoekwand van het frame; de silo ligt in de afgeronde hoek) | Ø 4,4 (schatting) | S Pen |
 | Hoofdflexkabel bord naar subbord | -36,8 tot -34,4 | -21 tot +66 | 2,9 tot 3,4 | Randapparatuur |
 | Trilmotor | -34 tot -24 | +63 tot +67 | 3,0 tot 6,0 | Randapparatuur |
 | Luidspreker onder | -34 tot -8 | +68 tot +79 | 2,9 tot 6,9 | Randapparatuur |
-| USB-C-subbord met SIM-lezer | -6 tot +24 | +64 tot +79,5 | 2,9 tot 6,4 | Randapparatuur |
-| USB-C-poort | -4,5 tot +4,5 | +72 tot +81,8 | 2,3 tot 5,5 | Randapparatuur |
+| USB-C-subbord met SIM-lezer | -6 tot +24 | +64,5 tot +79,5 | 2,9 tot 6,4 | Randapparatuur |
+| USB-C-poort | -4,5 tot +4,5 | +72 tot +81,8 | 2,45 tot 5,5 | Randapparatuur |
 | SIM-lade | +8 tot +22 | +67 tot +81,8 | 3,2 tot 4,4 | Randapparatuur |
 | Onderafdekplaat (kunststof) | -36 tot +26 | +63 tot +79,8 | 6,9 tot 7,0 | Randapparatuur |
 
@@ -99,14 +99,14 @@ Stapel naar boven, van buiten (achterglas) naar binnen (scherm). Volgorde van de
 
 | Hoofdgroep | `ex` |
 |---|---|
-| Achterkant | [0, 2.6, 0] |
-| Camera's | [-0.9, 2.0, -0.4] |
-| Moederbord | [0, 1.6, -0.3] |
-| Energie en koeling | [0, 1.1, 0.3] |
-| Randapparatuur | [0.2, 1.3, 1.1] |
-| S Pen | [1.9, 0.5, 0.6] |
-| Behuizing | [0, 0.5, 0] |
-| Scherm | [0, -0.35, 0] |
+| Achterkant | [0, 2.9, 0] |
+| Camera's | [-1.9, 2.3, -1.2] |
+| Moederbord | [1.6, 1.9, -1.1] |
+| Energie en koeling | [0, 1.35, 0.4] |
+| Randapparatuur | [-1.7, 1.0, 1.6] |
+| S Pen | [2.3, 0.4, 0.9] |
+| Behuizing | [0, 0.55, 0] |
+| Scherm | [0, -0.4, 0] |
 
 ## Voorvoegsels per domein
 
@@ -125,3 +125,9 @@ Stapel naar boven, van buiten (achterglas) naar binnen (scherm). Volgorde van de
 - Knoppen steken hoogstens 0,25 mm buiten de flank uit.
 - Schroeven die een afdekplaat vastzetten, horen bij het domein van die plaat.
 - Lijm hoort bij het onderdeel dat hij vastzet.
+- De hoofdflex buigt bij z -20 af naar +x door de strook z -21 tot -17 en eindigt op de bordconnector (x -9,5 tot -0,9,
+  z -25,7 tot -22,7); het moederbord heeft daarvoor een inkeping x -13,5 tot -9,5 bij z -21 tot -19.
+- Het frame heeft ook aan de achterzijde een sponning: een rand van 0,9 mm, en daarin ligt het achterglas (78,1 - 1,9 mm
+  breed, y 7,2 tot 7,9).
+- De koelstapel onder de SoC (pad en pasta, y 2,8 tot 2,9) is van Energie en koeling; het moederbord heeft er geen eigen
+  kussen.

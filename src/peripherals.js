@@ -35,14 +35,14 @@ function peRect(x0, x1, z0, z1) { return [[x0, z0], [x1, z0], [x1, z1], [x0, z1]
 /* ---------- Randapparatuur ---------- */
 function peSubbord() {
   // print 0,6 mm dik met uitsparingen voor de USB-C-poort (die door de print heen zakt) en voor de SIM-lade
-  const print = pePlanG([[-6, 64], [24, 64], [24, 79.5], [22.4, 79.5], [22.4, 66.6], [7.6, 66.6], [7.6, 79.5], [4.7, 79.5],
+  const print = pePlanG([[-6, 64.5], [24, 64.5], [24, 79.5], [22.4, 79.5], [22.4, 66.6], [7.6, 66.6], [7.6, 79.5], [4.7, 79.5],
     [4.7, 71.8], [-4.7, 71.8], [-4.7, 79.5], [-6, 79.5]], 2.9, 3.5);
   // USB-C-poort: as y 3,9; huls 8,34 × 2,56 mm (maat van een USB-C-bus), van z 73 tot 81,6
   const yc = 3.9;
   const huls = peFrontG(peRR(0, yc, 8.34, 2.56, 1.27, 5), 73, 81.6, [peRR(0, yc, 7.7, 1.96, 0.95, 5)]);
   const pins = [];
   for (const s of [-1, 1]) for (let i = 0; i < 12; i++) pins.push(peBoxG(-2.875 + i * 0.5, -2.625 + i * 0.5, yc + s * 0.3 - 0.02, yc + s * 0.3 + 0.02, 77.8, 81.0));
-  const pakking = peFrontG(peRR(0, yc, 9, 3.2, 1.55, 5), 79.0, 79.8, [peRR(0, yc, 8.34, 2.56, 1.27, 5)]);
+  const pakking = peFrontG(peRR(0, yc, 9, 2.9, 1.4, 5), 79.0, 79.8, [peRR(0, yc, 8.34, 2.56, 1.27, 5)]);
   const usb = A('USB-C-poort', {
     d: 'USB-C-bus op het subbord: metalen huls met een contacttong in het midden en een rubberen afdichting tegen het frame. Volgens de iFixit-teardown is de poort los te vervangen. De iFixit-specificaties noemen USB 3.2 Gen 1; dat is niet nagekeken. Maten geschat.',
     spec: [['Vervangen', 'los vervangbaar (iFixit-teardown)']],
@@ -51,7 +51,7 @@ function peSubbord() {
     P('Poorthuls', huls, MAT.steel, { d: 'Metalen huls van de USB-C-bus, de buitenmaat van een USB-C-bus (ongeveer 8,3 × 2,6 mm). Steekt door een opening in de onderrand van het frame.', ex: [0, 0, 0.2] }),
     peBox('Contacttong', MAT.plastic, -3.2, 3.2, yc - 0.3, yc + 0.3, 75.4, 81.2, { d: 'Kunststof tong in de bus met aan beide kanten twaalf contacten, zodat de stekker twee kanten op past.', ex: [0, 0.15, 0.1] }),
     P('Contactpennen USB-C', merge(pins), MAT.gold, { d: 'Vergulde contacten op de tong, twaalf boven en twaalf onder. Aantal volgens de USB-C-norm, plek geschat.', ex: [0, 0.3, 0.1] }),
-    peBox('Achterwand USB-C', MAT.darkSteel, -4.5, 4.5, 2.3, 5.5, 72, 73, { d: 'Achterwand en soldeerlippen van de bus, waarmee hij op het subbord vastzit. Vorm geschat.', ex: [0, 0, -0.15] }),
+    peBox('Achterwand USB-C', MAT.darkSteel, -4.5, 4.5, 2.45, 5.5, 72, 73, { d: 'Achterwand en soldeerlippen van de bus, waarmee hij op het subbord vastzit. Vorm geschat.', ex: [0, 0, -0.15] }),
     P('Waterdichting USB-C', pakking, MAT.rubber, { d: 'Rubberen ring om de huls die de poort tegen de binnenkant van het frame afdicht. Vorm geschat.', ex: [0, 0, 0.35] }),
   ]);
   // SIM-kaartlezer: metalen kooi om de lade met contactveren door een venster in de lade
@@ -203,7 +203,7 @@ function peBuild() {
 }
 
 /* ---------- S Pen ---------- */
-// as x +31,8, y 4,45, van z -24 (punt, binnenin) tot +81,4 (dop, aan de onderrand); Ø 4,4 met een platte kant naar +y
+// as x +31,8, y 4,45, van z -24 (punt, binnenin) tot +78,6 (dop, net binnen de hoekwand); Ø 4,4 met een platte kant naar +y
 const PE_PEN = { x: 31.8, y: 4.45, r: 2.2, plat: 1.75 };
 // doorsnede in (x, y) rond de as: cirkel met een platte koorde boven, geschaald met f
 function pePenDoorsnede(f) {
@@ -227,8 +227,10 @@ function peBuildPen() {
   // neus: van 0,35 maal de straal bij z -21,6 naar de volle straal bij z -14
   const neus = z => { const t = clamp((z + 21.6) / 7.6, 0, 1); return 0.35 + 0.65 * (1 - (1 - t) * (1 - t)); };
   const huis = merge([pePenG(-21.6, -14, 7, neus), pePenG(-14, 76, 1, () => 1)]);
-  const eind = z => { const t = clamp((z - 80.4) / 1.0, 0, 1); return 1 - 0.22 * t * t; };
-  const dop = merge([pePenG(76.05, 80.4, 1, () => 1), pePenG(80.4, 81.4, 4, eind)]);
+  // De silo loopt door de afgeronde hoek van het frame (de hoek begint bij x +30,55); de dop eindigt daarom op z 78,6,
+  // vóór de binnenkant van de hoekwand, ongeveer 3 mm achter de buitenrand (afwijking van docs/indeling.md, zie daar).
+  const eind = z => { const t = clamp((z - 77.8) / 0.8, 0, 1); return 1 - 0.22 * t * t; };
+  const dop = merge([pePenG(76.05, 77.8, 1, () => 1), pePenG(77.8, 78.6, 4, eind)]);
   const punt = G.lathe('z', [[0, mm(-24)], [mm(0.28), mm(-24)], [mm(0.4), mm(-23.5)], [mm(0.45), mm(-22.6)], [mm(0.45), mm(-21.5)], [0, mm(-21.5)]], 12, 'pePunt');
   const kringChips = merge([-4, -1, 2].map(z => xf(mmBox(0.8, 0.3, 1.2), at(0, 0.8, z))));
   return A('S Pen', {
