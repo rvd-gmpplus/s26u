@@ -249,6 +249,12 @@ function uiPnLvl(mk, lvl) {
 function uiSyncToggles() {
   $('tXray').checked = XRAY; $('tSys').checked = SYSCOL; els.legend.hidden = !SYSCOL;
   const sp = Math.round(SPREAD * 100); $('spread').value = String(sp); $('spreadOut').textContent = sp + '%';
+  uiSyncFlip();
+}
+// Omdraaien: de knop in de bovenbalk (aria-pressed), de schakelaar in Weergave en de adresbalk volgen FLIP
+function uiSyncFlip() {
+  $('tFlip').checked = FLIP;
+  if ($('btnFlip').getAttribute('aria-pressed') !== String(FLIP)) $('btnFlip').setAttribute('aria-pressed', String(FLIP));
 }
 function uiAfterAction() {
   renderPanel();
@@ -599,6 +605,18 @@ function syncSheetHeight() {
 /* ---------- weergave-bediening ---------- */
 $('spread').addEventListener('input', e => { uiSetSpread(e.target.value / 100, false); $('spreadOut').textContent = e.target.value + '%'; requestRender(); });
 $('spread').addEventListener('change', () => { updateGround(); focusNodes(contextNodes()); });
+// Omdraaien (knop, schakelaar, sneltoets F, ?flip=1): scherm boven of achterkant boven. Eén handeling in de geschiedenis.
+function uiFlipTo(on) {
+  on = !!on;
+  if (on === FLIP) { uiSyncFlip(); return FLIP; }
+  uiStopPlay(); uiStopTour(); hideHint();
+  uiPush();
+  uiSetFlip(on);
+  uiAfterAction();
+  return FLIP;
+}
+$('btnFlip').onclick = () => uiFlipTo(!FLIP);
+$('tFlip').addEventListener('change', e => uiFlipTo(e.target.checked));
 $('tLabels').addEventListener('change', e => { LABELS = e.target.checked; requestRender(); });
 $('tXray').addEventListener('change', e => { uiPush(); XRAY = e.target.checked; clearPreset(); applyMats(); uiAfterAction(); });
 $('tSys').addEventListener('change', e => { uiPush(); SYSCOL = e.target.checked; clearPreset(); applyMats(); uiAfterAction(); });
@@ -1162,6 +1180,7 @@ window.addEventListener('keydown', e => {
   if (e.key === 'Backspace') { e.preventDefault(); uiStopPlay(); uiStopTour(); uiUndo(); return; }
   if (e.key === '?') { e.preventDefault(); uiHelp(true); return; }
   if (e.key === 'o' || e.key === 'O') { e.preventDefault(); hideHint(); uiSetOpenMode(!OPENMODE); return; }
+  if (e.key === 'f' || e.key === 'F') { e.preventDefault(); uiFlipTo(!FLIP); return; }
   // U17: / springt naar het zoekveld van de onderdelenlijst (op de telefoon gaat het paneel daarvoor open)
   if (e.key === '/') { e.preventDefault(); hideHint(); showTab('tree'); if (uiSheetBottom()) setSheet('open'); els.search.focus(); els.search.select(); return; }
   // pijltjes (niet op een bedieningselement): door de boom lopen. Omhoog = bovenliggende groep, omlaag = eerste deel,
@@ -1629,6 +1648,7 @@ function uiTick(dt) {
   if (stepOpen(dt)) active = true;
   if (uiStepPlay(dt)) active = true;
   if (stepCam(dt)) active = true;
+  if (uiStepFlip(dt)) active = true;
   if (stepGround(dt)) active = true;
   if (uiStepFade(dt)) active = true; // U4
   if (uiVisDirty) { applyVisibility(); active = true; }
@@ -1691,7 +1711,8 @@ let uiUrlLast = null;
 function uiUrlSync() {
   let u; try { u = new URL(location.href); } catch (_) { return; }
   if (!/^https?:$/.test(u.protocol)) return;
-  const q = u.searchParams; q.delete('preset'); q.delete('open');
+  const q = u.searchParams; q.delete('preset'); q.delete('open'); q.delete('flip');
+  if (FLIP) q.set('flip', '1');
   if (ACTIVE_PRESET && appPresetById.has(ACTIVE_PRESET) && ACTIVE_PRESET !== 'assembled') q.set('preset', ACTIVE_PRESET);
   else if (OPENMODE) {
     const open = OPENERS.filter(n => n.ot > 0).map(n => uiNameCount.get(n.name) === 1 ? n.name : uiPathOf(n).replace(/^[^/]+\//, ''));
@@ -1705,6 +1726,15 @@ function uiUrlSync() {
 function uiUrlApply() {
   let q; try { q = new URLSearchParams(location.search); } catch (_) { return; }
   const pid = q.get('preset'), open = q.get('open');
+  // ?flip=1: direct omgedraaid (scherm boven); combineerbaar met preset en open, die daarna in de omgedraaide stand kadreren
+  if (q.get('flip') === '1') {
+    uiSetFlip(true, { instant: true, noCam: true });
+    const f = uiFitPoints(uiCollect([ROOT], true), uiDirW(DIRS.isoFront), 1.04);
+    if (f) { camera.position.copy(f.pos); controls.target.copy(f.target); controls.update(); }
+    uiLastFit = { nodes: [ROOT], dir: DIRS.isoFront.clone(), pad: 1.04, opt: {} };
+    ACTIVE_PRESET = null;
+    uiAfterAction();
+  }
   if (pid) {
     const p = appPresetById.get(pid);
     if (p && !p.tour && appPresetOk(p)) { appApplyPreset(p, { noHistory: true }); finishAll(); return; }
@@ -1743,6 +1773,7 @@ uiWarmMaterials();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { for (const n of ALL) n._lw = null; uiUiChanged(); layoutView(); });
 
 function finishAll() {
+  uiFlipFinish();
   if (uiRefitTimer) uiRefitNow();
   for (const n of uiAnim) { n.delay = 0; n.k = 1; n.amt = n.target; n.u = n.amt; placeKids(n); }
   uiAnim.clear();
@@ -1791,7 +1822,7 @@ function uiState() {
   return {
     open: ASMS.filter(n => n.target > 0.5).map(n => n.name), selected: (SEL || ROOT).name, iso: ISO.map(n => n.name), xray: XRAY,
     explode: { group: w.name, value: L ? +(uiExplodeX(w) / L).toFixed(4) : 0, levels: L }, history: uiHist.length,
-    lifted: uiLifted ? uiLifted.name : null, preset: ACTIVE_PRESET, dim: DIM ? DIM.name : null, mode: MODE, openMode: OPENMODE, openers: OPENERS.filter(n => n.ot > 0).map(n => n.name), tour: !!appTour, playing: !!uiPlayS, sys: SYSCOL,
+    lifted: uiLifted ? uiLifted.name : null, preset: ACTIVE_PRESET, dim: DIM ? DIM.name : null, mode: MODE, openMode: OPENMODE, openers: OPENERS.filter(n => n.ot > 0).map(n => n.name), tour: !!appTour, playing: !!uiPlayS, sys: SYSCOL, flip: FLIP,
   };
 }
 function uiFrameOf(names) {
@@ -1858,6 +1889,9 @@ window.__s26u = {
   // openmodus (kern): leiders met hun stand; setOpen(naam, 0..1, direct); openAll(0..1, direct)
   openers: () => OPENERS.map(n => ({ name: n.name, label: n.opn.label || n.name, type: n.opn.type, open: +n.ou.toFixed(4), target: n.ot, followers: n.opn.followers.map(f => f.name) })),
   setOpenMode: on => { hideHint(true); uiSetOpenMode(on); return OPENMODE; },
+  // omdraaien: flip(true) scherm boven, flip(false) achterkant boven, flip() wisselt; geeft de nieuwe stand terug
+  flip: on => { hideHint(true); return uiFlipTo(on === undefined ? !FLIP : on); },
+  flipInfo: () => ({ flip: FLIP, angle: +uiFlipA.toFixed(4), animating: !!uiFlipAnim, pos: ROOT.obj.position.toArray(), box: [UI_FLIP_BOX.min.toArray(), UI_FLIP_BOX.max.toArray()] }),
   openPlan: x => { const n = typeof x === 'string' ? byName(x) : x; const pl = n && uiOpenPlan(n); return pl ? { opener: pl.n.name, open: pl.open } : null; },
   pnRebuild: uiPnBuild, pnCheck: uiPnCheck, pnOf: x => { const n = typeof x === 'string' ? (uiByPath(x) || byName(x)) : x; const r = n && uiPnRec(n); return r ? { kind: r.kind, unit: r.id, rule: r.rule || null } : null; },
   setOpen: (name, v, instant) => { const r = uiSetOpen(name, v, instant); uiSyncOpenUi(); renderPanel(); requestRender(); return r; },

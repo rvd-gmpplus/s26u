@@ -491,6 +491,7 @@ input[type=range]{width:100%;accent-color:var(--ink)}
     </div></div>
     <div class="top-actions">
       <button class="iconbtn" id="help" aria-label="Uitleg over de bediening" aria-haspopup="dialog">?</button>
+      <button class="iconbtn" id="btnFlip" aria-label="Omdraaien: scherm boven" aria-pressed="false" title="Toestel omdraaien: scherm boven of achterkant boven (sneltoets F)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8.5"/><path d="M20 4v4.5h-4.5"/><path d="M20 12a8 8 0 0 1-13.7 5.6L4 15.5"/><path d="M4 20v-4.5h4.5"/></svg></button>
       <button class="iconbtn" id="btnParts" aria-label="Onderdelenlijst openen" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg></button>
       <button class="iconbtn" id="btnView" aria-label="Weergave-instellingen openen" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
     </div>
@@ -537,6 +538,7 @@ input[type=range]{width:100%;accent-color:var(--ink)}
       </section>
       <section id="tab-view" role="tabpanel" aria-labelledby="tabbtn-view" hidden>
         <div class="ctl">
+          <label class="row" for="tFlip"><span>Omdraaien<small>Scherm boven in plaats van achterkant boven (toets F)</small></span><input class="switch" type="checkbox" role="switch" id="tFlip"></label>
           <label class="row" for="spread"><span>Spreiding<small>Afstand tussen uitgeklapte delen</small></span><output id="spreadOut">100%</output></label>
           <input id="spread" type="range" min="40" max="220" step="5" value="100">
           <label class="row" for="tLabels"><span>Labels<small>Namen bij de laatst uitgeklapte groep</small></span><input class="switch" type="checkbox" role="switch" id="tLabels" checked></label>
@@ -634,6 +636,7 @@ input[type=range]{width:100%;accent-color:var(--ink)}
       <dt><kbd>Backspace</kbd></dt><dd>Stap terug.</dd>
       <dt><kbd>&uarr;</kbd> <kbd>&darr;</kbd> <kbd>&larr;</kbd> <kbd>&rarr;</kbd></dt><dd>Door de onderdelen lopen: bovenliggende groep, eerste deel, vorige of volgende op hetzelfde niveau.</dd>
       <dt><kbd>O</kbd></dt><dd>Wisselt tussen Uitklappen en Openen. In Openen opent <kbd>Enter</kbd> de opener van de selectie en sluit <kbd>Shift</kbd>+<kbd>Enter</kbd> hem.</dd>
+      <dt><kbd>F</kbd></dt><dd>Draait het toestel om: scherm boven of achterkant boven. De knop bovenin en de schakelaar Omdraaien in Weergave doen hetzelfde. Daarna kijkt de camera van boven op het scherm; de knoppen en presets tonen hetzelfde deel van het toestel als voorheen, nu van de andere kant. De link krijgt ?flip=1.</dd>
       <dt><kbd>Esc</kbd></dt><dd>Menu sluiten of het hele toestel selecteren.</dd>
       <dt id="helpKeysT"></dt><dd id="helpKeys"></dd>
       <dt><kbd>/</kbd></dt><dd>Zoek een onderdeel in de onderdelenlijst.</dd>
