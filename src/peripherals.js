@@ -153,21 +153,28 @@ function peTrilmotor() {
 }
 
 function peFlexkabels() {
-  const xc = -34.82, yc = 3.15;
-  const coax = P('Antennekabel', mmCyl('z', 0.18, 61.7 - -19.4, 8), MAT.rubber, {
-    d: 'Dunne coaxkabel langs dezelfde route als de hoofdflex, van het moederbord naar de antenne-aansluiting onderin. Of er een coaxkabel loopt en waar hij eindigt is geschat.',
-    p: mmv(xc, yc, (61.7 + -19.4) / 2), ex: [0.1, 0.12, 0],
-  });
-  const stekkers = merge([peBoxG(xc - 0.35, xc + 0.35, 2.9, 3.4, -20.6, -19.4), peBoxG(xc - 0.35, xc + 0.35, 2.9, 3.4, 61.7, 62.9)]);
+  // route (aanvulling orkestrator): langs -x van z +65,8 tot z -20, haaks naar +x door de vrije strook z -21 tot -17 tot
+  // x -13,5, in de vrijgelaten hoek x -13,5 tot -9,5 omhoog naar y 3,6 en dan op de bordconnector (x -9,5 tot -0,9,
+  // z -25,7 tot -22,7) met een eigen flexconnector op y 3,6 tot 4,0
+  const xc = -34.82, yc = 3.15, zc = -17.5;
+  const coax = merge([xf(mmCyl('z', 0.18, 61.7 - zc, 8), mmv(xc, yc, (61.7 + zc) / 2)), xf(mmCyl('x', 0.18, -14.6 - xc, 8), mmv((xc + -14.6) / 2, yc, zc))]);
+  const stekkers = merge([peBoxG(-14.6, -13.4, 2.9, 3.4, zc - 0.35, zc + 0.35), peBoxG(xc - 0.35, xc + 0.35, 2.9, 3.4, 61.7, 62.9)]);
+  const hoofd = merge([
+    peBoxG(-36.6, -35.3, 2.9, 3.05, -20.5, 65.8),
+    peBoxG(-35.3, -13.5, 2.9, 3.05, -20.5, -18.5),
+    peFrontG(peFlexPts([[-13.5, 2.9], [-11.8, 2.9], [-9.9, 3.6], [-9.3, 3.6]], 0.15), -20.5, -18.5),
+    peBoxG(-9.3, -5.0, 3.6, 3.75, -22.9, -18.5),
+  ]);
+  const kopBoven = merge([peBoxG(-9.5, -0.9, 3.6, 3.9, -25.7, -22.7), peBoxG(-9.2, -1.2, 3.9, 4.0, -25.4, -23.0)]);
   const koppel = peFrontG(peFlexPts([[-36.5, 3.4], [-35.3, 3.4], [-34.3, 2.95], [-8, 2.95], [-6.3, 4.0], [-1.6, 4.0]], 0.15), 64.7, 66.1);
   return A('Hoofdflexkabels', {
-    d: 'Lange flexkabels langs de rechterkant (gezien op het scherm) van het moederbord naar het subbord onderin, met een koppelflex onder de trilmotor door naar het subbord. Route en maten geschat.',
+    d: 'Lange flexkabels van het moederbord naar het subbord onderin: vanaf de bordconnector door de strook tussen camerakolom en batterij naar de rechterkant (gezien op het scherm), dan langs de zijkant naar beneden, met een koppelflex onder de trilmotor door naar het subbord. Route en maten geschat.',
     ex: [-0.6, 0.25, -0.1],
   }, [
-    peBox('Hoofdflex', MAT.flex, -36.6, -35.3, 2.9, 3.05, -20.5, 65.8, { d: 'Lange flexkabel met de signalen en de laadstroom tussen moederbord en subbord, langs de zijkant naast de batterij. Breedte geschat.', ex: [-0.1, 0.05, 0] }),
-    peBox('Connector hoofdflex boven', MAT.plastic, -36.7, -35.3, 3.05, 3.4, -20.8, -18.0, { d: 'Connector aan de bovenkant van de hoofdflex, waar hij uit het moederbord komt. Plek geschat.', ex: [0, 0.15, -0.1] }),
+    P('Hoofdflex', hoofd, MAT.flex, { d: 'Lange flexkabel met de signalen en de laadstroom tussen moederbord en subbord. Buigt bovenin haaks af naar de connector op het moederbord en loopt dan langs de zijkant naast de batterij. Breedte en verloop geschat.', ex: [-0.1, 0.05, 0] }),
+    P('Connector hoofdflex boven', kopBoven, MAT.plastic, { d: 'Flexconnector aan het boveneind van de hoofdflex, die op de bordconnector van het moederbord klikt. Maat geschat.', ex: [0, 0.2, -0.05] }),
     peBox('Connector hoofdflex onder', MAT.plastic, -36.7, -35.3, 3.05, 3.4, 63.0, 65.8, { d: 'Connector aan de onderkant van de hoofdflex, waar de koppelflex op aansluit. Plek geschat.', ex: [0, 0.15, 0.05] }),
-    coax,
+    P('Antennekabel', coax, MAT.rubber, { d: 'Dunne coaxkabel langs dezelfde route als de hoofdflex, van het moederbord naar de antenne-aansluiting onderin. Of er een coaxkabel loopt en waar hij eindigt is geschat.', ex: [0.1, 0.12, 0] }),
     P('Coaxstekkers', stekkers, MAT.shield, { d: 'Kleine coaxstekkers aan beide eindes van de antennekabel. Geschat.', ex: [0.12, 0.2, 0] }),
     P('Koppelflex naar subbord', koppel, MAT.flex, { d: 'Korte flex van de hoofdflex dwars onder de trilmotor door naar de connector op het subbord. Verloop geschat.', ex: [0, 0.2, 0.1] }),
   ]);
