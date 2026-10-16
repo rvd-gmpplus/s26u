@@ -22,11 +22,12 @@ Resultaat van de volledige Linux-run (pages-vorm; de artifact-vorm staat in deze
 
 | Viewport | compatMode | innerWidth | Paneel onderaan en binnen de breedte | Tik selecteert | Resultaat |
 |---|---|---|---|---|---|
-| 390 x 844, dpr 3 | in te vullen door de orkestrator na de volledige Linux-run | | | | |
-| 360 x 780, dpr 3 (Android-achtig) | in te vullen door de orkestrator na de volledige Linux-run | | | | |
-| 430 x 932, dpr 3 | in te vullen door de orkestrator na de volledige Linux-run | | | | |
+| 390 x 844, dpr 3 | CSS1Compat | 390 | ja (0..390 x 702..844) | GOED (Achterglas) | GOED |
+| 360 x 780, dpr 3 (Android-achtig) | CSS1Compat | 360 | ja (0..360 x 638..780) | GOED (Framering) | GOED |
+| 430 x 932, dpr 3 | CSS1Compat | 430 | ja (0..430 x 790..932) | GOED (Achterglas) | GOED |
 
-Datum: in te vullen. Bronhash (versiestempel uit `index.html`): in te vullen.
+Datum: 16 oktober 2026, Actions-job `volledig` run 38940741087 (Linux x86_64, ALLES GROEN). Bronhash (versiestempel uit
+`index.html`): versie 2 (bron 60852be). De artifact-vorm gaf in dezelfde run dezelfde uitkomst op alle drie viewports.
 
 Ter vergelijking, gemeten op 16 oktober 2026 op macOS met een kopie buiten de repo: met de oude `head.html` (versie 1,
 bron 11d04bf, zonder doctype en viewport) is de pages-vorm rood op alle drie telefoonviewports, met `BackCompat` en
