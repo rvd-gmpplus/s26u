@@ -91,7 +91,7 @@ y 1,75 zakken door een gat in de middenplaat (Ø 14 om hun lensas). Het schermpa
 | Volumeknop | -x (rechts op het scherm) | -48 tot -26 | schatting |
 | Aan/uit-knop | -x | -16 tot -4 | schatting |
 | USB-C, microfoon, luidsprekergaten, SIM-lade | onderrand | zie de zones | schatting |
-| S Pen-opening | afgeronde hoek onder, +x (links gezien op het scherm) | x +32,0 (cirkel Ø 5,0, evenwijdig aan de pen geboord) | schatting; kant en hoekplek volgens 9to5Google, 23-02-2026 (zie docs/masterplan.md) |
+| S Pen-opening | afgeronde hoek onder, +x (links gezien op het scherm) | x +32,0 (cirkel Ø 5,0, evenwijdig aan de pen geboord) | plek in de hoek geschat; hoekplek volgens 9to5Google, 23-02-2026; kant linksonder bevestigd door de gebruiker op het eigen toestel (2026-10-16) |
 
 ## Uitklaprichtingen van de hoofdgroepen
 
