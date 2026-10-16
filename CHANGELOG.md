@@ -1,5 +1,19 @@
 # Wijzigingen
 
+## Versie 3
+
+- De S Pen zit in de afgeronde hoek linksonder (as x +32,0): de opening ligt in de hoekboog en de einddop is schuin
+  afgesneden, zodat hij gelijk ligt met het frame (zoals bij het echte toestel).
+- Omdraaien: het toestel draait 180 graden om de lange as, zodat het scherm boven ligt. Knop in de bovenbalk, schakelaar
+  in Weergave, sneltoets F en `?flip=1` in de URL; presets en camera draaien mee.
+- Omdraaien rolt nu langs de convexe omhullende van de hoekpunten: geen zweven meer (was tot 2,02 mm), hoek 0 is exact de
+  beginstand (de verschuiving van 0,125 mm na heen en terug is weg) en omdraaien wist de actieve preset, zodat de URL klopt.
+- S Pen: de schuine afsnijding van de einddop werd door afrondingsverschil in float32 nooit toegepast; nu ligt de dop op
+  de hoekboog. De opening in de framering heeft geen open naden meer (184 open randen naar 0).
+- Buitenomtrek en S Pen-as staan als gedeeld contract in `core.js` (`docs/indeling.md`); de S Pen hangt niet meer af van `frame.js`.
+- Lokale Linux-VM voor de volledige set (`tools/linux/vmtests.sh`).
+- Aantallen: zie `docs/cijfers.md`.
+
 ## Versie 2
 
 - Doctype, charset en viewport in `src/head.html`: de telefoon gebruikt de standaardmodus.

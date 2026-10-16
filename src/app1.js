@@ -493,11 +493,16 @@ const VIEW = { l: 0, r: 0, t: 0, b: 0 };
 let W = 1, H = 1;
 // De telefoon ligt met het scherm op de vloer (y = 0), achterkant boven (+y), bovenrand naar -z. front kijkt op het scherm,
 // rear op de achterkant, top op de bovenrand, under op de onderrand.
-const DIRS = { iso: V3(0.8, 1.15, 0.9), front: V3(0.0001, -1, 0.04), rear: V3(0.0001, 1, 0.04), side: V3(1, 0.14, 0.02), top: V3(0.05, 0.3, -1), under: V3(0.05, 0.3, 1), isoRear: V3(-0.8, 1.15, -0.9) };
+// Alle richtingen staan in het frame van het toestel (de gemonteerde stand). Is het toestel omgedraaid (zie Omdraaien),
+// dan draait uiDirW ze 180 graden om de lengteas (z) mee, zodat elke richting hetzelfde deel van het toestel toont.
+// isoFront: ¾-aanzicht op het scherm (de camera kijkt na het omdraaien van boven op het scherm).
+const DIRS = { iso: V3(0.8, 1.15, 0.9), front: V3(0.0001, -1, 0.04), rear: V3(0.0001, 1, 0.04), side: V3(1, 0.14, 0.02), top: V3(0.05, 0.3, -1), under: V3(0.05, 0.3, 1), isoRear: V3(-0.8, 1.15, -0.9), isoFront: V3(0.7, -1, 0.7) };
 let uiSpreadEnd = 1;
 // Eindstand voorspellen: posities na afloop van alle lopende animaties, met de zichtbaarheid van de eindstand.
 function uiPredHidden(n) { const p = n.parent; return !!(n.inner && p && p.target === 0 && uiInScope(p) && !uiOpenNear(p, true)); }
 function uiWithFinal(fn) {
+  const flipSave = uiFlipAnim ? [ROOT.obj.position.clone(), ROOT.obj.quaternion.clone()] : null;
+  if (flipSave) uiFlipPose(uiFlipAnim.a1);   // een lopende draai: rekenen met de eindstand
   const moved = uiOpenFinalNodes();
   for (const n of moved) { (n._q || (n._q = new THREE.Quaternion())).copy(n.obj.quaternion); n._s = n.obj.scale.clone(); n._u = n.ou; }
   for (const n of ALL) if (n.parent) {
@@ -509,6 +514,7 @@ function uiWithFinal(fn) {
   try { return fn(); } finally {
     for (const n of ALL) if (n.parent) n.obj.position.copy(n._p);
     for (const n of moved) { n.obj.quaternion.copy(n._q); n.obj.scale.copy(n._s); n.ou = n._u; }
+    if (flipSave) { ROOT.obj.position.copy(flipSave[0]); ROOT.obj.quaternion.copy(flipSave[1]); }
     ROOT.obj.updateMatrixWorld(true);
   }
 }
@@ -625,13 +631,98 @@ let uiLastFit = null;
 function focusNodes(nodes, dir, pad, opt = {}) {
   const pts = uiCollect(nodes, true);
   if (!pts.length) uiCollect(nodes.map(() => ROOT), true, pts);
-  const f = uiFitPoints(pts, dir, pad || 1.08, opt);
+  const f = uiFitPoints(pts, dir ? uiDirW(dir) : null, pad || 1.08, opt);
   if (f) animCam(f.pos, f.target, opt.dur, opt.delay);
   uiLastFit = { nodes: nodes.slice(), dir: dir ? dir.clone() : null, pad: pad || 1.08, opt: opt.min ? { min: opt.min } : {} };
   updateGround();
 }
 function contextNodes() { return ISO.length ? ISO : [ROOT]; }
 let uiUserCam = false; // de gebruiker heeft de camera zelf verplaatst sinds de laatste inpassing
+
+/* ---------- omdraaien: scherm boven of achterkant boven ---------- */
+// Het hele model draait 180 graden om de lengteas (z) en ligt daarna weer op de vloer: het laagste punt (het camera-eiland,
+// dat in de omgedraaide stand naar beneden steekt) raakt y = 0. Alleen ROOT.obj krijgt een draaiing en verplaatsing; alles
+// eronder blijft in zijn eigen frame, dus uitklapvectoren, openers, batches en labels werken in beide standen ongewijzigd
+// (het model klapt mee om). Tijdens de draai rolt het toestel over de vloer: elk frame ligt het laagste punt van de convexe omhullende van de hoekpunten op de vloer.
+// FLIP is de gewenste stand; uiFlipA de huidige hoek (0 of PI, ertussen tijdens de animatie).
+let FLIP = false, uiFlipA = 0, uiFlipAnim = null;
+const UI_FLIP_BOX = (() => { // doorsnede (x, y) van het gemonteerde toestel, alle meshes (inclusief ingesloten)
+  const b = new THREE.Box3(), t = new THREE.Box3();
+  for (const m of MESHES) { if (!m.geometry.boundingBox) m.geometry.computeBoundingBox(); b.union(t.copy(m.geometry.boundingBox).applyMatrix4(m.matrixWorld)); }
+  return b;
+})();
+const UI_FLIP_C = [(UI_FLIP_BOX.min.x + UI_FLIP_BOX.max.x) / 2, (UI_FLIP_BOX.min.y + UI_FLIP_BOX.max.y) / 2];
+const UI_FLIP_Z = V3(0, 0, 1);
+// Convexe omhullende van de doorsnede (x, y) van alle hoekpunten van alle meshes in de gemonteerde stand (hull() uit core.js).
+// De doos van UI_FLIP_BOX heeft hoeken die het toestel niet heeft (de afgeronde hoeken), dus het toestel zweefde tijdens de draai
+// tot 2,02 mm boven de vloer. Eerst vallen de punten binnen de veelhoek van 32 uiterste punten af (dat verandert de omhullende niet),
+// zodat hull() maar een paar honderd punten sorteert.
+const UI_FLIP_HULL = (() => {
+  let n = 0;
+  for (const m of MESHES) n += m.geometry.attributes.position.count;
+  const xy = new Float64Array(2 * n), v = new THREE.Vector3(), K = 32;
+  const dx = [], dy = [], best = new Array(K).fill(-Infinity), ext = new Array(K).fill(null);
+  for (let k = 0; k < K; k++) { dx.push(Math.cos(2 * PI * k / K)); dy.push(Math.sin(2 * PI * k / K)); }
+  let i = 0;
+  for (const m of MESHES) {
+    const p = m.geometry.attributes.position;
+    for (let j = 0; j < p.count; j++, i++) {
+      v.fromBufferAttribute(p, j).applyMatrix4(m.matrixWorld);
+      xy[2 * i] = v.x; xy[2 * i + 1] = v.y;
+      for (let k = 0; k < K; k++) { const d = v.x * dx[k] + v.y * dy[k]; if (d > best[k]) { best[k] = d; ext[k] = [v.x, v.y]; } }
+    }
+  }
+  const inner = hull(ext), cr = (o, a, b, c, d) => (a - o[0]) * (d - o[1]) - (b - o[1]) * (c - o[0]);
+  const rest = [];
+  for (let q = 0; q < n; q++) {
+    const x = xy[2 * q], y = xy[2 * q + 1];
+    let inside = true;
+    for (let e = 0; e < inner.length && inside; e++) { const a = inner[e], b = inner[(e + 1) % inner.length]; if ((b[0] - a[0]) * (y - a[1]) - (b[1] - a[1]) * (x - a[0]) <= 1e-9) inside = false; }
+    if (!inside) rest.push([x, y]);
+  }
+  return hull(rest.concat(inner));
+})();
+// Stand van het toestel bij hoek a, zonder de beginstand: draaien om het midden C van de doorsnede, dat zo hoog staat dat het
+// laagste punt van de omhullende y = 0 raakt. Geeft [x, y] van ROOT.obj.position.
+function uiFlipRaw(a) {
+  const s = Math.sin(a), c = Math.cos(a), [cx, cy] = UI_FLIP_C;
+  let low = Infinity;
+  for (const [x, y] of UI_FLIP_HULL) low = Math.min(low, (x - cx) * s + (y - cy) * c);
+  return [-(cx * c - cy * s), -low - (cx * s + cy * c)];
+}
+// De verplaatsing is relatief aan de stand bij hoek 0 en komt daarbovenop de beginpositie van ROOT, zodat hoek 0 precies de
+// beginstand geeft (ook na heen en weer omdraaien) en het laagste punt op dezelfde hoogte blijft als in het begin.
+const UI_FLIP_P0 = ROOT.obj.position.clone(), UI_FLIP_R0 = uiFlipRaw(0);
+function uiFlipPose(a) {
+  const [px, py] = uiFlipRaw(a);
+  ROOT.obj.quaternion.setFromAxisAngle(UI_FLIP_Z, a);
+  ROOT.obj.position.set(UI_FLIP_P0.x + px - UI_FLIP_R0[0], UI_FLIP_P0.y + py - UI_FLIP_R0[1], UI_FLIP_P0.z);
+}
+// Richting in het frame van het toestel -> wereldrichting: omgedraaid is dat een draaiing van 180 graden om z.
+const uiDirW = d => (FLIP ? V3(-d.x, -d.y, d.z) : d);
+function uiSetFlip(on, opt = {}) {
+  on = !!on;
+  if (on === FLIP) return false;
+  FLIP = on;
+  if (opt.instant || REDUCED) { uiFlipAnim = null; uiFlipA = on ? PI : 0; uiFlipPose(uiFlipA); ROOT.obj.updateMatrixWorld(true); }
+  else uiFlipAnim = { a0: uiFlipA, a1: on ? PI : 0, k: 0, dur: 0.9 * Math.max(0.45, Math.abs((on ? PI : 0) - uiFlipA) / PI) };
+  updateGround();
+  if (!opt.noCam) focusNodes(contextNodes(), on ? DIRS.isoFront : DIRS.iso, 1.04, { dur: 1.1 });
+  return true;
+}
+function uiStepFlip(dt) {
+  if (!uiFlipAnim) return false;
+  const f = uiFlipAnim;
+  f.k = Math.min(1, f.k + dt / f.dur);
+  uiFlipA = f.k >= 1 ? f.a1 : f.a0 + (f.a1 - f.a0) * ease(f.k);
+  uiFlipPose(uiFlipA);
+  if (f.k >= 1) { uiFlipAnim = null; updateGround(); }
+  return true;
+}
+function uiFlipFinish() {
+  if (!uiFlipAnim) return;
+  uiFlipA = uiFlipAnim.a1; uiFlipAnim = null; uiFlipPose(uiFlipA); ROOT.obj.updateMatrixWorld(true); updateGround();
+}
 
 /* ---------- vloer ---------- */
 // Vloer en schaduw als DataTexture uit JavaScript (geen 2D-canvas: dat tekenen kostte in software-WebGL bij het
@@ -723,7 +814,7 @@ function uiSnap() {
     lift: uiLifted ? uiLifted.id : null,
     iso: ISO.map(n => n.id), dim: DIM ? DIM.id : null, xray: XRAY, sys: SYSCOL, spread: SPREAD, om: OPENMODE,
     sel: (SEL || ROOT).id, ctx: CTX ? CTX.id : null, force: uiLabelForce, preset: ACTIVE_PRESET,
-    cam: [camera.position.clone(), controls.target.clone()],
+    cam: [camera.position.clone(), controls.target.clone()], flip: FLIP,
   };
 }
 function uiPush() {
@@ -739,6 +830,7 @@ function uiRestore(s, instant) {
   for (const [id, x, y, z] of s.pull) { const n = uiById.get(id); if (n) { n.pull.set(x, y, z); uiOffTo(n, 0.7); } }
   uiDrop();
   if (s.lift != null) { const n = uiById.get(s.lift); if (n) uiLift(n); }
+  uiSetFlip(!!s.flip, { noCam: true, instant: instant });   // de stand omdraaien hoort bij de stap; de camera komt uit s.cam
   XRAY = s.xray; SYSCOL = s.sys; OPENMODE = !!s.om;
   uiSetDim(s.dim != null ? uiById.get(s.dim) : null);
   if (SPREAD !== s.spread) uiSetSpread(s.spread, true);

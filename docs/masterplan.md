@@ -137,8 +137,13 @@ Zie `docs/specificaties-en-bronnen.md`; dit plan herhaalt de getallen niet.
 
 - Schaal 40 mm per wereldeenheid in plaats van meter met een apart object voor de constanten (zie Ontwerpbesluiten).
 - De selfiecamera hoort bij Camera's in plaats van bij het Scherm: hij zit onder het moederbord (iFixit).
-- De S Pen-as ligt op x +28,7 in plaats van +31,8, zodat de pen recht uit de onderrand schuift en niet door de afgeronde
-  hoek van het frame.
+- De S Pen-as ligt op x +32,0 (linksonder gezien op het scherm), in de afgeronde hoek van de onderrand (richtwaarde van het
+  plan: +31,8; golf 3 had hem naar +28,7 geschoven, golf 7 heeft dat teruggedraaid). De opening is evenwijdig aan de pen door
+  de hoekwand geboord, het open eind van de silo is schuin afgesneden langs de binnenboog en de einddop van de pen langs de
+  buitenboog (R 8,5), zodat hij gelijk ligt met het frame. Bron: 9to5Google, 23-02-2026 (de uitwerpopening staat niet recht op
+  het chassis; het eind van de pen is schuin; goed ingestoken ligt hij gelijk met het toestel), en de plaatsing linksonder
+  (ShopSavvy, S26 Ultra S Pen-gids). Een foto of teardown die de kant bewijst is niet gevonden: de kant (+x) is dus behouden,
+  niet bewezen. De middenplaatsleuf (x +29,1 tot +34,9) is meeverschoven.
 - Het achterglas is een scharnier (als een boek open) in plaats van een schuif: zo blijft het binnenwerk in beeld.
 - Extra test: `tools/overlap.py` (doorsteken tussen domeinen). `tools/anchorcheck.py` uit laguna3 is niet overgenomen; `itest.py` is nieuw geschreven voor de telefoon.
 - Onderdeelnummers: alleen service packs uit leverancierslijsten (bewijs B en C); een servicecatalogus van Samsung was niet

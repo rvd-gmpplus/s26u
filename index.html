@@ -1,6 +1,6 @@
 <!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Galaxy S26 Ultra explosietekening</title>
-<meta name="s26u-version" content="2 (bron 60852be)">
+<meta name="s26u-version" content="3 (bron b691f73)">
 <meta name="description" content="Interactieve 3D-explosietekening van een Samsung Galaxy S26 Ultra: scherm, frame, moederbord, batterij, koeling, camera's en S Pen laag voor laag uit elkaar. Onafhankelijk schematisch model.">
 <meta property="og:title" content="Galaxy S26 Ultra explosietekening">
 <meta property="og:description" content="Interactieve 3D-explosietekening van een Samsung Galaxy S26 Ultra: scherm, frame, moederbord, batterij, koeling, camera's en S Pen laag voor laag uit elkaar. Onafhankelijk schematisch model.">
@@ -491,6 +491,7 @@ input[type=range]{width:100%;accent-color:var(--ink)}
     </div></div>
     <div class="top-actions">
       <button class="iconbtn" id="help" aria-label="Uitleg over de bediening" aria-haspopup="dialog">?</button>
+      <button class="iconbtn" id="btnFlip" aria-label="Omdraaien: scherm boven" aria-pressed="false" title="Toestel omdraaien: scherm boven of achterkant boven (sneltoets F)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8.5"/><path d="M20 4v4.5h-4.5"/><path d="M20 12a8 8 0 0 1-13.7 5.6L4 15.5"/><path d="M4 20v-4.5h4.5"/></svg></button>
       <button class="iconbtn" id="btnParts" aria-label="Onderdelenlijst openen" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg></button>
       <button class="iconbtn" id="btnView" aria-label="Weergave-instellingen openen" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
     </div>
@@ -537,6 +538,7 @@ input[type=range]{width:100%;accent-color:var(--ink)}
       </section>
       <section id="tab-view" role="tabpanel" aria-labelledby="tabbtn-view" hidden>
         <div class="ctl">
+          <label class="row" for="tFlip"><span>Omdraaien<small>Scherm boven in plaats van achterkant boven (toets F)</small></span><input class="switch" type="checkbox" role="switch" id="tFlip"></label>
           <label class="row" for="spread"><span>Spreiding<small>Afstand tussen uitgeklapte delen</small></span><output id="spreadOut">100%</output></label>
           <input id="spread" type="range" min="40" max="220" step="5" value="100">
           <label class="row" for="tLabels"><span>Labels<small>Namen bij de laatst uitgeklapte groep</small></span><input class="switch" type="checkbox" role="switch" id="tLabels" checked></label>
@@ -610,7 +612,7 @@ input[type=range]{width:100%;accent-color:var(--ink)}
   <div id="press" hidden><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="28"/></svg></div>
   <div id="helpDlg" hidden><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
     <h2 id="helpTitle">Bediening</h2>
-    <p class="ver">Galaxy S26 Ultra explosietekening, versie 2 (bron 60852be)</p>
+    <p class="ver">Galaxy S26 Ultra explosietekening, versie 3 (bron b691f73)</p>
     <div id="helpMouse"><h3>Met de muis</h3><dl>
       <dt>Klik</dt><dd>De groep van het onderdeel klapt uit; de rest blijft staan. Staat die groep al open, dan wordt het onderdeel uitgelicht.</dd>
       <dt>Dubbelklik</dt><dd>Direct naar dit onderdeel: alle groepen erboven gaan laag voor laag open.</dd>
@@ -634,6 +636,7 @@ input[type=range]{width:100%;accent-color:var(--ink)}
       <dt><kbd>Backspace</kbd></dt><dd>Stap terug.</dd>
       <dt><kbd>&uarr;</kbd> <kbd>&darr;</kbd> <kbd>&larr;</kbd> <kbd>&rarr;</kbd></dt><dd>Door de onderdelen lopen: bovenliggende groep, eerste deel, vorige of volgende op hetzelfde niveau.</dd>
       <dt><kbd>O</kbd></dt><dd>Wisselt tussen Uitklappen en Openen. In Openen opent <kbd>Enter</kbd> de opener van de selectie en sluit <kbd>Shift</kbd>+<kbd>Enter</kbd> hem.</dd>
+      <dt><kbd>F</kbd></dt><dd>Draait het toestel om: scherm boven of achterkant boven. De knop bovenin en de schakelaar Omdraaien in Weergave doen hetzelfde. Daarna kijkt de camera van boven op het scherm; de knoppen en presets tonen hetzelfde deel van het toestel als voorheen, nu van de andere kant. De link krijgt ?flip=1.</dd>
       <dt><kbd>Esc</kbd></dt><dd>Menu sluiten of het hele toestel selecteren.</dd>
       <dt id="helpKeysT"></dt><dd id="helpKeys"></dd>
       <dt><kbd>/</kbd></dt><dd>Zoek een onderdeel in de onderdelenlijst.</dd>
@@ -671,6 +674,14 @@ const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
 const MM = 1 / 40;
 const mm = v => v * MM;
 const mmv = (...a) => a.map(mm);
+/* ---------- gedeeld contract tussen domeinen: buitenomtrek en S Pen-as (orkestrator, golf 7) ---------- */
+// De buitenomtrek van het frame (afgeronde rechthoek, bevestigd) en de as van de S Pen in de hoek linksonder (x +, gezien op het
+// scherm) hebben meer dan één eigenaar: de Behuizing boort er de opening en de silo, de S Pen legt er de pen en de dop op. Staan
+// ze in één domeinbestand, dan hangt het andere domein daarvan af; daarom staan ze hier. Zie docs/indeling.md, "Gedeeld contract".
+const OUT_HW = 39.05, OUT_HL = 81.8, OUT_R = 8.5;   // halve breedte (x), halve lengte (z) en hoekstraal van de buitenomtrek (mm)
+const PEN_AXIS = { x: 32.0, y: 4.45 };              // as van de S Pen en van de silo (mm), evenwijdig aan z
+// z van het buitenoppervlak van de onderrand bij een gegeven x (mm); in de hoekboog (x > OUT_HW - OUT_R) volgt het de boog
+function outerZ(x) { const a = OUT_HW - OUT_R, b = OUT_HL - OUT_R; return x <= a ? OUT_HL : b + Math.sqrt(OUT_R * OUT_R - (x - a) * (x - a)); }
 const REDUCED = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const canvas = document.getElementById('stage');
@@ -986,9 +997,12 @@ const sideName = s => (s > 0 ? 'links' : 'rechts');
 // Alle maten in mm (docs/indeling.md); de ring wordt als eigen geometrie langs de omtrek opgebouwd, zodat het silhouet
 // exact de afgeronde rechthoek van 78,1 × 163,6 mm met hoekstraal 8,5 mm volgt.
 
-const FR_HW = 39.05, FR_HL = 81.8, FR_T = 7.9, FR_R = 8.5, FR_WALL = 2.0;
+const FR_HW = OUT_HW, FR_HL = OUT_HL, FR_T = 7.9, FR_R = OUT_R, FR_WALL = 2.0;   // buitenomtrek uit core.js (gedeeld contract)
 const FR_BAND = [1.8, 7.05];      // y-band van de vlakke flank waarin alle openingen liggen
 const FR_SPLIT = 0.8;             // breedte van een antennesplitsing (mm)
+// S Pen: as in de afgeronde hoek linksonder (gezien op het scherm, +x), 7,05 mm van de flank; de opening is een cirkel
+// met straal 2,5 mm rond de as (pen Ø 4,4 mm, 0,3 mm speling) en wordt evenwijdig aan de pen door de wand geboord.
+const FR_PEN = { x: PEN_AXIS.x, y: PEN_AXIS.y, hole: 2.5, siloR: 2.7, siloRi: 2.4 };   // as uit core.js (PEN_AXIS)
 
 std('frSplit', 0xd9dbde, 0, 0.55);           // kunststof van de antennesplitsingen, in de kleur van het frame
 std('frMesh', 0x2b2d31, 0.45, 0.78);         // stofgaas achter luidspreker- en microfoongaatjes
@@ -1033,6 +1047,22 @@ function frSOf(path, edge, v) {
   if (edge === 'boven') return S[6].s0 + (v + a);
   if (edge === 'rechts') return S[4].s0 + (b - v);
   return v >= 0 ? v : S[8].s0 + (v + b);
+}
+// z van het binnenoppervlak van de onderrand bij een gegeven x (in de hoekboog volgt het de boog); het buitenoppervlak is outerZ() in core.js
+function frZIn(x) { const a = FR_HW - FR_R, b = FR_HL - FR_R, r = FR_R - FR_WALL; return x <= a ? FR_HL - FR_WALL : b + Math.sqrt(r * r - (x - a) * (x - a)); }
+// opening op de plek x0 van de onderrand, evenwijdig aan de z-as geboord: omtrek buiten (pts) en binnen (ptsIn) in (s, y) bij
+// dezelfde (x, y), plus kolommen {s, lo, hi} (boven- en onderrand van de opening per x) waarmee het vlak rond de opening in
+// smalle stroken wordt opgebouwd: op de hoekboog zou een lange, dunne driehoek van de opening naar de venstergrens als
+// koorde dwars door de boog lopen en zichtbare strepen geven
+function frHoleAxial(path, x0, y0, r, K) {
+  const a = path.a, ri = FR_R - FR_WALL, xs = [];
+  for (let k = 0; k <= K; k++) xs.push(x0 - r + 2 * r * k / K);
+  if (a > xs[0] + 0.05 && a < xs[K] - 0.05) { xs.push(a); xs.sort((p, q) => p - q); }
+  const sOut = x => frSOf(path, 'onder', x), sIn = x => x > a ? path.segs[1].s0 + FR_R * Math.acos((x - a) / ri) : frSOf(path, 'onder', x);
+  const col = (x, sf) => { const h = Math.sqrt(Math.max(0, r * r - (x - x0) * (x - x0))); return { s: sf(x), lo: y0 - h, hi: y0 + h }; };
+  const cols = xs.map(x => col(x, sOut)), colsIn = xs.map(x => col(x, sIn));
+  const poly = cs => cs.map(c => [c.s, c.hi]).concat(cs.slice(1, -1).reverse().map(c => [c.s, c.lo]));
+  return { pts: poly(cols), ptsIn: poly(colsIn), cols, colsIn };
 }
 // Dwarsdoorsnede van de rand als gesloten lus (t, y): t is de afstand vanaf de buitenkant naar binnen. Vlakke flank,
 // afgeronde boven- en onderkant. Aan de achterzijde een rand van 0,9 mm met een sponning (y 7,15 tot 7,9) waarin het
@@ -1079,12 +1109,13 @@ function frHoleCirc(sc, yc, r, n) { const p = []; for (let i = 0; i < n; i++) { 
 // Openingen in de rand en de plaatsen van de antennesplitsingen (allemaal geschat, zie docs/indeling.md)
 function frOpenings(path) {
   const S = (e, v) => frSOf(path, e, v), H = [];
-  const add = (name, pts, c) => H.push({ name, pts, c });
+  const add = (name, pts, c, ptsIn, cols, colsIn) => H.push({ name, pts, c, ptsIn, cols, colsIn });
   // onderrand: USB-C, microfoon, SIM-lade, S Pen, luidsprekergaatjes
   add('USB-C', frHoleRect(S('onder', 0), 3.9, 9.0, 3.2, 1.6, 6), [S('onder', 0), 3.9]);
   add('microfoon onder', frHoleCirc(S('onder', -6.5), 3.95, 0.35, 10), [S('onder', -6.5), 3.95]);
   add('SIM-lade', frHoleRect(S('onder', 15), 3.8, 14.6, 1.5, 0.5, 3), [S('onder', 15), 3.8]);
-  add('S Pen', frHoleCirc(S('onder', 28.7), 4.45, 2.5, 28), [S('onder', 28.7), 4.45]);
+  const pen = frHoleAxial(path, FR_PEN.x, FR_PEN.y, FR_PEN.hole, 14);
+  add('S Pen', pen.pts, [S('onder', FR_PEN.x), FR_PEN.y], pen.ptsIn, pen.cols, pen.colsIn);
   for (let k = 0; k < 8; k++) { const x = -10 - 2.8 * k, s = S('onder', x); add('luidspreker', frHoleCirc(s, 3.95, 0.65, 12), [s, 3.95]); }
   // bovenrand: microfoon (niet op x 0, daar zit de straal van de silhouettest niet in de weg)
   add('microfoon boven', frHoleCirc(S('boven', 12), 3.95, 0.35, 10), [S('boven', 12), 3.95]);
@@ -1112,7 +1143,7 @@ function frRingGeos() {
   const path = frPath(), prof = frProfile(), P = prof.p, NP = P.length, { holes, splits } = frOpenings(path);
   const W = (s, t, y, pk) => { const f = frAt(path, s); if (pk) t = frPocket(f[2], f[3]); return [f[0] - t * f[2], y, f[1] - t * f[3]]; };
   // vensters: per opening het bereik in s plus 0,6 mm marge; overlappende vensters samenvoegen
-  let wins = holes.map(h => { const ss = h.pts.map(p => p[0]); return { s0: Math.min(...ss) - 0.6, s1: Math.max(...ss) + 0.6, holes: [h] }; }).sort((p, q) => p.s0 - q.s0);
+  let wins = holes.map(h => { const ss = h.pts.concat(h.ptsIn || []).map(p => p[0]); return { s0: Math.min(...ss) - 0.6, s1: Math.max(...ss) + 0.6, holes: [h] }; }).sort((p, q) => p.s0 - q.s0);
   const merged = [];
   for (const w of wins) { const l = merged[merged.length - 1]; if (l && w.s0 <= l.s1) { l.s1 = Math.max(l.s1, w.s1); l.holes.push(...w.holes); } else merged.push(w); }
   wins = merged;
@@ -1123,6 +1154,9 @@ function frRingGeos() {
   for (const g of path.segs) { st.push(g.s0); if (g.c) for (let i = 1; i < 20; i++) st.push(g.s0 + i / 20 * g.len); }
   for (const w of wins) { const n = Math.ceil((w.s1 - w.s0) / 0.5); for (let i = 0; i <= n; i++) st.push(w.s0 + i / n * (w.s1 - w.s0)); }
   for (const q of sp) st.push(q.s0, q.s1);
+  // de kolommen van een opening die evenwijdig aan de pen is geboord (buiten en binnen) zijn ook stations, anders raakt de
+  // rand van het vlak rond de opening de stations van de profielstroken niet (T-naden)
+  for (const h of holes) if (h.cols) for (const c of h.cols.concat(h.colsIn)) st.push(c.s);
   st.sort((p, q) => p - q);
   const S = st.filter((v, i) => i === 0 || v - st[i - 1] > 1e-6);
   const ring = frMesh(), ins = sp.map(() => frMesh());
@@ -1152,22 +1186,42 @@ function frRingGeos() {
   for (const w of wins) {
     const ss = S.filter(v => v >= w.s0 - 1e-6 && v <= w.s1 + 1e-6);
     const contour = ss.map(v => [v, FR_BAND[0]]).concat(ss.slice().reverse().map(v => [v, FR_BAND[1]]));
-    const hp = w.holes.map(h => h.pts);
-    const all = contour.concat(...hp);
-    const tris = THREE.ShapeUtils.triangulateShape(contour.map(p => new THREE.Vector2(...p)), hp.map(h => h.map(p => new THREE.Vector2(...p))));
-    for (const [i, j, l] of tris) {
-      const sc = (all[i][0] + all[j][0] + all[l][0]) / 3, f = frAt(path, sc);
-      for (const t of [0, FR_WALL]) {
-        const n = t ? [-f[2], 0, -f[3]] : [f[2], 0, f[3]];
-        ring.tri(W(all[i][0], t, all[i][1]), W(all[j][0], t, all[j][1]), W(all[l][0], t, all[l][1]), n);
+    // buiten- en binnenvlak apart: een opening die evenwijdig aan de pen is geboord heeft binnen een andere omtrek
+    for (const t of [0, FR_WALL]) {
+      const n = f0 => t ? [-f0[2], 0, -f0[3]] : [f0[2], 0, f0[3]];
+      const grid = w.holes.length === 1 && w.holes[0].cols;
+      if (grid) {
+        // vlak in smalle stroken per paar opeenvolgende kolommen: boven en onder de opening een trapezium waarvan de rand langs de
+        // band alle stations van het venster als hoekpunt heeft (waaier vanaf het hoekpunt op de opening), links en rechts van
+        // de opening een volle strook met de linker- of rechterpunt van de opening als waaierpunt. Zo sluit elk hoekpunt aan.
+        const h = w.holes[0], cs = (t ? h.colsIn : h.cols).slice().sort((p, q) => p.s - q.s), [y0, y1] = FR_BAND;
+        const between = (a, b) => ss.filter(v => v > a + 1e-6 && v < b - 1e-6);
+        const fan = (apex, ps) => { for (let i = 0; i + 1 < ps.length; i++) ring.tri(W(apex[0], t, apex[1]), W(ps[i][0], t, ps[i][1]), W(ps[i + 1][0], t, ps[i + 1][1]), n(frAt(path, (apex[0] + ps[i][0] + ps[i + 1][0]) / 3))); };
+        const L = cs[0], R = cs[cs.length - 1], hL = [L.s, (L.lo + L.hi) / 2], hR = [R.s, (R.lo + R.hi) / 2];
+        fan(hL, [[L.s, y0]].concat(between(w.s0, L.s).reverse().map(v => [v, y0]), [[w.s0, y0], [w.s0, y1]], between(w.s0, L.s).map(v => [v, y1]), [[L.s, y1]]));
+        fan(hR, [[R.s, y1]].concat(between(R.s, w.s1).map(v => [v, y1]), [[w.s1, y1], [w.s1, y0]], between(R.s, w.s1).reverse().map(v => [v, y0]), [[R.s, y0]]));
+        for (let k = 0; k + 1 < cs.length; k++) {
+          const c = cs[k], d = cs[k + 1], mid = between(c.s, d.s);
+          fan([c.s, c.hi], [[d.s, d.hi], [d.s, y1]].concat(mid.slice().reverse().map(v => [v, y1]), [[c.s, y1]]));
+          fan([c.s, c.lo], [[c.s, y0]].concat(mid.map(v => [v, y0]), [[d.s, y0], [d.s, d.lo]]));
+        }
+        continue;
+      }
+      const hp = w.holes.map(h => (t && h.ptsIn) || h.pts);
+      const all = contour.concat(...hp);
+      const tris = THREE.ShapeUtils.triangulateShape(contour.map(p => new THREE.Vector2(...p)), hp.map(h => h.map(p => new THREE.Vector2(...p))));
+      for (const [i, j, l] of tris) {
+        const sc = (all[i][0] + all[j][0] + all[l][0]) / 3;
+        ring.tri(W(all[i][0], t, all[i][1]), W(all[j][0], t, all[j][1]), W(all[l][0], t, all[l][1]), n(frAt(path, sc)));
       }
     }
     for (const h of w.holes) {
       const pts = h.pts, [cs, cy] = h.c;
       for (let i = 0; i < pts.length; i++) {
-        const p = pts[i], q = pts[(i + 1) % pts.length], ms = (p[0] + q[0]) / 2, my = (p[1] + q[1]) / 2, f = frAt(path, ms);
+        const j = (i + 1) % pts.length, p = pts[i], q = pts[j], pi = (h.ptsIn || pts)[i], qi = (h.ptsIn || pts)[j];
+        const ms = (p[0] + q[0]) / 2, my = (p[1] + q[1]) / 2, f = frAt(path, ms);
         const n = [f[4] * (cs - ms), cy - my, f[5] * (cs - ms)];
-        ring.quad(W(p[0], 0, p[1]), W(q[0], 0, q[1]), W(q[0], FR_WALL, q[1]), W(p[0], FR_WALL, p[1]), n);
+        ring.quad(W(p[0], 0, p[1]), W(q[0], 0, q[1]), W(qi[0], FR_WALL, qi[1]), W(pi[0], FR_WALL, pi[1]), n);
       }
     }
   }
@@ -1179,11 +1233,11 @@ function frRingGeos() {
 
 /* ---------- middenplaat ---------- */
 function frArc(cx, cz, r, a0, a1, n) { const p = []; for (let i = 0; i <= n; i++) { const an = a0 + i / n * (a1 - a0); p.push([cx + r * Math.cos(an), cz + r * Math.sin(an)]); } return p; }
-// Plaat in de binnenruimte (x ±37, z ±79,8, hoekstraal 6,5), met een open sleuf langs de S Pen-silo (x 25,8 tot 31,6,
+// Plaat in de binnenruimte (x ±37, z ±79,8, hoekstraal 6,5), met een open sleuf langs de S Pen-silo (x 29,1 tot 34,9,
 // vanaf z -26,2 tot de onderrand), gaten om de drie grote camera's en de selfiecamera en een sleuf voor de displayflex.
 function frPlateGeo() {
   return cache('frPlate', () => {
-    const X = 37, Z = 79.8, r = 6.5, cx = X - r, cz = Z - r, sx0 = 25.8, sx1 = 31.6, sz = -26.2;
+    const X = 37, Z = 79.8, r = 6.5, cx = X - r, cz = Z - r, sx0 = FR_PEN.x - 2.9, sx1 = FR_PEN.x + 2.9, sz = -26.2;
     const te = Math.acos((sx1 - cx) / r);
     const pts = [[X, -cz], [X, cz], ...frArc(cx, cz, r, 0, te, 8), [sx1, sz], [sx0, sz], [sx0, Z], ...frArc(-cx, cz, r, HALF, PI, 10),
       ...frArc(-cx, -cz, r, PI, 1.5 * PI, 10), ...frArc(cx, -cz, r, 1.5 * PI, 2 * PI, 10)];
@@ -1200,10 +1254,20 @@ function frPlateGeo() {
 /* ---------- S Pen-silo en uitwerper ---------- */
 function frSiloGeo() {
   return cache('frSiloTube', () => {
-    const z0 = -26, z1 = 80.5, L = z1 - z0;
-    const tubeG = xf(annulus(mm(2.4), mm(2.7), mm(L), 'z', 28), mmv(28.7, 4.45, (z0 + z1) / 2));
-    const capG = xf(G.cyl('z', mm(2.7), mm(2.7), mm(0.3), 28), mmv(28.7, 4.45, z0 + 0.15));
-    return merge([tubeG, capG]);
+    // buis van z -26 tot de binnenkant van de wand; het open eind is schuin afgesneden langs de binnenboog van de hoek
+    const z0 = -26, zmax = FR_HL, X = FR_PEN.x, sh = shapeOf(frArc(0, 0, mm(FR_PEN.siloR), 0, 2 * PI, 28).slice(0, 28));
+    sh.holes.push(circlePath(0, 0, mm(FR_PEN.siloRi)));
+    const g = new THREE.ExtrudeGeometry(sh, { depth: mm(zmax - z0), steps: 1, bevelEnabled: false, curveSegments: 14 });
+    const pa = g.attributes.position;
+    for (let i = 0; i < pa.count; i++) {
+      const top = pa.getZ(i) > mm(zmax - z0) / 2, x = pa.getX(i) / MM + X;
+      pa.setZ(i, top ? mm(Math.min(frZIn(x) - 0.02, zmax)) : mm(z0));
+    }
+    g.deleteAttribute('normal'); g.deleteAttribute('uv');
+    const tube = cleanG(THREE.BufferGeometryUtils.toCreasedNormals(THREE.BufferGeometryUtils.mergeVertices(g, 1e-6), 0.6));
+    tube.translate(mm(X), mm(FR_PEN.y), 0);
+    const capG = xf(G.cyl('z', mm(FR_PEN.siloR), mm(FR_PEN.siloR), mm(0.3), 28), mmv(X, FR_PEN.y, z0 + 0.15));
+    return merge([tube, capG]);
   });
 }
 
@@ -1243,7 +1307,7 @@ function frBuild() {
   ]);
   const middenframe = A('Middenframe', { d: 'De zijrand van het toestel: één aluminium ring over de volle dikte met de openingen voor poorten, gaatjes en knoppen, onderbroken door kunststof antennesplitsingen.', ex: [0, 0.12, 0] }, [
     P('Framering', ring, MAT.frameAlu, {
-      d: 'Zijrand uit één stuk aluminium (zilver bij White), 2,0 mm dik met vlakke flanken en afgeronde boven- en onderkant. Aan de schermzijde een lip van 0,3 mm voor het coverglas en een sponning waarin paneel en digitizer liggen. In de onderrand de USB-C-opening, de luidsprekergaatjes, een microfoongaatje, de sleuf van de SIM-lade en de S Pen-opening; in de bovenrand een microfoongaatje; in de rechterflank de openingen voor de knoppen. De buitenmaat is bevestigd, het profiel en de plaats van de openingen zijn geschat.',
+      d: 'Zijrand uit één stuk aluminium (zilver bij White), 2,0 mm dik met vlakke flanken en afgeronde boven- en onderkant. Aan de schermzijde een lip van 0,3 mm voor het coverglas en een sponning waarin paneel en digitizer liggen. In de onderrand de USB-C-opening, de luidsprekergaatjes, een microfoongaatje, de sleuf van de SIM-lade en, in de afgeronde hoek linksonder (gezien op het scherm), de S Pen-opening; in de bovenrand een microfoongaatje; in de rechterflank de openingen voor de knoppen. De buitenmaat is bevestigd, het profiel en de plaats van de openingen zijn geschat.',
       spec: [['L × B × D', '163,6 × 78,1 × 7,9 mm']],
       ex: [0, 0.04, 0],
     }),
@@ -1251,16 +1315,16 @@ function frBuild() {
     seals,
   ]);
   const plaat = P('Middenplaat', frPlateGeo(), MAT.frameCast, {
-    d: 'Gegoten plaat tussen het schermpakket en de binnenruimte; draagt moederbord, batterij en vapor chamber en verstijft het toestel. Met gaten rond de drie grote camera\'s en de selfiecamera, een sleuf voor de displayflex en een open sleuf langs de S Pen-silo. ' + est,
+    d: 'Gegoten plaat tussen het schermpakket en de binnenruimte; draagt moederbord, batterij en vapor chamber en verstijft het toestel. Met gaten rond de drie grote camera\'s en de selfiecamera, een sleuf voor de displayflex en een open sleuf langs de S Pen-silo in de hoek. ' + est,
     ex: [0, -0.32, 0],
   });
   // S Pen-silo met uitwerper aan het binnenste eind (z -26 tot -24, de pen begint op z -24)
-  const silo = A('S Pen-silo', { d: 'Buis in het frame waarin de S Pen zit, open aan de onderrand en met een uitwerper aan het binnenste eind. ' + est, ex: [0.55, 0.35, 0] }, [
-    P('Silobuis', frSiloGeo(), MAT.frSilo, { d: 'Kunststof buis van 5,4 mm buiten en 4,8 mm binnen, van z -26 tot in de onderrand, aan het binnenste eind dicht. ' + est, ex: [0.08, 0, 0] }),
+  const silo = A('S Pen-silo', { d: 'Buis in het frame waarin de S Pen zit, in de afgeronde hoek linksonder (gezien op het scherm). Hij is open aan de onderrand en heeft een uitwerper aan het binnenste eind. ' + est, ex: [0.55, 0.35, 0] }, [
+    P('Silobuis', frSiloGeo(), MAT.frSilo, { d: 'Kunststof buis van 5,4 mm buiten en 4,8 mm binnen, van z -26 tot de binnenkant van de hoekwand; het open eind is schuin afgesneden langs de binnenboog van de hoek. Aan het binnenste eind dicht. ' + est, ex: [0.08, 0, 0] }),
     A('S Pen-uitwerper', { d: 'Klik-uitwerper: druk de pen in en hij klikt vast, druk nog eens en de veer duwt hem een stukje naar buiten. Werking en vorm zijn geschat.', ex: [0, 0, -0.55] }, [
-      P('Uitwerperveer', spring(mm(1.4), mm(0.12), mm(0.8), 3, 'z'), MAT.steel, { d: 'Drukveer die de pen naar buiten duwt. ' + est, p: mmv(28.7, 4.45, -25.3), ex: [0, 0, -0.12] }),
-      P('Klikring', cache('frClick', () => merge([xf(annulus(mm(1.3), mm(2.2), mm(0.4), 'z', 20), mmv(28.7, 4.45, -24.7)), xf(mmBox(0.5, 0.5, 0.6), mmv(28.7, 6.3, -24.7))])), MAT.plastic, { d: 'Ring met hartvormige kliknok die de pen vasthoudt of loslaat. ' + est, ex: [0, 0, -0.24] }),
-      P('Duwkop', cache('frPush', () => xf(annulus(mm(0.8), mm(2.1), mm(0.4), 'z', 20), mmv(28.7, 4.45, -24.3))), MAT.steel, { d: 'Kopje waar de punt van de S Pen tegen drukt. ' + est, ex: [0, 0, -0.36] }),
+      P('Uitwerperveer', spring(mm(1.4), mm(0.12), mm(0.8), 3, 'z'), MAT.steel, { d: 'Drukveer die de pen naar buiten duwt. ' + est, p: mmv(FR_PEN.x, FR_PEN.y, -25.3), ex: [0, 0, -0.12] }),
+      P('Klikring', cache('frClick', () => merge([xf(annulus(mm(1.3), mm(2.2), mm(0.4), 'z', 20), mmv(FR_PEN.x, FR_PEN.y, -24.7)), xf(mmBox(0.5, 0.5, 0.6), mmv(FR_PEN.x, 6.3, -24.7))])), MAT.plastic, { d: 'Ring met hartvormige kliknok die de pen vasthoudt of loslaat. ' + est, ex: [0, 0, -0.24] }),
+      P('Duwkop', cache('frPush', () => xf(annulus(mm(0.8), mm(2.1), mm(0.4), 'z', 20), mmv(FR_PEN.x, FR_PEN.y, -24.3))), MAT.steel, { d: 'Kopje waar de punt van de S Pen tegen drukt. ' + est, ex: [0, 0, -0.36] }),
     ]),
   ]);
   // zijknoppen aan de -x-flank (rechts als je op het scherm kijkt)
@@ -2547,19 +2611,22 @@ function peBuild() {
 }
 
 /* ---------- S Pen ---------- */
-// as x +28,7, y 4,45, van z -24 (punt, binnenin) tot +81,4 (dop, in de opening van de onderrand); Ø 4,4 met een platte kant naar +y
-const PE_PEN = { x: 28.7, y: 4.45, r: 2.2, plat: 1.75 };
+// as in de afgeronde hoek linksonder (x en y uit PEN_AXIS in core.js), van z -24 (punt, binnenin) tot de dop, die schuin is
+// afgesneden langs de buitenboog van de hoek en gelijk ligt met het frame; Ø 4,4 met een platte kant naar +y
+const PE_PEN = { x: PEN_AXIS.x, y: PEN_AXIS.y, r: 2.2, plat: 1.75 };
 // doorsnede in (x, y) rond de as: cirkel met een platte koorde boven, geschaald met f
 function pePenDoorsnede(f) {
   const a0 = Math.asin(PE_PEN.plat / PE_PEN.r), pts = [], N = 22;
   for (let i = 0; i <= N; i++) { const a = PI - a0 + (PI + 2 * a0) * i / N; pts.push([PE_PEN.r * f * Math.cos(a), PE_PEN.r * f * Math.sin(a)]); }
   return pts;
 }
-// D-vormig stuk pen van z0 tot z1 (mm) met schaal fz(z) langs de as, op zijn plek
-function pePenG(z0, z1, steps, fz) {
+// D-vormig stuk pen van z0 tot z1 (mm) met schaal fz(z) langs de as, op zijn plek; met cut(x) wordt het eind (z1) schuin
+// afgesneden: de z van elk hoekpunt van de eindring wordt cut(x) met x de plek in het toestel. De eindring ligt voorbij het
+// midden van de uitgeperste vorm; z1 zelf vergelijken faalt, want de float32-positie wordt 81,79999988 en niet 81,8
+function pePenG(z0, z1, steps, fz, cut) {
   const g = new THREE.ExtrudeGeometry(peShape(pePenDoorsnede(1)), { depth: mm(z1 - z0), steps, bevelEnabled: false, curveSegments: 1 });
   const a = g.attributes.position;
-  for (let i = 0; i < a.count; i++) { const z = z0 + a.getZ(i) / MM, f = fz(z); a.setXYZ(i, a.getX(i) * f, a.getY(i) * f, mm(z)); }
+  for (let i = 0; i < a.count; i++) { const z = z0 + a.getZ(i) / MM, f = fz(z); a.setXYZ(i, a.getX(i) * f, a.getY(i) * f, mm(cut && a.getZ(i) > mm(z1 - z0) / 2 ? cut(a.getX(i) * f / MM + PE_PEN.x) : z)); }
   g.deleteAttribute('normal'); g.deleteAttribute('uv');
   const s = cleanG(THREE.BufferGeometryUtils.toCreasedNormals(THREE.BufferGeometryUtils.mergeVertices(g, 1e-6), 0.6));
   s.translate(mm(PE_PEN.x), mm(PE_PEN.y), 0);
@@ -2571,13 +2638,12 @@ function peBuildPen() {
   // neus: van 0,35 maal de straal bij z -21,6 naar de volle straal bij z -14
   const neus = z => { const t = clamp((z + 21.6) / 7.6, 0, 1); return 0.35 + 0.65 * (1 - (1 - t) * (1 - t)); };
   const huis = merge([pePenG(-21.6, -14, 7, neus), pePenG(-14, 76, 1, () => 1)]);
-  // de dop eindigt 0,4 mm binnen de buitenrand, in de opening van het frame
-  const eind = z => { const t = clamp((z - 80.4) / 1.0, 0, 1); return 1 - 0.22 * t * t; };
-  const dop = merge([pePenG(76.05, 80.4, 1, () => 1), pePenG(80.4, 81.4, 4, eind)]);
+  // de dop eindigt schuin op de buitenboog van de hoek (outerZ in core.js), 0,02 mm erbinnen, zodat hij gelijk ligt met het frame
+  const dop = pePenG(76.05, OUT_HL, 1, () => 1, x => outerZ(x) - 0.02);
   const punt = G.lathe('z', [[0, mm(-24)], [mm(0.28), mm(-24)], [mm(0.4), mm(-23.5)], [mm(0.45), mm(-22.6)], [mm(0.45), mm(-21.5)], [0, mm(-21.5)]], 12, 'pePunt');
   const kringChips = merge([-4, -1, 2].map(z => xf(mmBox(0.8, 0.3, 1.2), at(0, 0.8, z))));
   return A('S Pen', {
-    d: 'S Pen in de silo aan de onderrand: een passieve pen zonder batterij, die met een spoel en een resonantiekring reageert op het veld van de digitizer onder het scherm (EMR). Of deze pen geheel zonder batterij werkt, is een schatting op basis van eerdere Ultra-modellen. Hoort bij het toestel. Maten geschat; Ø 4,4 mm en de lengte volgen de silo in docs/indeling.md.',
+    d: 'S Pen in de silo in de afgeronde hoek linksonder (gezien op het scherm): een passieve pen zonder batterij, die met een spoel en een resonantiekring reageert op het veld van de digitizer onder het scherm (EMR). Of deze pen geheel zonder batterij werkt, is een schatting op basis van eerdere Ultra-modellen. Hoort bij het toestel. Maten geschat; Ø 4,4 mm en de lengte volgen de silo in docs/indeling.md.',
   }, [
     P('Penpunt', punt, MAT.pePunt, { d: 'Verwisselbare zachte penpunt die in de spoel steekt. Maat geschat.', p: at(0, 0, 0), ex: [0, 0, -0.4] }),
     P('Penbehuizing', huis, MAT.pePen, { d: 'Behuizing van de pen met een platte kant, zodat hij maar op één manier in de silo past. Vorm en maat geschat.', ex: [0.1, 0, 0] }),
@@ -2594,7 +2660,7 @@ function peBuildPen() {
       P('Klikhuls', mmCyl('z', 1.5, 4, 16), MAT.steel, { d: 'Metalen huls van de vergrendeling. Geschat.', p: at(0, 0, 71), ex: [0, 0, -0.12] }),
       P('Klikveer', spring(mm(1.0), mm(0.15), mm(4), 7, 'z'), MAT.steel, { d: 'Drukveer die de pen uit de silo duwt. Geschat.', p: at(0, 0, 75), ex: [0, 0, 0.15] }),
     ]),
-    P('Einddop', dop, MAT.pePen, { d: 'Dop aan het eind van de pen, gelijk met de onderrand van het toestel; hier druk je op om de pen uit te nemen. Vorm geschat.', ex: [0, 0, 0.6] }),
+    P('Einddop', dop, MAT.pePen, { d: 'Dop aan het eind van de pen. Het eind is schuin afgesneden en volgt de afgeronde hoek, zodat de pen gelijk ligt met het frame als hij goed zit (andersom steekt hij uit); hier druk je op om de pen uit te nemen. Vorm geschat.', ex: [0, 0, 0.6] }),
   ]);
 }
 
@@ -3169,11 +3235,16 @@ const VIEW = { l: 0, r: 0, t: 0, b: 0 };
 let W = 1, H = 1;
 // De telefoon ligt met het scherm op de vloer (y = 0), achterkant boven (+y), bovenrand naar -z. front kijkt op het scherm,
 // rear op de achterkant, top op de bovenrand, under op de onderrand.
-const DIRS = { iso: V3(0.8, 1.15, 0.9), front: V3(0.0001, -1, 0.04), rear: V3(0.0001, 1, 0.04), side: V3(1, 0.14, 0.02), top: V3(0.05, 0.3, -1), under: V3(0.05, 0.3, 1), isoRear: V3(-0.8, 1.15, -0.9) };
+// Alle richtingen staan in het frame van het toestel (de gemonteerde stand). Is het toestel omgedraaid (zie Omdraaien),
+// dan draait uiDirW ze 180 graden om de lengteas (z) mee, zodat elke richting hetzelfde deel van het toestel toont.
+// isoFront: ¾-aanzicht op het scherm (de camera kijkt na het omdraaien van boven op het scherm).
+const DIRS = { iso: V3(0.8, 1.15, 0.9), front: V3(0.0001, -1, 0.04), rear: V3(0.0001, 1, 0.04), side: V3(1, 0.14, 0.02), top: V3(0.05, 0.3, -1), under: V3(0.05, 0.3, 1), isoRear: V3(-0.8, 1.15, -0.9), isoFront: V3(0.7, -1, 0.7) };
 let uiSpreadEnd = 1;
 // Eindstand voorspellen: posities na afloop van alle lopende animaties, met de zichtbaarheid van de eindstand.
 function uiPredHidden(n) { const p = n.parent; return !!(n.inner && p && p.target === 0 && uiInScope(p) && !uiOpenNear(p, true)); }
 function uiWithFinal(fn) {
+  const flipSave = uiFlipAnim ? [ROOT.obj.position.clone(), ROOT.obj.quaternion.clone()] : null;
+  if (flipSave) uiFlipPose(uiFlipAnim.a1);   // een lopende draai: rekenen met de eindstand
   const moved = uiOpenFinalNodes();
   for (const n of moved) { (n._q || (n._q = new THREE.Quaternion())).copy(n.obj.quaternion); n._s = n.obj.scale.clone(); n._u = n.ou; }
   for (const n of ALL) if (n.parent) {
@@ -3185,6 +3256,7 @@ function uiWithFinal(fn) {
   try { return fn(); } finally {
     for (const n of ALL) if (n.parent) n.obj.position.copy(n._p);
     for (const n of moved) { n.obj.quaternion.copy(n._q); n.obj.scale.copy(n._s); n.ou = n._u; }
+    if (flipSave) { ROOT.obj.position.copy(flipSave[0]); ROOT.obj.quaternion.copy(flipSave[1]); }
     ROOT.obj.updateMatrixWorld(true);
   }
 }
@@ -3301,13 +3373,98 @@ let uiLastFit = null;
 function focusNodes(nodes, dir, pad, opt = {}) {
   const pts = uiCollect(nodes, true);
   if (!pts.length) uiCollect(nodes.map(() => ROOT), true, pts);
-  const f = uiFitPoints(pts, dir, pad || 1.08, opt);
+  const f = uiFitPoints(pts, dir ? uiDirW(dir) : null, pad || 1.08, opt);
   if (f) animCam(f.pos, f.target, opt.dur, opt.delay);
   uiLastFit = { nodes: nodes.slice(), dir: dir ? dir.clone() : null, pad: pad || 1.08, opt: opt.min ? { min: opt.min } : {} };
   updateGround();
 }
 function contextNodes() { return ISO.length ? ISO : [ROOT]; }
 let uiUserCam = false; // de gebruiker heeft de camera zelf verplaatst sinds de laatste inpassing
+
+/* ---------- omdraaien: scherm boven of achterkant boven ---------- */
+// Het hele model draait 180 graden om de lengteas (z) en ligt daarna weer op de vloer: het laagste punt (het camera-eiland,
+// dat in de omgedraaide stand naar beneden steekt) raakt y = 0. Alleen ROOT.obj krijgt een draaiing en verplaatsing; alles
+// eronder blijft in zijn eigen frame, dus uitklapvectoren, openers, batches en labels werken in beide standen ongewijzigd
+// (het model klapt mee om). Tijdens de draai rolt het toestel over de vloer: elk frame ligt het laagste punt van de convexe omhullende van de hoekpunten op de vloer.
+// FLIP is de gewenste stand; uiFlipA de huidige hoek (0 of PI, ertussen tijdens de animatie).
+let FLIP = false, uiFlipA = 0, uiFlipAnim = null;
+const UI_FLIP_BOX = (() => { // doorsnede (x, y) van het gemonteerde toestel, alle meshes (inclusief ingesloten)
+  const b = new THREE.Box3(), t = new THREE.Box3();
+  for (const m of MESHES) { if (!m.geometry.boundingBox) m.geometry.computeBoundingBox(); b.union(t.copy(m.geometry.boundingBox).applyMatrix4(m.matrixWorld)); }
+  return b;
+})();
+const UI_FLIP_C = [(UI_FLIP_BOX.min.x + UI_FLIP_BOX.max.x) / 2, (UI_FLIP_BOX.min.y + UI_FLIP_BOX.max.y) / 2];
+const UI_FLIP_Z = V3(0, 0, 1);
+// Convexe omhullende van de doorsnede (x, y) van alle hoekpunten van alle meshes in de gemonteerde stand (hull() uit core.js).
+// De doos van UI_FLIP_BOX heeft hoeken die het toestel niet heeft (de afgeronde hoeken), dus het toestel zweefde tijdens de draai
+// tot 2,02 mm boven de vloer. Eerst vallen de punten binnen de veelhoek van 32 uiterste punten af (dat verandert de omhullende niet),
+// zodat hull() maar een paar honderd punten sorteert.
+const UI_FLIP_HULL = (() => {
+  let n = 0;
+  for (const m of MESHES) n += m.geometry.attributes.position.count;
+  const xy = new Float64Array(2 * n), v = new THREE.Vector3(), K = 32;
+  const dx = [], dy = [], best = new Array(K).fill(-Infinity), ext = new Array(K).fill(null);
+  for (let k = 0; k < K; k++) { dx.push(Math.cos(2 * PI * k / K)); dy.push(Math.sin(2 * PI * k / K)); }
+  let i = 0;
+  for (const m of MESHES) {
+    const p = m.geometry.attributes.position;
+    for (let j = 0; j < p.count; j++, i++) {
+      v.fromBufferAttribute(p, j).applyMatrix4(m.matrixWorld);
+      xy[2 * i] = v.x; xy[2 * i + 1] = v.y;
+      for (let k = 0; k < K; k++) { const d = v.x * dx[k] + v.y * dy[k]; if (d > best[k]) { best[k] = d; ext[k] = [v.x, v.y]; } }
+    }
+  }
+  const inner = hull(ext), cr = (o, a, b, c, d) => (a - o[0]) * (d - o[1]) - (b - o[1]) * (c - o[0]);
+  const rest = [];
+  for (let q = 0; q < n; q++) {
+    const x = xy[2 * q], y = xy[2 * q + 1];
+    let inside = true;
+    for (let e = 0; e < inner.length && inside; e++) { const a = inner[e], b = inner[(e + 1) % inner.length]; if ((b[0] - a[0]) * (y - a[1]) - (b[1] - a[1]) * (x - a[0]) <= 1e-9) inside = false; }
+    if (!inside) rest.push([x, y]);
+  }
+  return hull(rest.concat(inner));
+})();
+// Stand van het toestel bij hoek a, zonder de beginstand: draaien om het midden C van de doorsnede, dat zo hoog staat dat het
+// laagste punt van de omhullende y = 0 raakt. Geeft [x, y] van ROOT.obj.position.
+function uiFlipRaw(a) {
+  const s = Math.sin(a), c = Math.cos(a), [cx, cy] = UI_FLIP_C;
+  let low = Infinity;
+  for (const [x, y] of UI_FLIP_HULL) low = Math.min(low, (x - cx) * s + (y - cy) * c);
+  return [-(cx * c - cy * s), -low - (cx * s + cy * c)];
+}
+// De verplaatsing is relatief aan de stand bij hoek 0 en komt daarbovenop de beginpositie van ROOT, zodat hoek 0 precies de
+// beginstand geeft (ook na heen en weer omdraaien) en het laagste punt op dezelfde hoogte blijft als in het begin.
+const UI_FLIP_P0 = ROOT.obj.position.clone(), UI_FLIP_R0 = uiFlipRaw(0);
+function uiFlipPose(a) {
+  const [px, py] = uiFlipRaw(a);
+  ROOT.obj.quaternion.setFromAxisAngle(UI_FLIP_Z, a);
+  ROOT.obj.position.set(UI_FLIP_P0.x + px - UI_FLIP_R0[0], UI_FLIP_P0.y + py - UI_FLIP_R0[1], UI_FLIP_P0.z);
+}
+// Richting in het frame van het toestel -> wereldrichting: omgedraaid is dat een draaiing van 180 graden om z.
+const uiDirW = d => (FLIP ? V3(-d.x, -d.y, d.z) : d);
+function uiSetFlip(on, opt = {}) {
+  on = !!on;
+  if (on === FLIP) return false;
+  FLIP = on;
+  if (opt.instant || REDUCED) { uiFlipAnim = null; uiFlipA = on ? PI : 0; uiFlipPose(uiFlipA); ROOT.obj.updateMatrixWorld(true); }
+  else uiFlipAnim = { a0: uiFlipA, a1: on ? PI : 0, k: 0, dur: 0.9 * Math.max(0.45, Math.abs((on ? PI : 0) - uiFlipA) / PI) };
+  updateGround();
+  if (!opt.noCam) focusNodes(contextNodes(), on ? DIRS.isoFront : DIRS.iso, 1.04, { dur: 1.1 });
+  return true;
+}
+function uiStepFlip(dt) {
+  if (!uiFlipAnim) return false;
+  const f = uiFlipAnim;
+  f.k = Math.min(1, f.k + dt / f.dur);
+  uiFlipA = f.k >= 1 ? f.a1 : f.a0 + (f.a1 - f.a0) * ease(f.k);
+  uiFlipPose(uiFlipA);
+  if (f.k >= 1) { uiFlipAnim = null; updateGround(); }
+  return true;
+}
+function uiFlipFinish() {
+  if (!uiFlipAnim) return;
+  uiFlipA = uiFlipAnim.a1; uiFlipAnim = null; uiFlipPose(uiFlipA); ROOT.obj.updateMatrixWorld(true); updateGround();
+}
 
 /* ---------- vloer ---------- */
 // Vloer en schaduw als DataTexture uit JavaScript (geen 2D-canvas: dat tekenen kostte in software-WebGL bij het
@@ -3399,7 +3556,7 @@ function uiSnap() {
     lift: uiLifted ? uiLifted.id : null,
     iso: ISO.map(n => n.id), dim: DIM ? DIM.id : null, xray: XRAY, sys: SYSCOL, spread: SPREAD, om: OPENMODE,
     sel: (SEL || ROOT).id, ctx: CTX ? CTX.id : null, force: uiLabelForce, preset: ACTIVE_PRESET,
-    cam: [camera.position.clone(), controls.target.clone()],
+    cam: [camera.position.clone(), controls.target.clone()], flip: FLIP,
   };
 }
 function uiPush() {
@@ -3415,6 +3572,7 @@ function uiRestore(s, instant) {
   for (const [id, x, y, z] of s.pull) { const n = uiById.get(id); if (n) { n.pull.set(x, y, z); uiOffTo(n, 0.7); } }
   uiDrop();
   if (s.lift != null) { const n = uiById.get(s.lift); if (n) uiLift(n); }
+  uiSetFlip(!!s.flip, { noCam: true, instant: instant });   // de stand omdraaien hoort bij de stap; de camera komt uit s.cam
   XRAY = s.xray; SYSCOL = s.sys; OPENMODE = !!s.om;
   uiSetDim(s.dim != null ? uiById.get(s.dim) : null);
   if (SPREAD !== s.spread) uiSetSpread(s.spread, true);
@@ -3627,7 +3785,7 @@ const appCats = ['Overzicht', 'Buitenkant', 'Binnenwerk', "Camera's", 'Reparatie
 // Camerarichtingen: de telefoon ligt met het scherm op de vloer; +y kijkt op de achterkant, -y op het scherm.
 const PRESETS = [
   // Overzicht
-  { id: 'assembled', cat: 'Overzicht', label: 'Gemonteerd', key: '0', note: 'Het complete toestel in elkaar, met de achterkant naar boven.', cam: { dir: [0.8, 1.15, 0.9], pad: 1.04 } },
+  { id: 'assembled', cat: 'Overzicht', label: 'Gemonteerd', key: '0', note: 'Het complete toestel in elkaar, in ¾-aanzicht.', cam: { dir: [0.8, 1.15, 0.9], pad: 1.04 } },
   { id: 'main', cat: 'Overzicht', label: 'Hoofdgroepen', key: '1', note: 'De acht hoofdgroepen uit elkaar, van achterglas tot scherm.', open: [appPhone], labels: appPhone, cam: { dir: [1, 0.75, 0.9], pad: 1.04 } },
   { id: 'xray', cat: 'Overzicht', label: 'Röntgen', key: '8', note: 'Achterglas, frame en scherm doorzichtig: het binnenwerk in het gemonteerde toestel.', xray: true, cam: { dir: [0.8, 1.15, 0.9], pad: 1.03 } },
   { id: 'everything', cat: 'Overzicht', label: 'Alles uit elkaar', key: '9', note: 'Elke groep uitgeklapt tot op het kleinste onderdeel, gekleurd per hoofdgroep.', deep: [appPhone], sys: true, labels: appPhone, cam: { dir: [1, 0.8, 0.9], pad: 1.0 } },
@@ -4095,6 +4253,12 @@ function uiPnLvl(mk, lvl) {
 function uiSyncToggles() {
   $('tXray').checked = XRAY; $('tSys').checked = SYSCOL; els.legend.hidden = !SYSCOL;
   const sp = Math.round(SPREAD * 100); $('spread').value = String(sp); $('spreadOut').textContent = sp + '%';
+  uiSyncFlip();
+}
+// Omdraaien: de knop in de bovenbalk (aria-pressed), de schakelaar in Weergave en de adresbalk volgen FLIP
+function uiSyncFlip() {
+  $('tFlip').checked = FLIP;
+  if ($('btnFlip').getAttribute('aria-pressed') !== String(FLIP)) $('btnFlip').setAttribute('aria-pressed', String(FLIP));
 }
 function uiAfterAction() {
   renderPanel();
@@ -4445,6 +4609,19 @@ function syncSheetHeight() {
 /* ---------- weergave-bediening ---------- */
 $('spread').addEventListener('input', e => { uiSetSpread(e.target.value / 100, false); $('spreadOut').textContent = e.target.value + '%'; requestRender(); });
 $('spread').addEventListener('change', () => { updateGround(); focusNodes(contextNodes()); });
+// Omdraaien (knop, schakelaar, sneltoets F, ?flip=1): scherm boven of achterkant boven. Eén handeling in de geschiedenis.
+function uiFlipTo(on) {
+  on = !!on;
+  if (on === FLIP) { uiSyncFlip(); return FLIP; }
+  uiStopPlay(); uiStopTour(); hideHint();
+  uiPush();
+  uiSetFlip(on);
+  clearPreset();   // de camera kadert op de omgedraaide stand, niet meer op de preset: de URL moet dat tonen
+  uiAfterAction();
+  return FLIP;
+}
+$('btnFlip').onclick = () => uiFlipTo(!FLIP);
+$('tFlip').addEventListener('change', e => uiFlipTo(e.target.checked));
 $('tLabels').addEventListener('change', e => { LABELS = e.target.checked; requestRender(); });
 $('tXray').addEventListener('change', e => { uiPush(); XRAY = e.target.checked; clearPreset(); applyMats(); uiAfterAction(); });
 $('tSys').addEventListener('change', e => { uiPush(); SYSCOL = e.target.checked; clearPreset(); applyMats(); uiAfterAction(); });
@@ -5008,6 +5185,7 @@ window.addEventListener('keydown', e => {
   if (e.key === 'Backspace') { e.preventDefault(); uiStopPlay(); uiStopTour(); uiUndo(); return; }
   if (e.key === '?') { e.preventDefault(); uiHelp(true); return; }
   if (e.key === 'o' || e.key === 'O') { e.preventDefault(); hideHint(); uiSetOpenMode(!OPENMODE); return; }
+  if (e.key === 'f' || e.key === 'F') { e.preventDefault(); uiFlipTo(!FLIP); return; }
   // U17: / springt naar het zoekveld van de onderdelenlijst (op de telefoon gaat het paneel daarvoor open)
   if (e.key === '/') { e.preventDefault(); hideHint(); showTab('tree'); if (uiSheetBottom()) setSheet('open'); els.search.focus(); els.search.select(); return; }
   // pijltjes (niet op een bedieningselement): door de boom lopen. Omhoog = bovenliggende groep, omlaag = eerste deel,
@@ -5475,6 +5653,7 @@ function uiTick(dt) {
   if (stepOpen(dt)) active = true;
   if (uiStepPlay(dt)) active = true;
   if (stepCam(dt)) active = true;
+  if (uiStepFlip(dt)) active = true;
   if (stepGround(dt)) active = true;
   if (uiStepFade(dt)) active = true; // U4
   if (uiVisDirty) { applyVisibility(); active = true; }
@@ -5537,7 +5716,8 @@ let uiUrlLast = null;
 function uiUrlSync() {
   let u; try { u = new URL(location.href); } catch (_) { return; }
   if (!/^https?:$/.test(u.protocol)) return;
-  const q = u.searchParams; q.delete('preset'); q.delete('open');
+  const q = u.searchParams; q.delete('preset'); q.delete('open'); q.delete('flip');
+  if (FLIP) q.set('flip', '1');
   if (ACTIVE_PRESET && appPresetById.has(ACTIVE_PRESET) && ACTIVE_PRESET !== 'assembled') q.set('preset', ACTIVE_PRESET);
   else if (OPENMODE) {
     const open = OPENERS.filter(n => n.ot > 0).map(n => uiNameCount.get(n.name) === 1 ? n.name : uiPathOf(n).replace(/^[^/]+\//, ''));
@@ -5551,6 +5731,15 @@ function uiUrlSync() {
 function uiUrlApply() {
   let q; try { q = new URLSearchParams(location.search); } catch (_) { return; }
   const pid = q.get('preset'), open = q.get('open');
+  // ?flip=1: direct omgedraaid (scherm boven); combineerbaar met preset en open, die daarna in de omgedraaide stand kadreren
+  if (q.get('flip') === '1') {
+    uiSetFlip(true, { instant: true, noCam: true });
+    const f = uiFitPoints(uiCollect([ROOT], true), uiDirW(DIRS.isoFront), 1.04);
+    if (f) { camera.position.copy(f.pos); controls.target.copy(f.target); controls.update(); }
+    uiLastFit = { nodes: [ROOT], dir: DIRS.isoFront.clone(), pad: 1.04, opt: {} };
+    ACTIVE_PRESET = null;
+    uiAfterAction();
+  }
   if (pid) {
     const p = appPresetById.get(pid);
     if (p && !p.tour && appPresetOk(p)) { appApplyPreset(p, { noHistory: true }); finishAll(); return; }
@@ -5589,6 +5778,7 @@ uiWarmMaterials();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { for (const n of ALL) n._lw = null; uiUiChanged(); layoutView(); });
 
 function finishAll() {
+  uiFlipFinish();
   if (uiRefitTimer) uiRefitNow();
   for (const n of uiAnim) { n.delay = 0; n.k = 1; n.amt = n.target; n.u = n.amt; placeKids(n); }
   uiAnim.clear();
@@ -5637,7 +5827,7 @@ function uiState() {
   return {
     open: ASMS.filter(n => n.target > 0.5).map(n => n.name), selected: (SEL || ROOT).name, iso: ISO.map(n => n.name), xray: XRAY,
     explode: { group: w.name, value: L ? +(uiExplodeX(w) / L).toFixed(4) : 0, levels: L }, history: uiHist.length,
-    lifted: uiLifted ? uiLifted.name : null, preset: ACTIVE_PRESET, dim: DIM ? DIM.name : null, mode: MODE, openMode: OPENMODE, openers: OPENERS.filter(n => n.ot > 0).map(n => n.name), tour: !!appTour, playing: !!uiPlayS, sys: SYSCOL,
+    lifted: uiLifted ? uiLifted.name : null, preset: ACTIVE_PRESET, dim: DIM ? DIM.name : null, mode: MODE, openMode: OPENMODE, openers: OPENERS.filter(n => n.ot > 0).map(n => n.name), tour: !!appTour, playing: !!uiPlayS, sys: SYSCOL, flip: FLIP,
   };
 }
 function uiFrameOf(names) {
@@ -5704,6 +5894,10 @@ window.__s26u = {
   // openmodus (kern): leiders met hun stand; setOpen(naam, 0..1, direct); openAll(0..1, direct)
   openers: () => OPENERS.map(n => ({ name: n.name, label: n.opn.label || n.name, type: n.opn.type, open: +n.ou.toFixed(4), target: n.ot, followers: n.opn.followers.map(f => f.name) })),
   setOpenMode: on => { hideHint(true); uiSetOpenMode(on); return OPENMODE; },
+  // omdraaien: flip(true) scherm boven, flip(false) achterkant boven, flip() wisselt; geeft de nieuwe stand terug
+  flip: on => { hideHint(true); return uiFlipTo(on === undefined ? !FLIP : on); },
+  flipPose: a => { uiFlipPose(a); ROOT.obj.updateMatrixWorld(true); },   // test: zet het toestel op hoek a (de lopende animatie zet het bij het volgende frame terug)
+  flipInfo: () => ({ flip: FLIP, angle: +uiFlipA.toFixed(4), animating: !!uiFlipAnim, pos: ROOT.obj.position.toArray(), box: [UI_FLIP_BOX.min.toArray(), UI_FLIP_BOX.max.toArray()] }),
   openPlan: x => { const n = typeof x === 'string' ? byName(x) : x; const pl = n && uiOpenPlan(n); return pl ? { opener: pl.n.name, open: pl.open } : null; },
   pnRebuild: uiPnBuild, pnCheck: uiPnCheck, pnOf: x => { const n = typeof x === 'string' ? (uiByPath(x) || byName(x)) : x; const r = n && uiPnRec(n); return r ? { kind: r.kind, unit: r.id, rule: r.rule || null } : null; },
   setOpen: (name, v, instant) => { const r = uiSetOpen(name, v, instant); uiSyncOpenUi(); renderPanel(); requestRender(); return r; },

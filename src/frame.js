@@ -4,9 +4,12 @@
 // Alle maten in mm (docs/indeling.md); de ring wordt als eigen geometrie langs de omtrek opgebouwd, zodat het silhouet
 // exact de afgeronde rechthoek van 78,1 × 163,6 mm met hoekstraal 8,5 mm volgt.
 
-const FR_HW = 39.05, FR_HL = 81.8, FR_T = 7.9, FR_R = 8.5, FR_WALL = 2.0;
+const FR_HW = OUT_HW, FR_HL = OUT_HL, FR_T = 7.9, FR_R = OUT_R, FR_WALL = 2.0;   // buitenomtrek uit core.js (gedeeld contract)
 const FR_BAND = [1.8, 7.05];      // y-band van de vlakke flank waarin alle openingen liggen
 const FR_SPLIT = 0.8;             // breedte van een antennesplitsing (mm)
+// S Pen: as in de afgeronde hoek linksonder (gezien op het scherm, +x), 7,05 mm van de flank; de opening is een cirkel
+// met straal 2,5 mm rond de as (pen Ø 4,4 mm, 0,3 mm speling) en wordt evenwijdig aan de pen door de wand geboord.
+const FR_PEN = { x: PEN_AXIS.x, y: PEN_AXIS.y, hole: 2.5, siloR: 2.7, siloRi: 2.4 };   // as uit core.js (PEN_AXIS)
 
 std('frSplit', 0xd9dbde, 0, 0.55);           // kunststof van de antennesplitsingen, in de kleur van het frame
 std('frMesh', 0x2b2d31, 0.45, 0.78);         // stofgaas achter luidspreker- en microfoongaatjes
@@ -51,6 +54,22 @@ function frSOf(path, edge, v) {
   if (edge === 'boven') return S[6].s0 + (v + a);
   if (edge === 'rechts') return S[4].s0 + (b - v);
   return v >= 0 ? v : S[8].s0 + (v + b);
+}
+// z van het binnenoppervlak van de onderrand bij een gegeven x (in de hoekboog volgt het de boog); het buitenoppervlak is outerZ() in core.js
+function frZIn(x) { const a = FR_HW - FR_R, b = FR_HL - FR_R, r = FR_R - FR_WALL; return x <= a ? FR_HL - FR_WALL : b + Math.sqrt(r * r - (x - a) * (x - a)); }
+// opening op de plek x0 van de onderrand, evenwijdig aan de z-as geboord: omtrek buiten (pts) en binnen (ptsIn) in (s, y) bij
+// dezelfde (x, y), plus kolommen {s, lo, hi} (boven- en onderrand van de opening per x) waarmee het vlak rond de opening in
+// smalle stroken wordt opgebouwd: op de hoekboog zou een lange, dunne driehoek van de opening naar de venstergrens als
+// koorde dwars door de boog lopen en zichtbare strepen geven
+function frHoleAxial(path, x0, y0, r, K) {
+  const a = path.a, ri = FR_R - FR_WALL, xs = [];
+  for (let k = 0; k <= K; k++) xs.push(x0 - r + 2 * r * k / K);
+  if (a > xs[0] + 0.05 && a < xs[K] - 0.05) { xs.push(a); xs.sort((p, q) => p - q); }
+  const sOut = x => frSOf(path, 'onder', x), sIn = x => x > a ? path.segs[1].s0 + FR_R * Math.acos((x - a) / ri) : frSOf(path, 'onder', x);
+  const col = (x, sf) => { const h = Math.sqrt(Math.max(0, r * r - (x - x0) * (x - x0))); return { s: sf(x), lo: y0 - h, hi: y0 + h }; };
+  const cols = xs.map(x => col(x, sOut)), colsIn = xs.map(x => col(x, sIn));
+  const poly = cs => cs.map(c => [c.s, c.hi]).concat(cs.slice(1, -1).reverse().map(c => [c.s, c.lo]));
+  return { pts: poly(cols), ptsIn: poly(colsIn), cols, colsIn };
 }
 // Dwarsdoorsnede van de rand als gesloten lus (t, y): t is de afstand vanaf de buitenkant naar binnen. Vlakke flank,
 // afgeronde boven- en onderkant. Aan de achterzijde een rand van 0,9 mm met een sponning (y 7,15 tot 7,9) waarin het
@@ -97,12 +116,13 @@ function frHoleCirc(sc, yc, r, n) { const p = []; for (let i = 0; i < n; i++) { 
 // Openingen in de rand en de plaatsen van de antennesplitsingen (allemaal geschat, zie docs/indeling.md)
 function frOpenings(path) {
   const S = (e, v) => frSOf(path, e, v), H = [];
-  const add = (name, pts, c) => H.push({ name, pts, c });
+  const add = (name, pts, c, ptsIn, cols, colsIn) => H.push({ name, pts, c, ptsIn, cols, colsIn });
   // onderrand: USB-C, microfoon, SIM-lade, S Pen, luidsprekergaatjes
   add('USB-C', frHoleRect(S('onder', 0), 3.9, 9.0, 3.2, 1.6, 6), [S('onder', 0), 3.9]);
   add('microfoon onder', frHoleCirc(S('onder', -6.5), 3.95, 0.35, 10), [S('onder', -6.5), 3.95]);
   add('SIM-lade', frHoleRect(S('onder', 15), 3.8, 14.6, 1.5, 0.5, 3), [S('onder', 15), 3.8]);
-  add('S Pen', frHoleCirc(S('onder', 28.7), 4.45, 2.5, 28), [S('onder', 28.7), 4.45]);
+  const pen = frHoleAxial(path, FR_PEN.x, FR_PEN.y, FR_PEN.hole, 14);
+  add('S Pen', pen.pts, [S('onder', FR_PEN.x), FR_PEN.y], pen.ptsIn, pen.cols, pen.colsIn);
   for (let k = 0; k < 8; k++) { const x = -10 - 2.8 * k, s = S('onder', x); add('luidspreker', frHoleCirc(s, 3.95, 0.65, 12), [s, 3.95]); }
   // bovenrand: microfoon (niet op x 0, daar zit de straal van de silhouettest niet in de weg)
   add('microfoon boven', frHoleCirc(S('boven', 12), 3.95, 0.35, 10), [S('boven', 12), 3.95]);
@@ -130,7 +150,7 @@ function frRingGeos() {
   const path = frPath(), prof = frProfile(), P = prof.p, NP = P.length, { holes, splits } = frOpenings(path);
   const W = (s, t, y, pk) => { const f = frAt(path, s); if (pk) t = frPocket(f[2], f[3]); return [f[0] - t * f[2], y, f[1] - t * f[3]]; };
   // vensters: per opening het bereik in s plus 0,6 mm marge; overlappende vensters samenvoegen
-  let wins = holes.map(h => { const ss = h.pts.map(p => p[0]); return { s0: Math.min(...ss) - 0.6, s1: Math.max(...ss) + 0.6, holes: [h] }; }).sort((p, q) => p.s0 - q.s0);
+  let wins = holes.map(h => { const ss = h.pts.concat(h.ptsIn || []).map(p => p[0]); return { s0: Math.min(...ss) - 0.6, s1: Math.max(...ss) + 0.6, holes: [h] }; }).sort((p, q) => p.s0 - q.s0);
   const merged = [];
   for (const w of wins) { const l = merged[merged.length - 1]; if (l && w.s0 <= l.s1) { l.s1 = Math.max(l.s1, w.s1); l.holes.push(...w.holes); } else merged.push(w); }
   wins = merged;
@@ -141,6 +161,9 @@ function frRingGeos() {
   for (const g of path.segs) { st.push(g.s0); if (g.c) for (let i = 1; i < 20; i++) st.push(g.s0 + i / 20 * g.len); }
   for (const w of wins) { const n = Math.ceil((w.s1 - w.s0) / 0.5); for (let i = 0; i <= n; i++) st.push(w.s0 + i / n * (w.s1 - w.s0)); }
   for (const q of sp) st.push(q.s0, q.s1);
+  // de kolommen van een opening die evenwijdig aan de pen is geboord (buiten en binnen) zijn ook stations, anders raakt de
+  // rand van het vlak rond de opening de stations van de profielstroken niet (T-naden)
+  for (const h of holes) if (h.cols) for (const c of h.cols.concat(h.colsIn)) st.push(c.s);
   st.sort((p, q) => p - q);
   const S = st.filter((v, i) => i === 0 || v - st[i - 1] > 1e-6);
   const ring = frMesh(), ins = sp.map(() => frMesh());
@@ -170,22 +193,42 @@ function frRingGeos() {
   for (const w of wins) {
     const ss = S.filter(v => v >= w.s0 - 1e-6 && v <= w.s1 + 1e-6);
     const contour = ss.map(v => [v, FR_BAND[0]]).concat(ss.slice().reverse().map(v => [v, FR_BAND[1]]));
-    const hp = w.holes.map(h => h.pts);
-    const all = contour.concat(...hp);
-    const tris = THREE.ShapeUtils.triangulateShape(contour.map(p => new THREE.Vector2(...p)), hp.map(h => h.map(p => new THREE.Vector2(...p))));
-    for (const [i, j, l] of tris) {
-      const sc = (all[i][0] + all[j][0] + all[l][0]) / 3, f = frAt(path, sc);
-      for (const t of [0, FR_WALL]) {
-        const n = t ? [-f[2], 0, -f[3]] : [f[2], 0, f[3]];
-        ring.tri(W(all[i][0], t, all[i][1]), W(all[j][0], t, all[j][1]), W(all[l][0], t, all[l][1]), n);
+    // buiten- en binnenvlak apart: een opening die evenwijdig aan de pen is geboord heeft binnen een andere omtrek
+    for (const t of [0, FR_WALL]) {
+      const n = f0 => t ? [-f0[2], 0, -f0[3]] : [f0[2], 0, f0[3]];
+      const grid = w.holes.length === 1 && w.holes[0].cols;
+      if (grid) {
+        // vlak in smalle stroken per paar opeenvolgende kolommen: boven en onder de opening een trapezium waarvan de rand langs de
+        // band alle stations van het venster als hoekpunt heeft (waaier vanaf het hoekpunt op de opening), links en rechts van
+        // de opening een volle strook met de linker- of rechterpunt van de opening als waaierpunt. Zo sluit elk hoekpunt aan.
+        const h = w.holes[0], cs = (t ? h.colsIn : h.cols).slice().sort((p, q) => p.s - q.s), [y0, y1] = FR_BAND;
+        const between = (a, b) => ss.filter(v => v > a + 1e-6 && v < b - 1e-6);
+        const fan = (apex, ps) => { for (let i = 0; i + 1 < ps.length; i++) ring.tri(W(apex[0], t, apex[1]), W(ps[i][0], t, ps[i][1]), W(ps[i + 1][0], t, ps[i + 1][1]), n(frAt(path, (apex[0] + ps[i][0] + ps[i + 1][0]) / 3))); };
+        const L = cs[0], R = cs[cs.length - 1], hL = [L.s, (L.lo + L.hi) / 2], hR = [R.s, (R.lo + R.hi) / 2];
+        fan(hL, [[L.s, y0]].concat(between(w.s0, L.s).reverse().map(v => [v, y0]), [[w.s0, y0], [w.s0, y1]], between(w.s0, L.s).map(v => [v, y1]), [[L.s, y1]]));
+        fan(hR, [[R.s, y1]].concat(between(R.s, w.s1).map(v => [v, y1]), [[w.s1, y1], [w.s1, y0]], between(R.s, w.s1).reverse().map(v => [v, y0]), [[R.s, y0]]));
+        for (let k = 0; k + 1 < cs.length; k++) {
+          const c = cs[k], d = cs[k + 1], mid = between(c.s, d.s);
+          fan([c.s, c.hi], [[d.s, d.hi], [d.s, y1]].concat(mid.slice().reverse().map(v => [v, y1]), [[c.s, y1]]));
+          fan([c.s, c.lo], [[c.s, y0]].concat(mid.map(v => [v, y0]), [[d.s, y0], [d.s, d.lo]]));
+        }
+        continue;
+      }
+      const hp = w.holes.map(h => (t && h.ptsIn) || h.pts);
+      const all = contour.concat(...hp);
+      const tris = THREE.ShapeUtils.triangulateShape(contour.map(p => new THREE.Vector2(...p)), hp.map(h => h.map(p => new THREE.Vector2(...p))));
+      for (const [i, j, l] of tris) {
+        const sc = (all[i][0] + all[j][0] + all[l][0]) / 3;
+        ring.tri(W(all[i][0], t, all[i][1]), W(all[j][0], t, all[j][1]), W(all[l][0], t, all[l][1]), n(frAt(path, sc)));
       }
     }
     for (const h of w.holes) {
       const pts = h.pts, [cs, cy] = h.c;
       for (let i = 0; i < pts.length; i++) {
-        const p = pts[i], q = pts[(i + 1) % pts.length], ms = (p[0] + q[0]) / 2, my = (p[1] + q[1]) / 2, f = frAt(path, ms);
+        const j = (i + 1) % pts.length, p = pts[i], q = pts[j], pi = (h.ptsIn || pts)[i], qi = (h.ptsIn || pts)[j];
+        const ms = (p[0] + q[0]) / 2, my = (p[1] + q[1]) / 2, f = frAt(path, ms);
         const n = [f[4] * (cs - ms), cy - my, f[5] * (cs - ms)];
-        ring.quad(W(p[0], 0, p[1]), W(q[0], 0, q[1]), W(q[0], FR_WALL, q[1]), W(p[0], FR_WALL, p[1]), n);
+        ring.quad(W(p[0], 0, p[1]), W(q[0], 0, q[1]), W(qi[0], FR_WALL, qi[1]), W(pi[0], FR_WALL, pi[1]), n);
       }
     }
   }
@@ -197,11 +240,11 @@ function frRingGeos() {
 
 /* ---------- middenplaat ---------- */
 function frArc(cx, cz, r, a0, a1, n) { const p = []; for (let i = 0; i <= n; i++) { const an = a0 + i / n * (a1 - a0); p.push([cx + r * Math.cos(an), cz + r * Math.sin(an)]); } return p; }
-// Plaat in de binnenruimte (x ±37, z ±79,8, hoekstraal 6,5), met een open sleuf langs de S Pen-silo (x 25,8 tot 31,6,
+// Plaat in de binnenruimte (x ±37, z ±79,8, hoekstraal 6,5), met een open sleuf langs de S Pen-silo (x 29,1 tot 34,9,
 // vanaf z -26,2 tot de onderrand), gaten om de drie grote camera's en de selfiecamera en een sleuf voor de displayflex.
 function frPlateGeo() {
   return cache('frPlate', () => {
-    const X = 37, Z = 79.8, r = 6.5, cx = X - r, cz = Z - r, sx0 = 25.8, sx1 = 31.6, sz = -26.2;
+    const X = 37, Z = 79.8, r = 6.5, cx = X - r, cz = Z - r, sx0 = FR_PEN.x - 2.9, sx1 = FR_PEN.x + 2.9, sz = -26.2;
     const te = Math.acos((sx1 - cx) / r);
     const pts = [[X, -cz], [X, cz], ...frArc(cx, cz, r, 0, te, 8), [sx1, sz], [sx0, sz], [sx0, Z], ...frArc(-cx, cz, r, HALF, PI, 10),
       ...frArc(-cx, -cz, r, PI, 1.5 * PI, 10), ...frArc(cx, -cz, r, 1.5 * PI, 2 * PI, 10)];
@@ -218,10 +261,20 @@ function frPlateGeo() {
 /* ---------- S Pen-silo en uitwerper ---------- */
 function frSiloGeo() {
   return cache('frSiloTube', () => {
-    const z0 = -26, z1 = 80.5, L = z1 - z0;
-    const tubeG = xf(annulus(mm(2.4), mm(2.7), mm(L), 'z', 28), mmv(28.7, 4.45, (z0 + z1) / 2));
-    const capG = xf(G.cyl('z', mm(2.7), mm(2.7), mm(0.3), 28), mmv(28.7, 4.45, z0 + 0.15));
-    return merge([tubeG, capG]);
+    // buis van z -26 tot de binnenkant van de wand; het open eind is schuin afgesneden langs de binnenboog van de hoek
+    const z0 = -26, zmax = FR_HL, X = FR_PEN.x, sh = shapeOf(frArc(0, 0, mm(FR_PEN.siloR), 0, 2 * PI, 28).slice(0, 28));
+    sh.holes.push(circlePath(0, 0, mm(FR_PEN.siloRi)));
+    const g = new THREE.ExtrudeGeometry(sh, { depth: mm(zmax - z0), steps: 1, bevelEnabled: false, curveSegments: 14 });
+    const pa = g.attributes.position;
+    for (let i = 0; i < pa.count; i++) {
+      const top = pa.getZ(i) > mm(zmax - z0) / 2, x = pa.getX(i) / MM + X;
+      pa.setZ(i, top ? mm(Math.min(frZIn(x) - 0.02, zmax)) : mm(z0));
+    }
+    g.deleteAttribute('normal'); g.deleteAttribute('uv');
+    const tube = cleanG(THREE.BufferGeometryUtils.toCreasedNormals(THREE.BufferGeometryUtils.mergeVertices(g, 1e-6), 0.6));
+    tube.translate(mm(X), mm(FR_PEN.y), 0);
+    const capG = xf(G.cyl('z', mm(FR_PEN.siloR), mm(FR_PEN.siloR), mm(0.3), 28), mmv(X, FR_PEN.y, z0 + 0.15));
+    return merge([tube, capG]);
   });
 }
 
@@ -261,7 +314,7 @@ function frBuild() {
   ]);
   const middenframe = A('Middenframe', { d: 'De zijrand van het toestel: één aluminium ring over de volle dikte met de openingen voor poorten, gaatjes en knoppen, onderbroken door kunststof antennesplitsingen.', ex: [0, 0.12, 0] }, [
     P('Framering', ring, MAT.frameAlu, {
-      d: 'Zijrand uit één stuk aluminium (zilver bij White), 2,0 mm dik met vlakke flanken en afgeronde boven- en onderkant. Aan de schermzijde een lip van 0,3 mm voor het coverglas en een sponning waarin paneel en digitizer liggen. In de onderrand de USB-C-opening, de luidsprekergaatjes, een microfoongaatje, de sleuf van de SIM-lade en de S Pen-opening; in de bovenrand een microfoongaatje; in de rechterflank de openingen voor de knoppen. De buitenmaat is bevestigd, het profiel en de plaats van de openingen zijn geschat.',
+      d: 'Zijrand uit één stuk aluminium (zilver bij White), 2,0 mm dik met vlakke flanken en afgeronde boven- en onderkant. Aan de schermzijde een lip van 0,3 mm voor het coverglas en een sponning waarin paneel en digitizer liggen. In de onderrand de USB-C-opening, de luidsprekergaatjes, een microfoongaatje, de sleuf van de SIM-lade en, in de afgeronde hoek linksonder (gezien op het scherm), de S Pen-opening; in de bovenrand een microfoongaatje; in de rechterflank de openingen voor de knoppen. De buitenmaat is bevestigd, het profiel en de plaats van de openingen zijn geschat.',
       spec: [['L × B × D', '163,6 × 78,1 × 7,9 mm']],
       ex: [0, 0.04, 0],
     }),
@@ -269,16 +322,16 @@ function frBuild() {
     seals,
   ]);
   const plaat = P('Middenplaat', frPlateGeo(), MAT.frameCast, {
-    d: 'Gegoten plaat tussen het schermpakket en de binnenruimte; draagt moederbord, batterij en vapor chamber en verstijft het toestel. Met gaten rond de drie grote camera\'s en de selfiecamera, een sleuf voor de displayflex en een open sleuf langs de S Pen-silo. ' + est,
+    d: 'Gegoten plaat tussen het schermpakket en de binnenruimte; draagt moederbord, batterij en vapor chamber en verstijft het toestel. Met gaten rond de drie grote camera\'s en de selfiecamera, een sleuf voor de displayflex en een open sleuf langs de S Pen-silo in de hoek. ' + est,
     ex: [0, -0.32, 0],
   });
   // S Pen-silo met uitwerper aan het binnenste eind (z -26 tot -24, de pen begint op z -24)
-  const silo = A('S Pen-silo', { d: 'Buis in het frame waarin de S Pen zit, open aan de onderrand en met een uitwerper aan het binnenste eind. ' + est, ex: [0.55, 0.35, 0] }, [
-    P('Silobuis', frSiloGeo(), MAT.frSilo, { d: 'Kunststof buis van 5,4 mm buiten en 4,8 mm binnen, van z -26 tot in de onderrand, aan het binnenste eind dicht. ' + est, ex: [0.08, 0, 0] }),
+  const silo = A('S Pen-silo', { d: 'Buis in het frame waarin de S Pen zit, in de afgeronde hoek linksonder (gezien op het scherm). Hij is open aan de onderrand en heeft een uitwerper aan het binnenste eind. ' + est, ex: [0.55, 0.35, 0] }, [
+    P('Silobuis', frSiloGeo(), MAT.frSilo, { d: 'Kunststof buis van 5,4 mm buiten en 4,8 mm binnen, van z -26 tot de binnenkant van de hoekwand; het open eind is schuin afgesneden langs de binnenboog van de hoek. Aan het binnenste eind dicht. ' + est, ex: [0.08, 0, 0] }),
     A('S Pen-uitwerper', { d: 'Klik-uitwerper: druk de pen in en hij klikt vast, druk nog eens en de veer duwt hem een stukje naar buiten. Werking en vorm zijn geschat.', ex: [0, 0, -0.55] }, [
-      P('Uitwerperveer', spring(mm(1.4), mm(0.12), mm(0.8), 3, 'z'), MAT.steel, { d: 'Drukveer die de pen naar buiten duwt. ' + est, p: mmv(28.7, 4.45, -25.3), ex: [0, 0, -0.12] }),
-      P('Klikring', cache('frClick', () => merge([xf(annulus(mm(1.3), mm(2.2), mm(0.4), 'z', 20), mmv(28.7, 4.45, -24.7)), xf(mmBox(0.5, 0.5, 0.6), mmv(28.7, 6.3, -24.7))])), MAT.plastic, { d: 'Ring met hartvormige kliknok die de pen vasthoudt of loslaat. ' + est, ex: [0, 0, -0.24] }),
-      P('Duwkop', cache('frPush', () => xf(annulus(mm(0.8), mm(2.1), mm(0.4), 'z', 20), mmv(28.7, 4.45, -24.3))), MAT.steel, { d: 'Kopje waar de punt van de S Pen tegen drukt. ' + est, ex: [0, 0, -0.36] }),
+      P('Uitwerperveer', spring(mm(1.4), mm(0.12), mm(0.8), 3, 'z'), MAT.steel, { d: 'Drukveer die de pen naar buiten duwt. ' + est, p: mmv(FR_PEN.x, FR_PEN.y, -25.3), ex: [0, 0, -0.12] }),
+      P('Klikring', cache('frClick', () => merge([xf(annulus(mm(1.3), mm(2.2), mm(0.4), 'z', 20), mmv(FR_PEN.x, FR_PEN.y, -24.7)), xf(mmBox(0.5, 0.5, 0.6), mmv(FR_PEN.x, 6.3, -24.7))])), MAT.plastic, { d: 'Ring met hartvormige kliknok die de pen vasthoudt of loslaat. ' + est, ex: [0, 0, -0.24] }),
+      P('Duwkop', cache('frPush', () => xf(annulus(mm(0.8), mm(2.1), mm(0.4), 'z', 20), mmv(FR_PEN.x, FR_PEN.y, -24.3))), MAT.steel, { d: 'Kopje waar de punt van de S Pen tegen drukt. ' + est, ex: [0, 0, -0.36] }),
     ]),
   ]);
   // zijknoppen aan de -x-flank (rechts als je op het scherm kijkt)

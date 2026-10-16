@@ -26,7 +26,7 @@ Omgevingsvariabelen:
 | overlap | `tools/overlap.py` | Geen onderdeel van het ene domein steekt meer dan 0,08 mm in een onderdeel van een ander domein (punten binnen een gesloten vorm, getest met stralen in drie richtingen) |
 | inner | `tools/ui_inner.py --open --strict` | Geen `inner`-onderdeel zichtbaar van buiten, met stralen uit meer dan 200 richtingen, ook met de openers open |
 | opentest | `tools/opentest.py --strikt-min` | Per opener: eindstand en terugkeer, `open.min` (minstens 0,8 maal de slag), botsingen langs de baan (uitzonderingen met reden in `tools/open_allow.json`), wat de opening blootlegt, prestaties |
-| itest | `tools/itest.py` | Klikken, duiken, stap terug, rechtsklik, openmodus, kader van alle presets, labels, zoeken met synoniem, deellink, rondleiding, telefoon (tik, lang drukken, scroll) |
+| itest | `tools/itest.py` | Klikken, duiken, stap terug, rechtsklik, openmodus, kader van alle presets, labels, zoeken met synoniem, deellink, rondleiding, omdraaien (laagste hoekpunt op de vloer bij 36 hoeken zonder te wachten op frames, exacte positie na heen en terug, knop, sneltoets F, camera, presets, `?flip=1`), telefoon (tik, lang drukken, scroll) |
 | tri | `tools/tri.py --gate` | Driehoeken per hoofdgroep en totaal tegen de budgetten |
 | pub | `tools/pubsmoke.py` | Twee vormen: de Pages-vorm (de ruwe `index.html`) en de artifact-verpakking, elk op drie telefoonviewports (plus desktop); fouten en waarschuwingen tellen, gefilterd met dezelfde `is_ignored`; de CDN-bestanden byte voor byte gelijk aan het npm-pakket |
 | stats | `tools/orkestratie/stats.py` | Cijfers voor `docs/cijfers.md`, plus de controle op consolefouten |

@@ -17,7 +17,7 @@ const appCats = ['Overzicht', 'Buitenkant', 'Binnenwerk', "Camera's", 'Reparatie
 // Camerarichtingen: de telefoon ligt met het scherm op de vloer; +y kijkt op de achterkant, -y op het scherm.
 const PRESETS = [
   // Overzicht
-  { id: 'assembled', cat: 'Overzicht', label: 'Gemonteerd', key: '0', note: 'Het complete toestel in elkaar, met de achterkant naar boven.', cam: { dir: [0.8, 1.15, 0.9], pad: 1.04 } },
+  { id: 'assembled', cat: 'Overzicht', label: 'Gemonteerd', key: '0', note: 'Het complete toestel in elkaar, in ¾-aanzicht.', cam: { dir: [0.8, 1.15, 0.9], pad: 1.04 } },
   { id: 'main', cat: 'Overzicht', label: 'Hoofdgroepen', key: '1', note: 'De acht hoofdgroepen uit elkaar, van achterglas tot scherm.', open: [appPhone], labels: appPhone, cam: { dir: [1, 0.75, 0.9], pad: 1.04 } },
   { id: 'xray', cat: 'Overzicht', label: 'Röntgen', key: '8', note: 'Achterglas, frame en scherm doorzichtig: het binnenwerk in het gemonteerde toestel.', xray: true, cam: { dir: [0.8, 1.15, 0.9], pad: 1.03 } },
   { id: 'everything', cat: 'Overzicht', label: 'Alles uit elkaar', key: '9', note: 'Elke groep uitgeklapt tot op het kleinste onderdeel, gekleurd per hoofdgroep.', deep: [appPhone], sys: true, labels: appPhone, cam: { dir: [1, 0.8, 0.9], pad: 1.0 } },
