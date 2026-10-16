@@ -26,6 +26,7 @@ Vaste namen in deze procedure:
 2. **(b) Mac-run en Linux-job `volledig`.**
    - Mac: `tools/orkestratie/finaltests.sh /tmp/s26u-runs/mac-<datum>`. Twaalf tests moeten groen zijn; visdiff meldt
      "platform, niet beoordeeld" (zie `docs/testen.md`, Platformen).
+   - Linux lokaal (voorproef): `tools/linux/vmtests.sh /tmp/s26u-runs/vm-<datum>`; ALLES GROEN verwacht, ook visdiff.
    - Linux: de Actions-job `volledig` (bij `workflow_dispatch` en bij een pull request naar main). Dit is de beoordelende run.
    - Nulmeting: draai `volledig` eerst op een hulptak vanaf `edb37f2` met alleen de nieuwe `.github/workflows/ci.yml`. Zo
      is te zien wat visdiff op Linux meet zonder wijziging in `src/`.
