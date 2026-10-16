@@ -1,0 +1,31 @@
+{
+ "root": [
+  "Samsung Galaxy S26 Ultra"
+ ],
+ "main": [
+  "Achterkant",
+  "Behuizing",
+  "Scherm"
+ ],
+ "root_children_order": [
+  "Achterkant",
+  "Behuizing",
+  "Scherm"
+ ],
+ "contains": [],
+ "content": {},
+ "openers": [],
+ "preset_ids": [
+  "assembled",
+  "main",
+  "xray",
+  "everything",
+  "tour"
+ ],
+ "triangle_budgets": {
+  "totaal": 450000,
+  "Achterkant": 60000,
+  "Behuizing": 80000,
+  "Scherm": 40000
+ }
+}

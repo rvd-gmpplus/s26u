@@ -1,0 +1,48 @@
+name: ci
+# Push-job: lint, index.html hoort bij src/, nummergegevens, rooktest, integriteit en de budgetpoort.
+# De volledige set staat in tools/orkestratie/finaltests.sh; het silhouet komt in golf 2 terug in deze job.
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  snel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      S26U_TIMEOUT_MS: '300000'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: testomgeving
+        run: |
+          python3 -m pip install --quiet -r requirements.txt
+          python3 -m playwright install --with-deps chromium
+          python3 tools/harness.py --ensure-three
+      - name: lint
+        run: python3 build.py --lint
+      - name: index.html hoort bij src/
+        run: |
+          python3 build.py
+          git diff --stat --exit-code index.html || { echo "::error::index.html is niet herbouwd uit src/ (python3 build.py)"; exit 1; }
+      - name: pncheck (nummergegevens reproduceerbaar)
+        run: python3 tools/pncheck.py
+      - name: smoke
+        run: python3 tools/smoke.py
+      - name: integrity
+        run: python3 tools/integrity.py
+      - name: budgetpoort
+        run: python3 tools/tri.py --gate
+      - name: testlijst van finaltests.sh
+        run: |
+          grep -q 'TESTS="lint smoke integ inner opentest tri pub stats"' tools/orkestratie/finaltests.sh || { echo "::error::de testlijst in finaltests.sh wijkt af van de verwachting"; exit 1; }

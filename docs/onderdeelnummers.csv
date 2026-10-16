@@ -1,0 +1,10 @@
+pad;naam;diepte;knoop;unit_id;verkoopeenheid;relatie;regel;status;soort;merk;nummer;bewijs;opmerking;var;per;bronnen;gekozen;uitvoering_keuze;zekerheid_keuze;grond_keuze;bronnen_keuze;info
+Achterkant;Achterkant;1;groep;;;;;niet onderzocht;;;;;;;;;;;;;;
+Achterkant/Achterglas;Achterglas;2;onderdeel;;;;;niet onderzocht;;;;;;;;;;;;;;
+Achterkant/Cameraringen;Cameraringen;2;onderdeel;;;;;niet onderzocht;;;;;;;;;;;;;;
+Behuizing;Behuizing;1;groep;;;;;niet onderzocht;;;;;;;;;;;;;;
+Behuizing/Middenframe;Middenframe;2;onderdeel;;;;;niet onderzocht;;;;;;;;;;;;;;
+Behuizing/Middenplaat;Middenplaat;2;onderdeel;;;;;niet onderzocht;;;;;;;;;;;;;;
+Scherm;Scherm;1;groep;;;;;niet onderzocht;;;;;;;;;;;;;;
+Scherm/Coverglas;Coverglas;2;onderdeel;;;;;niet onderzocht;;;;;;;;;;;;;;
+Scherm/Displaypaneel;Displaypaneel;2;onderdeel;;;;;niet onderzocht;;;;;;;;;;;;;;
