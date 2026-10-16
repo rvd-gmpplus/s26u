@@ -15,7 +15,6 @@ std('boAntenna', 0xc79a52, 0.85, 0.32);
 std('boInterposer', 0x263329, 0.1, 0.55);
 std('boSubstrate', 0x3b4a3a, 0.15, 0.5);
 std('boPaste', 0xa9adb1, 0.25, 0.85);
-std('boPad', 0x7f8c95, 0.05, 0.9);
 std('boCap', 0x9a8460, 0.2, 0.5);
 std('boConn', 0xd4d0c4, 0.05, 0.55);
 
@@ -288,10 +287,6 @@ function boBuild() {
     mainPcb, soc, storage, audio, conns,
     P('Condensatoren hoofdprint', mainPas.cap, MAT.boCap, { d: 'Honderden kleine keramische condensatoren voor de ontkoppeling van de voedingen. Aantal en plaats zijn een illustratie, geen kopie van het echte bord.', ex: [0, 0.07, 0] }),
     P('Weerstanden en spoeltjes hoofdprint', mainPas.res, MAT.chip, { d: 'Kleine weerstanden, spoeltjes en filters tussen de grote chips. Aantal en plaats zijn een illustratie, geen kopie van het echte bord.', ex: [0, 0.07, 0] }),
-    P('Warmtegeleidend kussen onder de SoC', boChipGeo(12, 12, Y.main0 - Y.pad0, 0.02), MAT.boPad, {
-      d: 'Dun warmtegeleidend kussen tussen de onderkant van de hoofdprint en de vapor chamber, recht onder de SoC. De teardowns noemen thermische pads in de koelstapel; dit kussen en zijn plaats zijn een schatting.',
-      p: mmv(14, Y.pad0, -52), ex: [0, -0.12, 0],
-    }),
   ]);
 
   // ---------- interposer ----------

@@ -44,14 +44,15 @@ CHECK = r"""() => {
     else if (!inIsland(x, z, 1.2) && !inSmall(x, z) && d < -1.5 && Math.abs(y - T) > 0.15) err.push(`dikte ${y.toFixed(2)} mm in plaats van ${T} op (${x.toFixed(1)}, ${z.toFixed(1)}): ${h.object.userData.node.name}`);
   }
   // zijkanten op halve hoogte
-  const side = (dir, ox, oz) => { o.set(ox * MM, 3.95 * MM, oz * MM); rc.set(o, dir); rc.far = 200 * MM; const h = rc.intersectObjects(meshes, false)[0]; return h ? h.point.clone().divideScalar(MM) : null; };
+  // de flanken op halve hoogte; de boven- en onderrand op y 6,6, boven de poorten, de SIM-sleuf en de S Pen-opening (y tot 5,5)
+  const side = (dir, ox, oz, oy = 3.95) => { o.set(ox * MM, oy * MM, oz * MM); rc.set(o, dir); rc.far = 200 * MM; const h = rc.intersectObjects(meshes, false)[0]; return h ? h.point.clone().divideScalar(MM) : null; };
   for (const z of [-60, -30, 0, 30, 60]) {
     const a = side(new THREE.Vector3(-1, 0, 0), 60, z), b = side(new THREE.Vector3(1, 0, 0), -60, z);
     if (!a || Math.abs(a.x - W / 2) > 0.3) err.push(`linkerflank op z ${z}: ${a ? a.x.toFixed(2) : 'geen'} in plaats van ${W / 2}`);
     if (!b || Math.abs(-b.x - W / 2) > 0.3) err.push(`rechterflank op z ${z}: ${b ? b.x.toFixed(2) : 'geen'} in plaats van ${-W / 2}`);
   }
   for (const x of [-20, 0, 20]) {
-    const a = side(new THREE.Vector3(0, 0, 1), x, -120), b = side(new THREE.Vector3(0, 0, -1), x, 120);
+    const a = side(new THREE.Vector3(0, 0, 1), x, -120, 6.6), b = side(new THREE.Vector3(0, 0, -1), x, 120, 6.6);
     if (!a || Math.abs(-a.z - LEN / 2) > 0.3) err.push(`bovenrand op x ${x}: ${a ? a.z.toFixed(2) : 'geen'} in plaats van ${-LEN / 2}`);
     if (!b || Math.abs(b.z - LEN / 2) > 0.3) err.push(`onderrand op x ${x}: ${b ? b.z.toFixed(2) : 'geen'} in plaats van ${LEN / 2}`);
   }

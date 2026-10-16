@@ -1,5 +1,5 @@
 <title>Galaxy S26 Ultra explosietekening</title>
-<meta name="s26u-version" content="1 (bron ff1e030)">
+<meta name="s26u-version" content="1 (bron 41477d6)">
 <meta name="description" content="Interactieve 3D-explosietekening van een Samsung Galaxy S26 Ultra: scherm, frame, moederbord, batterij, koeling, camera's en S Pen laag voor laag uit elkaar. Onafhankelijk schematisch model.">
 <meta property="og:title" content="Galaxy S26 Ultra explosietekening">
 <meta property="og:description" content="Interactieve 3D-explosietekening van een Samsung Galaxy S26 Ultra: scherm, frame, moederbord, batterij, koeling, camera's en S Pen laag voor laag uit elkaar. Onafhankelijk schematisch model.">
@@ -608,7 +608,7 @@ input[type=range]{width:100%;accent-color:var(--ink)}
   <div id="press" hidden><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="28"/></svg></div>
   <div id="helpDlg" hidden><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
     <h2 id="helpTitle">Bediening</h2>
-    <p class="ver">Galaxy S26 Ultra explosietekening, versie 1 (bron ff1e030)</p>
+    <p class="ver">Galaxy S26 Ultra explosietekening, versie 1 (bron 41477d6)</p>
     <div id="helpMouse"><h3>Met de muis</h3><dl>
       <dt>Klik</dt><dd>De groep van het onderdeel klapt uit; de rest blijft staan. Staat die groep al open, dan wordt het onderdeel uitgelicht.</dd>
       <dt>Dubbelklik</dt><dd>Direct naar dit onderdeel: alle groepen erboven gaan laag voor laag open.</dd>
@@ -980,6 +980,298 @@ const sideName = s => (s > 0 ? 'links' : 'rechts');
 
 /* ===================== Behuizing (frBuild) ===================== */
 // Domeinbestand; zie docs/indeling.md voor de zones en voorvoegsels. Zolang de bouwfunctie ontbreekt, zet phone.js een plaatshouder neer.
+// Inhoud: middenframe (zijrand als één ring met openingen en antennesplitsingen), middenplaat, S Pen-silo en zijknoppen.
+// Alle maten in mm (docs/indeling.md); de ring wordt als eigen geometrie langs de omtrek opgebouwd, zodat het silhouet
+// exact de afgeronde rechthoek van 78,1 × 163,6 mm met hoekstraal 8,5 mm volgt.
+
+const FR_HW = 39.05, FR_HL = 81.8, FR_T = 7.9, FR_R = 8.5, FR_WALL = 2.0;
+const FR_BAND = [1.8, 7.05];      // y-band van de vlakke flank waarin alle openingen liggen
+const FR_SPLIT = 0.8;             // breedte van een antennesplitsing (mm)
+
+std('frSplit', 0xd9dbde, 0, 0.55);           // kunststof van de antennesplitsingen, in de kleur van het frame
+std('frMesh', 0x2b2d31, 0.45, 0.78);         // stofgaas achter luidspreker- en microfoongaatjes
+std('frSilo', 0x55595f, 0, 0.6);             // kunststof van de S Pen-silo
+
+/* ---------- omtrek en profiel van de ring ---------- */
+// Omtrek van de buitenkant als stukken (rechte en hoekbogen), met booglengte s vanaf (x +39,05, z 0) rondom.
+function frPath() {
+  const a = FR_HW - FR_R, b = FR_HL - FR_R, segs = [];
+  const L = (x0, z0, x1, z1, nx, nz) => segs.push({ c: false, x0, z0, x1, z1, nx, nz, len: Math.hypot(x1 - x0, z1 - z0) });
+  const C = (cx, cz, a0, a1) => segs.push({ c: true, cx, cz, a0, a1, len: FR_R * Math.abs(a1 - a0) });
+  L(FR_HW, 0, FR_HW, b, 1, 0);            // 0: linkerflank (+x), onderste helft
+  C(a, b, 0, HALF);                       // 1: hoek onder links
+  L(a, FR_HL, -a, FR_HL, 0, 1);           // 2: onderrand
+  C(-a, b, HALF, PI);                     // 3: hoek onder rechts
+  L(-FR_HW, b, -FR_HW, -b, -1, 0);        // 4: rechterflank (-x)
+  C(-a, -b, PI, 1.5 * PI);                // 5: hoek boven rechts
+  L(-a, -FR_HL, a, -FR_HL, 0, -1);        // 6: bovenrand
+  C(a, -b, 1.5 * PI, 2 * PI);             // 7: hoek boven links
+  L(FR_HW, -b, FR_HW, 0, 1, 0);           // 8: linkerflank, bovenste helft
+  let s = 0; for (const g of segs) { g.s0 = s; s += g.len; g.s1 = s; }
+  return { segs, len: s, a, b };
+}
+// punt op de omtrek: [x, z, nx, nz, tx, tz] (normaal naar buiten, raaklijn in de richting van s)
+function frAt(path, s) {
+  s = ((s % path.len) + path.len) % path.len;
+  for (const g of path.segs) if (s <= g.s1 + 1e-9) {
+    const u = (s - g.s0) / g.len;
+    if (g.c) { const an = g.a0 + u * (g.a1 - g.a0), c = Math.cos(an), sn = Math.sin(an); return [g.cx + FR_R * c, g.cz + FR_R * sn, c, sn, -sn, c]; }
+    return [g.x0 + u * (g.x1 - g.x0), g.z0 + u * (g.z1 - g.z0), g.nx, g.nz, (g.x1 - g.x0) / g.len, (g.z1 - g.z0) / g.len];
+  }
+  return frAt(path, 0);
+}
+// booglengte bij een plek op een rand: 'onder' en 'boven' met x, 'rechts' (-x) en 'links' (+x) met z
+function frSOf(path, edge, v) {
+  const S = path.segs, a = path.a, b = path.b;
+  if (edge === 'onder') {
+    if (v > a) return S[1].s0 + FR_R * Math.acos((v - a) / FR_R);
+    if (v < -a) return S[3].s0 + FR_R * (Math.acos((v + a) / FR_R) - HALF);
+    return S[2].s0 + (a - v);
+  }
+  if (edge === 'boven') return S[6].s0 + (v + a);
+  if (edge === 'rechts') return S[4].s0 + (b - v);
+  return v >= 0 ? v : S[8].s0 + (v + b);
+}
+// Dwarsdoorsnede van de rand als gesloten lus (t, y): t is de afstand vanaf de buitenkant naar binnen. Vlakke flank,
+// afgeronde boven- en onderkant. Aan de schermzijde (contract met het Scherm): bij y 0 tot 0,85 een lip van 0,3 mm waarachter
+// het coverglas ligt, bij y 0,85 tot 1,7 een sponning voor paneel en digitizer (binnenkant op x ±37,5 en z ±79,7, dus
+// t 1,55 op de flanken en 2,1 op boven- en onderrand, in de hoeken overgaand), vanaf y 1,7 de volle wanddikte van 2,0 mm.
+// Een punt met derde waarde 1 krijgt als t de sponningdiepte op die plek. Rand 0 en rand iIn zijn de vlakke middenbanden.
+function frProfile() {
+  const p = [[0, FR_BAND[0]], [0, FR_BAND[1]]], rb = FR_T - FR_BAND[1];
+  for (let i = 1; i <= 6; i++) { const an = PI - i / 6 * HALF; p.push([rb + rb * Math.cos(an), FR_BAND[1] + rb * Math.sin(an)]); }
+  p.push([FR_WALL - 0.2, FR_T], [FR_WALL, FR_T - 0.2]);
+  const iIn = p.length;
+  p.push([FR_WALL, FR_BAND[1]], [FR_WALL, FR_BAND[0]], [FR_WALL, 1.7], [1.55, 1.7, 1], [1.55, 0.85, 1], [0.3, 0.85], [0.3, 0]);
+  for (let i = 1; i <= 6; i++) { const an = i / 6 * HALF; p.push([0.3 - 0.3 * Math.sin(an), 0.9 - 0.9 * Math.cos(an)]); }
+  let A2 = 0; for (let i = 0; i < p.length; i++) { const q = p[i], r = p[(i + 1) % p.length]; A2 += q[0] * r[1] - r[0] * q[1]; }
+  return { p, skip: new Set([0, iIn]), ccw: A2 > 0 };
+}
+// sponningdiepte bij een normaal (nx, nz): 1,55 op de flanken, 2,1 op boven- en onderrand
+function frPocket(nx, nz) { return 1.55 * nx * nx + 2.1 * nz * nz; }
+
+/* ---------- driehoeken verzamelen met een gewenste normaalrichting ---------- */
+function frMesh() {
+  const pos = [];
+  return {
+    tri(a, b, c, n) {
+      const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2], vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2];
+      const cx = uy * vz - uz * vy, cy = uz * vx - ux * vz, cz = ux * vy - uy * vx;
+      if (cx * cx + cy * cy + cz * cz < 1e-14) return;
+      if (cx * n[0] + cy * n[1] + cz * n[2] < 0) pos.push(...a, ...c, ...b); else pos.push(...a, ...b, ...c);
+    },
+    quad(a, b, c, d, n) { this.tri(a, b, c, n); this.tri(a, c, d, n); },
+    geo() {
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute(pos.map(mm), 3));
+      return cleanG(THREE.BufferGeometryUtils.toCreasedNormals(THREE.BufferGeometryUtils.mergeVertices(g, 1e-6), 0.6));
+    },
+  };
+}
+// gesloten omtrek in (s, y): afgeronde rechthoek of cirkel rond (sc, yc)
+function frHoleRect(sc, yc, w, h, r, n = 4) { return rrectPts(w, h, Math.min(r, w / 2 - 0.01, h / 2 - 0.01), n).map(([u, v]) => [sc + u, yc + v]); }
+function frHoleCirc(sc, yc, r, n) { const p = []; for (let i = 0; i < n; i++) { const an = i / n * 2 * PI; p.push([sc + r * Math.cos(an), yc + r * Math.sin(an)]); } return p; }
+
+// Openingen in de rand en de plaatsen van de antennesplitsingen (allemaal geschat, zie docs/indeling.md)
+function frOpenings(path) {
+  const S = (e, v) => frSOf(path, e, v), H = [];
+  const add = (name, pts, c) => H.push({ name, pts, c });
+  // onderrand: USB-C, microfoon, SIM-lade, S Pen, luidsprekergaatjes
+  add('USB-C', frHoleRect(S('onder', 0), 3.9, 9.0, 3.2, 1.6, 6), [S('onder', 0), 3.9]);
+  add('microfoon onder', frHoleCirc(S('onder', -6.5), 3.95, 0.35, 10), [S('onder', -6.5), 3.95]);
+  add('SIM-lade', frHoleRect(S('onder', 15), 3.8, 14, 1.2, 0.5, 3), [S('onder', 15), 3.8]);
+  add('S Pen', frHoleCirc(S('onder', 31.8), 4.45, 2.5, 28), [S('onder', 31.8), 4.45]);
+  for (let k = 0; k < 8; k++) { const x = -10 - 2.8 * k, s = S('onder', x); add('luidspreker', frHoleCirc(s, 3.95, 0.65, 12), [s, 3.95]); }
+  // bovenrand: microfoon (niet op x 0, daar zit de straal van de silhouettest niet in de weg)
+  add('microfoon boven', frHoleCirc(S('boven', 12), 3.95, 0.35, 10), [S('boven', 12), 3.95]);
+  // rechterflank (-x): openingen voor de volumeknop en de aan/uit-knop, 0,2 mm speling rondom
+  const sv = (S('rechts', -48) + S('rechts', -26)) / 2, sp = (S('rechts', -16) + S('rechts', -4)) / 2;
+  add('volumeknop', frHoleRect(sv, 3.95, 22.4, 2.8, 0.45, 3), [sv, 3.95]);
+  add('aan/uit-knop', frHoleRect(sp, 3.95, 12.4, 2.8, 0.45, 3), [sp, 3.95]);
+  const splits = [
+    ['Antennesplitsing boven links', S('boven', 24)],
+    ['Antennesplitsing boven rechts', S('boven', -24)],
+    ['Antennesplitsing linkerflank boven', S('links', -52)],
+    ['Antennesplitsing linkerflank onder', S('links', 48)],
+    ['Antennesplitsing rechterflank boven', S('rechts', -60)],
+    ['Antennesplitsing rechterflank onder', S('rechts', 44)],
+    ['Antennesplitsing onder links', S('onder', 26)],
+    ['Antennesplitsing hoek onder rechts', path.segs[3].s0 + path.segs[3].len / 2],
+  ];
+  return { holes: H, splits };
+}
+
+// De ring: een veegvorm van het profiel langs de omtrek. In vensters rond de openingen wordt de vlakke middenband als
+// vlak met gaten (in s, y) getrianguleerd en met boringen door de wand verbonden. Op de antennesplitsingen is de ring
+// onderbroken; daar komen losse kunststof stukjes met hetzelfde profiel.
+function frRingGeos() {
+  const path = frPath(), prof = frProfile(), P = prof.p, NP = P.length, { holes, splits } = frOpenings(path);
+  const W = (s, t, y, pk) => { const f = frAt(path, s); if (pk) t = frPocket(f[2], f[3]); return [f[0] - t * f[2], y, f[1] - t * f[3]]; };
+  // vensters: per opening het bereik in s plus 0,6 mm marge; overlappende vensters samenvoegen
+  let wins = holes.map(h => { const ss = h.pts.map(p => p[0]); return { s0: Math.min(...ss) - 0.6, s1: Math.max(...ss) + 0.6, holes: [h] }; }).sort((p, q) => p.s0 - q.s0);
+  const merged = [];
+  for (const w of wins) { const l = merged[merged.length - 1]; if (l && w.s0 <= l.s1) { l.s1 = Math.max(l.s1, w.s1); l.holes.push(...w.holes); } else merged.push(w); }
+  wins = merged;
+  const sp = splits.map(([name, s]) => ({ name, s0: s - FR_SPLIT / 2, s1: s + FR_SPLIT / 2 }));
+  for (const w of wins) for (const q of sp) if (w.s0 < q.s1 && q.s0 < w.s1) throw new Error(`antennesplitsing ${q.name} valt in een opening`);
+  // stations langs de omtrek
+  const st = [0, path.len];
+  for (const g of path.segs) { st.push(g.s0); if (g.c) for (let i = 1; i < 20; i++) st.push(g.s0 + i / 20 * g.len); }
+  for (const w of wins) { const n = Math.ceil((w.s1 - w.s0) / 0.5); for (let i = 0; i <= n; i++) st.push(w.s0 + i / n * (w.s1 - w.s0)); }
+  for (const q of sp) st.push(q.s0, q.s1);
+  st.sort((p, q) => p - q);
+  const S = st.filter((v, i) => i === 0 || v - st[i - 1] > 1e-6);
+  const ring = frMesh(), ins = sp.map(() => frMesh());
+  // normaal van profielrand k bij s, in 3D
+  const pn = (k, s) => {
+    const a = P[k], b = P[(k + 1) % NP], dt = b[0] - a[0], dy = b[1] - a[1], sg = prof.ccw ? 1 : -1, nt = dy * sg, ny = -dt * sg, f = frAt(path, s);
+    return [-nt * f[2], ny, -nt * f[3]];
+  };
+  for (let i = 0; i + 1 < S.length; i++) {
+    const a = S[i], b = S[i + 1], m = (a + b) / 2;
+    const k = sp.findIndex(q => m > q.s0 && m < q.s1), M = k >= 0 ? ins[k] : ring;
+    const inWin = wins.some(w => m > w.s0 && m < w.s1);
+    for (let e = 0; e < NP; e++) {
+      if (inWin && prof.skip.has(e)) continue;
+      const p = P[e], q = P[(e + 1) % NP];
+      M.quad(W(a, p[0], p[1], p[2]), W(b, p[0], p[1], p[2]), W(b, q[0], q[1], q[2]), W(a, q[0], q[1], q[2]), pn(e, m));
+    }
+  }
+  // kopvlakken op de antennesplitsingen
+  const cap = (M, s, dir) => {
+    const f = frAt(path, s), n = [f[4] * dir, 0, f[5] * dir], tp = frPocket(f[2], f[3]);
+    const tris = THREE.ShapeUtils.triangulateShape(P.map(p => new THREE.Vector2(p[2] ? tp : p[0], p[1])), []);
+    for (const [i, j, l] of tris) M.tri(W(s, P[i][0], P[i][1], P[i][2]), W(s, P[j][0], P[j][1], P[j][2]), W(s, P[l][0], P[l][1], P[l][2]), n);
+  };
+  sp.forEach((q, k) => { cap(ring, q.s0, 1); cap(ring, q.s1, -1); cap(ins[k], q.s0, -1); cap(ins[k], q.s1, 1); });
+  // vensters: buitenvlak en binnenvlak met gaten, plus boringen
+  for (const w of wins) {
+    const ss = S.filter(v => v >= w.s0 - 1e-6 && v <= w.s1 + 1e-6);
+    const contour = ss.map(v => [v, FR_BAND[0]]).concat(ss.slice().reverse().map(v => [v, FR_BAND[1]]));
+    const hp = w.holes.map(h => h.pts);
+    const all = contour.concat(...hp);
+    const tris = THREE.ShapeUtils.triangulateShape(contour.map(p => new THREE.Vector2(...p)), hp.map(h => h.map(p => new THREE.Vector2(...p))));
+    for (const [i, j, l] of tris) {
+      const sc = (all[i][0] + all[j][0] + all[l][0]) / 3, f = frAt(path, sc);
+      for (const t of [0, FR_WALL]) {
+        const n = t ? [-f[2], 0, -f[3]] : [f[2], 0, f[3]];
+        ring.tri(W(all[i][0], t, all[i][1]), W(all[j][0], t, all[j][1]), W(all[l][0], t, all[l][1]), n);
+      }
+    }
+    for (const h of w.holes) {
+      const pts = h.pts, [cs, cy] = h.c;
+      for (let i = 0; i < pts.length; i++) {
+        const p = pts[i], q = pts[(i + 1) % pts.length], ms = (p[0] + q[0]) / 2, my = (p[1] + q[1]) / 2, f = frAt(path, ms);
+        const n = [f[4] * (cs - ms), cy - my, f[5] * (cs - ms)];
+        ring.quad(W(p[0], 0, p[1]), W(q[0], 0, q[1]), W(q[0], FR_WALL, q[1]), W(p[0], FR_WALL, p[1]), n);
+      }
+    }
+  }
+  return {
+    ring: ring.geo(),
+    inserts: sp.map((q, k) => { const f = frAt(path, (q.s0 + q.s1) / 2); return { name: q.name, geo: ins[k].geo(), n: [f[2], f[3]] }; }),
+  };
+}
+
+/* ---------- middenplaat ---------- */
+function frArc(cx, cz, r, a0, a1, n) { const p = []; for (let i = 0; i <= n; i++) { const an = a0 + i / n * (a1 - a0); p.push([cx + r * Math.cos(an), cz + r * Math.sin(an)]); } return p; }
+// Plaat in de binnenruimte (x ±37, z ±79,8, hoekstraal 6,5), met een open sleuf langs de S Pen-silo (x 28,9 tot 34,7,
+// vanaf z -26,2 tot de onderrand), gaten om de drie grote camera's en de selfiecamera en een sleuf voor de displayflex.
+function frPlateGeo() {
+  return cache('frPlate', () => {
+    const X = 37, Z = 79.8, r = 6.5, cx = X - r, cz = Z - r, sx0 = 28.9, sx1 = 34.7, sz = -26.2;
+    const te = Math.acos((sx1 - cx) / r);
+    const pts = [[X, -cz], [X, cz], ...frArc(cx, cz, r, 0, te, 8), [sx1, sz], [sx0, sz], [sx0, Z], ...frArc(-cx, cz, r, HALF, PI, 10),
+      ...frArc(-cx, -cz, r, PI, 1.5 * PI, 10), ...frArc(cx, -cz, r, 1.5 * PI, 2 * PI, 10)];
+    const shape = shapeOf(pts.map(([x, z]) => [mm(x), mm(z)]));
+    for (const z of [-67.1, -48.9, -30.7]) shape.holes.push(circlePath(mm(-24.15), mm(z), mm(7)));
+    shape.holes.push(circlePath(0, mm(-76), mm(3)));
+    const flex = new THREE.Path(); rrectPts(mm(12), mm(2), mm(0.9), 4).forEach(([u, v], i) => i ? flex.lineTo(u, mm(63.5) + v) : flex.moveTo(u, mm(63.5) + v));
+    flex.closePath(); shape.holes.push(flex);
+    const g = plan(shape, mm(0.7), 16); g.translate(0, mm(2.05), 0);
+    return g;
+  });
+}
+
+/* ---------- S Pen-silo en uitwerper ---------- */
+function frSiloGeo() {
+  return cache('frSiloTube', () => {
+    const z0 = -26, z1 = 80.5, L = z1 - z0;
+    const tubeG = xf(annulus(mm(2.4), mm(2.7), mm(L), 'z', 28), mmv(31.8, 4.45, (z0 + z1) / 2));
+    const capG = xf(G.cyl('z', mm(2.7), mm(2.7), mm(0.3), 28), mmv(31.8, 4.45, z0 + 0.15));
+    return merge([tubeG, capG]);
+  });
+}
+
+/* ---------- zijknoppen ---------- */
+// knopkap: vlakke staaf met afgeronde randen, in de opening van de flank; steekt 0,25 mm uit (x -39,30) en loopt tot
+// x -37,1, met nokjes naar de drukschakelaars
+function frButtonGeo(key, z0, z1, nubs) {
+  return cache('frBtn' + key, () => {
+    const l = z1 - z0, zc = (z0 + z1) / 2, h = 2.4, t = 2.2;
+    const cap = roundPlate([[-mm(l) / 2, -mm(h) / 2], [mm(l) / 2, -mm(h) / 2], [mm(l) / 2, mm(h) / 2], [-mm(l) / 2, mm(h) / 2]], mm(t), mm(0.35), 0.025, 3);
+    cap.rotateY(-HALF); cap.translate(mm(-39.3 + t / 2), mm(3.95), mm(zc));
+    const parts = [cap];
+    for (const z of nubs) parts.push(xf(G.cyl('x', mm(0.5), mm(0.5), mm(0.3), 10), mmv(-36.95, 3.95, z)));
+    return merge(parts);
+  });
+}
+
+function frBuild() {
+  const { ring, inserts } = frRingGeos();
+  const est = 'Vorm en maat zijn geschat.';
+  // antennesplitsingen
+  const splitKids = inserts.map(q => P(q.name, q.geo, MAT.frSplit, {
+    d: `Kunststof inzetstukje van 0,8 mm breed dat de metalen rand onderbreekt, zodat de stukken rand als antenne werken. Plaats en aantal zijn geschat.`,
+    ex: [q.n[0] * 0.3, 0.05, q.n[1] * 0.3],
+  }));
+  // afdichtingen en stofgaas achter de openingen in de onderrand en bovenrand
+  const usbSeal = (() => {
+    const s = shapeOf(rrectPts(mm(10.6), mm(4.8), mm(2.39), 5));
+    const hole = new THREE.Path(); rrectPts(mm(9.2), mm(3.4), mm(1.69), 5).forEach(([u, v], i) => i ? hole.lineTo(u, v) : hole.moveTo(u, v)); hole.closePath();
+    s.holes.push(hole);
+    return cache('frUsbSeal', () => { const g = front(s, mm(0.25)); g.translate(0, mm(3.9), mm(79.675)); return g; });
+  })();
+  const seals = A('Afdichtingen', { d: 'Pakking en stofgaas aan de binnenkant van de rand, achter de openingen. Vorm en maat zijn geschat.', ex: [0, 0.35, 0] }, [
+    P('Waterdichting USB-C', usbSeal, MAT.rubber, { d: 'Rubberen pakkingring rond de USB-C-opening aan de binnenkant van de onderrand; de USB-C-poort drukt ertegen. ' + est, ex: [0, 0, -0.25] }),
+    P('Stofgaas luidspreker', cache('frSpkMesh', () => xf(mmBox(21, 2.6, 0.12), mmv(-19.8, 3.95, 79.74))), MAT.frMesh, { d: 'Fijn gaas achter de luidsprekergaatjes in de onderrand, tegen stof en water. ' + est, ex: [0, 0, -0.3] }),
+    P('Stofgaas microfoon onder', cache('frMicMeshO', () => xf(G.cyl('z', mm(0.9), mm(0.9), mm(0.12), 14), mmv(-6.5, 3.95, 79.74))), MAT.frMesh, { d: 'Gaasje achter het microfoongaatje in de onderrand. ' + est, ex: [0, 0, -0.25] }),
+    P('Stofgaas microfoon boven', cache('frMicMeshB', () => xf(G.cyl('z', mm(0.9), mm(0.9), mm(0.12), 14), mmv(12, 3.95, -79.74))), MAT.frMesh, { d: 'Gaasje achter het microfoongaatje in de bovenrand. ' + est, ex: [0, 0, 0.25] }),
+  ]);
+  const middenframe = A('Middenframe', { d: 'De zijrand van het toestel: één aluminium ring over de volle dikte met de openingen voor poorten, gaatjes en knoppen, onderbroken door kunststof antennesplitsingen.', ex: [0, 0.12, 0] }, [
+    P('Framering', ring, MAT.frameAlu, {
+      d: 'Zijrand uit één stuk aluminium (zilver bij White), 2,0 mm dik met vlakke flanken en afgeronde boven- en onderkant. Aan de schermzijde een lip van 0,3 mm voor het coverglas en een sponning waarin paneel en digitizer liggen. In de onderrand de USB-C-opening, de luidsprekergaatjes, een microfoongaatje, de sleuf van de SIM-lade en de S Pen-opening; in de bovenrand een microfoongaatje; in de rechterflank de openingen voor de knoppen. De buitenmaat is bevestigd, het profiel en de plaats van de openingen zijn geschat.',
+      spec: [['L × B × D', '163,6 × 78,1 × 7,9 mm']],
+      ex: [0, 0.04, 0],
+    }),
+    A('Antennesplitsingen', { d: 'Acht kunststof inzetstukjes in de rand die de rand in antennesegmenten verdelen. Plaats en aantal zijn geschat.', ex: [0, 0.2, 0] }, splitKids),
+    seals,
+  ]);
+  const plaat = P('Middenplaat', frPlateGeo(), MAT.frameCast, {
+    d: 'Gegoten plaat tussen het schermpakket en de binnenruimte; draagt moederbord, batterij en vapor chamber en verstijft het toestel. Met gaten rond de drie grote camera\'s en de selfiecamera, een sleuf voor de displayflex en een open sleuf langs de S Pen-silo. ' + est,
+    ex: [0, -0.32, 0],
+  });
+  // S Pen-silo met uitwerper aan het binnenste eind (z -26 tot -24, de pen begint op z -24)
+  const silo = A('S Pen-silo', { d: 'Buis in het frame waarin de S Pen zit, open aan de onderrand en met een uitwerper aan het binnenste eind. ' + est, ex: [0.55, 0.35, 0] }, [
+    P('Silobuis', frSiloGeo(), MAT.frSilo, { d: 'Kunststof buis van 5,4 mm buiten en 4,8 mm binnen, van z -26 tot in de onderrand, aan het binnenste eind dicht. ' + est, ex: [0.08, 0, 0] }),
+    A('S Pen-uitwerper', { d: 'Klik-uitwerper: druk de pen in en hij klikt vast, druk nog eens en de veer duwt hem een stukje naar buiten. Werking en vorm zijn geschat.', ex: [0, 0, -0.55] }, [
+      P('Uitwerperveer', spring(mm(1.4), mm(0.12), mm(0.8), 3, 'z'), MAT.steel, { d: 'Drukveer die de pen naar buiten duwt. ' + est, p: mmv(31.8, 4.45, -25.3), ex: [0, 0, -0.12] }),
+      P('Klikring', cache('frClick', () => merge([xf(annulus(mm(1.3), mm(2.2), mm(0.4), 'z', 20), mmv(31.8, 4.45, -24.7)), xf(mmBox(0.5, 0.5, 0.6), mmv(31.8, 6.3, -24.7))])), MAT.plastic, { d: 'Ring met hartvormige kliknok die de pen vasthoudt of loslaat. ' + est, ex: [0, 0, -0.24] }),
+      P('Duwkop', cache('frPush', () => xf(annulus(mm(0.8), mm(2.1), mm(0.4), 'z', 20), mmv(31.8, 4.45, -24.3))), MAT.steel, { d: 'Kopje waar de punt van de S Pen tegen drukt. ' + est, ex: [0, 0, -0.36] }),
+    ]),
+  ]);
+  // zijknoppen aan de -x-flank (rechts als je op het scherm kijkt)
+  const knoppen = A('Zijknoppen', { d: `Knoppen in de ${sideName(-1)}flank (gezien op het scherm) met de knoppenflex erachter. ` + est, ex: [-0.35, 0.15, 0] }, [
+    P('Volumeknop', frButtonGeo('Vol', -48, -26, [-43, -31]), MAT.frameAlu, { d: 'Wipknop voor harder en zachter, metaal in de kleur van het frame; steekt 0,25 mm uit de flank. Plaats en maat zijn geschat.', ex: [-0.3, 0, 0] }),
+    P('Aan/uit-knop', frButtonGeo('Pwr', -16, -4, [-10]), MAT.frameAlu, { d: 'Zijtoets (aan/uit), metaal in de kleur van het frame; steekt 0,25 mm uit de flank. Plaats en maat zijn geschat.', ex: [-0.3, 0, 0] }),
+    A('Knoppenflex', { d: 'Smalle flexprint achter de knoppen met drie drukschakelaars, op een stalen verstijving; loopt naar de hoofdflex. ' + est, ex: [0.3, 0, 0] }, [
+      P('Drukschakelaars', cache('frDomes', () => merge([-43, -31, -10].map(z => xf(G.cyl('x', mm(0.9), mm(0.7), mm(0.25), 14), mmv(-36.72, 3.95, z))))), MAT.steel, { d: 'Metalen klikkoepeltjes die de knopdruk omzetten in een contact. ' + est, ex: [-0.06, 0, 0] }),
+      P('Flexstrook', cache('frBtnFlex', () => xf(mmBox(0.12, 2.6, 48), mmv(-36.54, 3.95, -26))), MAT.flex, { d: 'Polyimide flexprint met de sporen van de knoppen. ' + est, ex: [0.06, 0, 0] }),
+      P('Verstijvingsplaat', cache('frBtnStiff', () => merge([xf(mmBox(0.25, 2.4, 23), mmv(-36.35, 3.95, -37)), xf(mmBox(0.25, 2.4, 13), mmv(-36.35, 3.95, -10))])), MAT.steel, { d: 'Stalen plaatjes achter de flex waartegen de schakelaars worden ingedrukt. ' + est, ex: [0.14, 0, 0] }),
+    ]),
+  ]);
+  return A('Behuizing', { d: 'Behuizing: de aluminium zijrand met middenplaat, de S Pen-silo en de zijknoppen. Het frame is het geraamte waarop scherm, achterglas en alle binnendelen vastzitten.' }, [middenframe, plaat, silo, knoppen]);
+}
 
 /* ===================== Achterkant (reBuild) ===================== */
 // Domeinbestand; zie docs/indeling.md voor de zones en voorvoegsels. Zolang de bouwfunctie ontbreekt, zet phone.js een plaatshouder neer.
@@ -1486,6 +1778,372 @@ function caBuild() {
 
 /* ===================== Moederbord (boBuild) ===================== */
 // Domeinbestand; zie docs/indeling.md voor de zones en voorvoegsels. Zolang de bouwfunctie ontbreekt, zet phone.js een plaatshouder neer.
+//
+// Opbouw (sandwich zoals bij de Galaxy Ultra-toestellen; laagdiktes en indeling zijn schattingen):
+//   y 2,83 tot 2,9  warmtegeleidend kussen onder de SoC, naar de vapor chamber (die is van Energie en koeling)
+//   y 2,9 tot 3,6   hoofdprint met SoC, geheugen, opslag, PMIC en audio in de holte van de interposer
+//   y 3,6 tot 5,2   interposer (rand) tussen de twee printen
+//   y 5,2 tot 5,9   RF-print, met de radiochips en kapjes aan de bovenkant (tot y 6,4)
+//   y 6,4 tot 7,0   bovenafdekplaat van kunststof met antennesporen en schroeven
+// Het bord wijkt voor de camerakolom, de periscoop, de selfiecamera, de oorspeaker en de S Pen-silo (x tot +28,6).
+// Alle maten in mm in het modelframe; omgerekend met mm() en mmv().
+
+std('boCover', 0x24262a, 0, 0.62);
+std('boAntenna', 0xc79a52, 0.85, 0.32);
+std('boInterposer', 0x263329, 0.1, 0.55);
+std('boSubstrate', 0x3b4a3a, 0.15, 0.5);
+std('boPaste', 0xa9adb1, 0.25, 0.85);
+std('boCap', 0x9a8460, 0.2, 0.5);
+std('boConn', 0xd4d0c4, 0.05, 0.55);
+
+// y-lagen (mm)
+const BO_Y = { pad0: 2.83, main0: 2.9, main1: 3.6, rf0: 5.2, rf1: 5.9, top: 6.4, cov1: 6.98, cov2: 7.0 };
+
+// omtrek hoofdprint (x, z in mm, tegen de klok in gezien van boven): links het stuk onder de camerakolom tot x -13,5,
+// boven de inkeping voor periscoop en laser-AF (x tot -0,5), de selfiecamera (tot x +4, z -70,5) en de oorspeaker
+// (x +3,5 tot +18,5, z -74,5); rechts tot x +28,6 vóór de S Pen-silo
+const BO_MAIN = [[-13.5, -19], [28.6, -19], [28.6, -79], [18.5, -79], [18.5, -74.5], [4, -74.5], [4, -70.5], [-0.5, -70.5], [-0.5, -39.5], [-13.5, -39.5]];
+// bovenafdekplaat: dezelfde omtrek, maar over de selfiecamera en de oorspeaker heen (die blijven onder y 4,9)
+const BO_COVER = [[-13.5, -19], [28.6, -19], [28.6, -79], [-0.5, -79], [-0.5, -39.5], [-13.5, -39.5]];
+// RF-print en buitenrand van de interposer; binnenrand van de interposer (holte)
+const BO_RF = [0.5, 28.1, -70, -25];
+const BO_CAV = [2.1, 26.5, -68.4, -26.6];
+// schroeven van de bovenafdekplaat (x, z): vier door de interposerrand, één links, één rechtsboven
+const BO_SCREWS = [[1.3, -47.5], [27.3, -47.5], [14.3, -25.8], [14.3, -69.2], [-12, -21.3], [23, -76]];
+const BO_RF_SCREWS = BO_SCREWS.slice(0, 4);
+
+// hoeken van een veelhoek afronden (straal r in mm, n tussenpunten); werkt voor bolle en holle hoeken
+function boFillet(pts, r, n = 3) {
+  const out = [], N = pts.length;
+  for (let i = 0; i < N; i++) {
+    const p = pts[i], a = pts[(i + N - 1) % N], b = pts[(i + 1) % N];
+    const la = Math.hypot(a[0] - p[0], a[1] - p[1]), lb = Math.hypot(b[0] - p[0], b[1] - p[1]);
+    const rr = Math.min(r, la / 2.2, lb / 2.2);
+    const s = [p[0] + (a[0] - p[0]) / la * rr, p[1] + (a[1] - p[1]) / la * rr], e = [p[0] + (b[0] - p[0]) / lb * rr, p[1] + (b[1] - p[1]) / lb * rr];
+    for (let k = 0; k <= n; k++) {
+      const t = k / n, u = 1 - t;
+      out.push([u * u * s[0] + 2 * u * t * p[0] + t * t * e[0], u * u * s[1] + 2 * u * t * p[1] + t * t * e[1]]);
+    }
+  }
+  return out;
+}
+const boRect = (x0, x1, z0, z1) => [[x0, z0], [x1, z0], [x1, z1], [x0, z1]];
+
+// plaat in bovenaanzicht uit een omtrek in mm met gaten ([x, z, r] of een omtrek), van y0 tot y1
+function boPlanGeo(key, pts, holes, y0, y1) {
+  return cache('bo' + key, () => {
+    const s = shapeOf(pts.map(p => [mm(p[0]), mm(p[1])]));
+    for (const h of holes || []) {
+      if (typeof h[0] === 'number') s.holes.push(circlePath(mm(h[0]), mm(h[1]), mm(h[2])));
+      else { const pa = new THREE.Path(); h.forEach((q, i) => i ? pa.lineTo(mm(q[0]), mm(q[1])) : pa.moveTo(mm(q[0]), mm(q[1]))); pa.closePath(); s.holes.push(pa); }
+    }
+    const g = plan(s, mm(y1 - y0));
+    g.translate(0, mm((y0 + y1) / 2), 0);
+    return g;
+  });
+}
+
+// chip: afgerond blokje (b × l in bovenaanzicht, hoogte h), onderkant op de oorsprong
+function boChipGeo(w, l, h, r = 0.15) {
+  return cache(`boChip${w}|${l}|${h}|${r}`, () => { const g = G.rbox(mm(w), mm(h), mm(l), mm(r)).clone(); g.translate(0, mm(h / 2), 0); return g; });
+}
+// afschermkap: dunne plaat met vier wanden, open aan de onderkant; onderkant op de oorsprong
+function boCanGeo(w, l, h) {
+  return cache(`boCan${w}|${l}|${h}`, () => {
+    const t = 0.1, lip = 0.12;
+    return merge([
+      xf(mmBox(w, t, l), mmv(0, h - t / 2, 0)),
+      xf(mmBox(t, h - t, l), mmv(-w / 2 + t / 2, (h - t) / 2, 0)), xf(mmBox(t, h - t, l), mmv(w / 2 - t / 2, (h - t) / 2, 0)),
+      xf(mmBox(w - 2 * t, h - t, t), mmv(0, (h - t) / 2, -l / 2 + t / 2)), xf(mmBox(w - 2 * t, h - t, t), mmv(0, (h - t) / 2, l / 2 - t / 2)),
+      // verstevigingsrand langs de bovenkant (een kraag zoals bij getrokken kapjes)
+      xf(mmBox(w - 2 * t, t, lip), mmv(0, h - t * 1.5, -l / 2 + t + lip / 2)), xf(mmBox(w - 2 * t, t, lip), mmv(0, h - t * 1.5, l / 2 - t - lip / 2)),
+    ]);
+  });
+}
+// bord-op-bordconnector (receptakel): metalen kader met een middenrib en twee rijen contacten; onderkant op de oorsprong
+function boConnGeo(w, l, h, pins) {
+  return cache(`boConn${w}|${l}|${h}|${pins}`, () => {
+    const t = 0.18, parts = [
+      xf(mmBox(w, 0.12, l), mmv(0, 0.06, 0)),
+      xf(mmBox(w, h, t), mmv(0, h / 2, -l / 2 + t / 2)), xf(mmBox(w, h, t), mmv(0, h / 2, l / 2 - t / 2)),
+      xf(mmBox(t, h, l - 2 * t), mmv(-w / 2 + t / 2, h / 2, 0)), xf(mmBox(t, h, l - 2 * t), mmv(w / 2 - t / 2, h / 2, 0)),
+      xf(mmBox(w - 1.2, h * 0.75, l * 0.22), mmv(0, h * 0.375, 0)),
+    ];
+    const pitch = (w - 1.4) / (pins - 1);
+    for (let i = 0; i < pins; i++) {
+      const x = -w / 2 + 0.7 + i * pitch;
+      for (const sz of [-1, 1]) parts.push(xf(mmBox(pitch * 0.45, h * 0.6, 0.22), mmv(x, h * 0.3, sz * (l * 0.11 + 0.2))));
+    }
+    return merge(parts);
+  });
+}
+// coaxiale antenneconnector: vierkante voet met een ronde kraag; onderkant op de oorsprong
+function boCoaxGeo() {
+  return cache('boCoax', () => merge([
+    xf(mmBox(2.0, 0.15, 2.0), mmv(0, 0.075, 0)),
+    xf(mmRing(0.5, 0.72, 0.33, 14), mmv(0, 0.15 + 0.165, 0)),
+    xf(mmCyl('y', 0.18, 0.3, 8), mmv(0, 0.3, 0)),
+  ]));
+}
+// schroef met platte kop (kop naar +y): kop van y 6,6 tot 7,0, steel tot y 3,0; oorsprong midden onder de kop
+function boScrewGeo() {
+  return cache('boScrew', () => merge([
+    xf(mmCyl('y', 1.0, 0.4, 16), mmv(0, 0.2, 0)),
+    xf(mmBox(1.1, 0.08, 0.22), mmv(0, 0.37, 0)), xf(mmBox(0.22, 0.08, 1.1), mmv(0, 0.37, 0)),
+    xf(mmCyl('y', 0.55, 3.6, 10), mmv(0, -1.8, 0)),
+  ]));
+}
+
+// punt in veelhoek (mm)
+function boInPoly(x, z, poly) {
+  let c = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, zi] = poly[i], [xj, zj] = poly[j];
+    if ((zi > z) !== (zj > z) && x < (xj - xi) * (z - zi) / (zj - zi) + xi) c = !c;
+  }
+  return c;
+}
+// Passieve componenten (condensatoren, weerstanden, spoeltjes) verspreid over vrije plekken: een raster met toeval
+// (vaste zaadwaarde, dus elke keer dezelfde plaatsing). Geeft { cap, res } (geometrie per materiaal) in wereldeenheden.
+// poly: omtrek, keep: lijst [x0, x1, z0, z1] die vrij moet blijven, ring: [buiten, binnen] die vrij moet blijven.
+function boPassives(key, poly, keep, ring, y, seed, step = 0.95, prob = 0.6) {
+  const res = GC.get('boPas' + key + 'r');
+  if (res) return { cap: GC.get('boPas' + key + 'c'), res };
+  let s = seed >>> 0;
+  const rnd = () => (s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296;
+  const SIZES = [[0.6, 0.3, 0.3], [0.6, 0.3, 0.3], [1.0, 0.5, 0.35], [1.0, 0.5, 0.5], [1.6, 0.8, 0.5]];
+  const inR = (x, z, r, m) => x > r[0] - m && x < r[1] + m && z > r[2] - m && z < r[3] + m;
+  const free = (x, z, hw, hl) => {
+    for (const [cx, cz] of [[x - hw, z - hl], [x + hw, z - hl], [x + hw, z + hl], [x - hw, z + hl]]) {
+      if (!boInPoly(cx, cz, poly)) return false;
+      for (const k of keep) if (inR(cx, cz, k, 0.25)) return false;
+      if (ring && inR(cx, cz, ring[0], 0.3) && !inR(cx, cz, ring[1], -0.3)) return false;
+    }
+    // afstand tot de rand van de omtrek
+    for (const [dx, dz] of [[0.4, 0], [-0.4, 0], [0, 0.4], [0, -0.4]]) if (!boInPoly(x + dx + Math.sign(dx) * hw, z + dz + Math.sign(dz) * hl, poly)) return false;
+    return true;
+  };
+  let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9;
+  for (const [x, z] of poly) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
+  const caps = [], ress = [];
+  for (let z = z0 + 0.6; z < z1 - 0.3; z += step) for (let x = x0 + 0.6; x < x1 - 0.3; x += step) {
+    if (rnd() > prob) continue;
+    const sz = SIZES[(rnd() * SIZES.length) | 0], rot = rnd() < 0.5;
+    const w = rot ? sz[1] : sz[0], l = rot ? sz[0] : sz[1], h = sz[2];
+    const px = x + (rnd() - 0.5) * (step - w) * 0.6, pz = z + (rnd() - 0.5) * (step - l) * 0.6;
+    if (!free(px, pz, w / 2, l / 2)) continue;
+    const isCap = rnd() < 0.62;
+    (isCap ? caps : ress).push(xf(mmBox(w, h, l), mmv(px, y + h / 2, pz)));
+  }
+  const cap = merge(caps), rs = merge(ress);
+  GC.set('boPas' + key + 'c', cap); GC.set('boPas' + key + 'r', rs);
+  return { cap, res: rs };
+}
+
+// soldeervlakken op de interposerrand: twee rijen langs het midden van de rand, niet bij de schroeven; van y0 tot de RF-print
+function boPadGeo(y0) {
+  return cache('boPads', () => {
+    const h = BO_Y.rf0 - y0, parts = [], pitch = 0.55;
+    const cx0 = (BO_RF[0] + BO_CAV[0]) / 2, cx1 = (BO_RF[1] + BO_CAV[1]) / 2, cz1 = (BO_RF[3] + BO_CAV[3]) / 2, cz0 = (BO_RF[2] + BO_CAV[2]) / 2;
+    const nearScrew = (x, z) => BO_SCREWS.some(([a, b]) => Math.hypot(a - x, b - z) < 1.2);
+    const row = (ax, az, bx, bz) => {
+      const L = Math.hypot(bx - ax, bz - az), n = Math.floor((L - 2.4) / pitch), ux = (bx - ax) / L, uz = (bz - az) / L;
+      for (let i = 0; i <= n; i++) for (const o of [-0.4, 0.4]) {
+        const t = 1.2 + i * pitch, x = ax + ux * t - uz * o, z = az + uz * t + ux * o;
+        if (!nearScrew(x, z)) parts.push(xf(mmBox(0.32, h, 0.32), mmv(x, y0 + h / 2, z)));
+      }
+    };
+    row(cx0, cz0, cx1, cz0); row(cx1, cz0, cx1, cz1); row(cx1, cz1, cx0, cz1); row(cx0, cz1, cx0, cz0);
+    return merge(parts);
+  });
+}
+
+// antennesporen op de afdekplaat: stroken (breedte w) langs een gebroken lijn, op y 6,98 tot 7,0
+function boTraceGeo() {
+  return cache('boTraces', () => {
+    const lines = [
+      [0.8, [[-12.8, -24.5], [-12.8, -38.6], [-6, -38.6]]],
+      [0.5, [[-11, -36], [-3, -36], [-3, -34], [-11, -34], [-11, -32], [-3, -32], [-3, -30], [-11, -30]]],
+      [0.9, [[0.8, -60], [0.8, -78.0], [16.5, -78.0], [16.5, -76.6], [19.5, -76.6], [19.5, -78.0], [27.8, -78.0], [27.8, -50.2]]],
+      [0.9, [[27.8, -44.8], [27.8, -20.0], [17, -20.0]]],
+      [0.7, [[3.5, -20.0], [-9, -20.0]]],
+      [0.6, [[2.4, -74.5], [2.4, -60]]],
+    ];
+    const t = BO_Y.cov2 - BO_Y.cov1, yc = (BO_Y.cov1 + BO_Y.cov2) / 2, parts = [];
+    for (const [w, pts] of lines) for (let i = 1; i < pts.length; i++) {
+      const [ax, az] = pts[i - 1], [bx, bz] = pts[i], L = Math.hypot(bx - ax, bz - az) + w;
+      parts.push(xf(mmBox(L, t, w), mmv((ax + bx) / 2, yc, (az + bz) / 2), [0, -Math.atan2(bz - az, bx - ax), 0]));
+    }
+    return merge(parts);
+  });
+}
+
+function boBuild() {
+  const Y = BO_Y;
+  const est = ' Vorm, maat en plaats zijn geschat.';
+  // ---------- hoofdprint ----------
+  const mainHoles = BO_SCREWS.map(([x, z]) => [x, z, 0.65]);
+  const mainPcb = P('Printplaat hoofdprint', boPlanGeo('Main', boFillet(BO_MAIN, 0.8), mainHoles, Y.main0, Y.main1), MAT.pcb, {
+    d: 'Onderste print van de sandwich (meerlaags, ongeveer 0,7 mm dik). Hij wijkt met inkepingen voor de camerakolom, de periscoop met laser-AF, de selfiecamera en de oorspeaker, en eindigt vóór de S Pen-silo.' + est,
+    ex: [0, -0.06, 0],
+  });
+  const chip = (name, d, w, l, h, x, z, y, ex, extra) => P(name, boChipGeo(w, l, h), MAT.chip, Object.assign({ d, p: mmv(x, y, z), ex }, extra || {}));
+  const can = (name, d, w, l, h, x, z, y, ex) => P(name, boCanGeo(w, l, h), MAT.shield, { d, p: mmv(x, y, z), ex });
+  const conn = (name, d, w, l, pins, x, z, rot, ex) => P(name, boConnGeo(w, l, 0.75, pins), MAT.steel, { d, p: mmv(x, Y.main1, z), r: rot ? [0, HALF, 0] : undefined, ex });
+
+  const soc = A('SoC met geheugen', {
+    d: 'De processor met het werkgeheugen erbovenop gestapeld (package-on-package), onder een eigen afschermkap, midden in de holte van de interposer. De warmte gaat via de print en een warmtegeleidend kussen naar de vapor chamber.' + est,
+    ex: [0, 0.12, 0],
+  }, [
+    P('SoC Snapdragon 8 Elite Gen 5 for Galaxy', merge([xf(mmBox(13, 0.25, 13), mmv(0, 0.125, 0)), xf(boChipGeo(11, 11, 0.3, 0.2), mmv(0, 0.25, 0))]), MAT.chip, {
+      d: 'De systeemchip (processor, grafische kern en neurale eenheid) op een eigen substraat, ongeveer bij x +14, z -52 op de hoofdprint. De chip zelf is bevestigd; behuizing en maat zijn geschat.',
+      spec: [['Chip', 'Snapdragon 8 Elite Gen 5 for Galaxy']],
+      p: mmv(14, Y.main1, -52), ex: [0, 0.05, 0],
+    }),
+    chip('LPDDR5X-werkgeheugen 16 GB', 'Het werkgeheugen, gestapeld op de SoC. De 16 GB is bevestigd voor deze uitvoering met 1 TB; het type LPDDR5X en de stapeling zijn een schatting.' + est,
+      12, 12, 0.6, 14, -52, Y.main1 + 0.55, [0, 0.2, 0], { spec: [['Werkgeheugen', '16 GB']] }),
+    P('Koelpasta op de SoC', boChipGeo(10, 10, 0.08, 0.03), MAT.boPaste, {
+      d: 'Een laag koelpasta tussen het geheugen en de deksel van de afschermkap. Samsung noemt warmtegeleidend materiaal rond de processor; deze laag, haar dikte en plaats zijn een schatting.',
+      p: mmv(14, Y.main1 + 1.15, -52), ex: [0, 0.34, 0],
+    }),
+    can('Afschermkap SoC', 'Metalen kapje over de SoC tegen storing van en naar de radio\'s; de deksel raakt de koelpasta.' + est, 15.6, 15.6, 1.35, 14, -52, Y.main1, [0, 0.5, 0]),
+  ]);
+
+  const storage = A('Opslag en energiebeheer', {
+    d: 'Opslagchip, energiebeheerchip en spoelen onder één afschermkap, tussen de SoC en de batterijkant van het bord.' + est,
+    ex: [0, 0.1, 0.05],
+  }, [
+    chip('UFS 4-opslag 1 TB', 'De flashopslag van 1 TB (de capaciteit is bevestigd voor deze uitvoering). UFS 4 volgens de specificaties op iFixit (één bron, dus niet in de specificaties). Behuizing ongeveer 11,5 × 13 mm, zoals gebruikelijk voor UFS.' + est,
+      13, 11.5, 1.0, 10.5, -35.5, Y.main1, [0, 0.16, 0], { spec: [['Opslag', '1 TB']] }),
+    chip('PMIC', 'De energiebeheerchip: maakt uit de batterijspanning de voedingsspanningen voor de SoC, het geheugen en de rest van het bord.' + est, 6.5, 6.5, 0.6, 21.5, -37, Y.main1, [0, 0.14, 0]),
+    P('Spoelen PMIC', merge([[19.4, -31.2], [21.6, -31.2], [23.8, -31.2]].map(([x, z]) => xf(boChipGeo(1.9, 1.6, 0.85, 0.12), mmv(x, Y.main1, z)))), MAT.boInterposer, {
+      d: 'Vermogensspoelen van de schakelende voedingen van de PMIC.' + est, ex: [0, 0.12, 0],
+    }),
+    can('Afschermkap opslag en PMIC', 'Metalen kapje over de opslag, de PMIC en de spoelen.' + est, 22.2, 13.5, 1.15, 14.5, -35.55, Y.main1, [0, 0.42, 0]),
+  ]);
+
+  const audio = A('Audio en laden', {
+    d: 'Audiocodec, versterkers voor de luidsprekers en de laadchip onder een gezamenlijke afschermkap, aan de bovenkant van de holte.' + est,
+    ex: [0, 0.1, -0.06],
+  }, [
+    chip('Audiocodec', 'Zet de signalen van de microfoons en naar de luidsprekers om tussen analoog en digitaal.' + est, 4.5, 4.5, 0.55, 7.5, -64.5, Y.main1, [0, 0.14, 0]),
+    P('Audioversterkers', merge([xf(boChipGeo(2.6, 2.6, 0.5), mmv(12.5, Y.main1, -62.8)), xf(boChipGeo(2.6, 2.6, 0.5), mmv(12.5, Y.main1, -66.2))]), MAT.chip, {
+      d: 'Twee versterkers voor de luidspreker onderin en de oorspeaker (stereo).' + est, ex: [0, 0.14, 0],
+    }),
+    chip('Laadchip', 'Regelt het laden van de batterij via USB-C en de laadspoel.' + est, 4, 4, 0.55, 20.5, -64.5, Y.main1, [0, 0.14, 0]),
+    can('Afschermkap audio en laden', 'Metalen kapje over de audiocodec, de versterkers en de laadchip.' + est, 22, 7, 0.95, 14.5, -64.5, Y.main1, [0, 0.4, 0]),
+  ]);
+
+  const conns = A('Connectoren hoofdprint', {
+    d: 'Bord-op-bordconnectoren waar de flexkabels van de camera\'s, de batterij en het subbord op klikken. Volgens de teardowns zitten de camera\'s van onderen aan het bord vast; daarom liggen hun connectoren vlak naast de camerakolom.' + est,
+    ex: [0, 0.18, 0],
+  }, [
+    conn('Connector ultragroothoekcamera (bord)', 'Connector voor de flexkabel van de ultragroothoekcamera.' + est, 5, 2.6, 16, -9.5, -36.6, false, [-0.08, 0.1, -0.04]),
+    conn('Connector hoofdcamera (bord)', 'Connector voor de flexkabel van de hoofdcamera van 200 MP.' + est, 5.4, 2.6, 18, -3.6, -36.6, false, [0.02, 0.1, -0.04]),
+    conn('Connector telecamera 3× (bord)', 'Connector voor de flexkabel van de telecamera (3×).' + est, 5, 2.6, 16, -9.5, -31.2, false, [-0.08, 0.1, 0]),
+    conn('Connector periscoopcamera (bord)', 'Connector voor de flexkabel van de periscoopcamera (5×) en de laser-AF.' + est, 5, 2.6, 16, -3.6, -31.2, false, [0.02, 0.1, 0]),
+    conn('Connector hoofdflex (bord)', 'Connector voor de hoofdflexkabel naar het subbord onderin; daarover lopen ook de signalen van het scherm.' + est, 8.5, 3, 24, -5.2, -24.2, false, [0, 0.1, 0.06]),
+    conn('Batterijconnector (bord)', 'Connector voor de flexkabel van de batterij, aan de rand van het bord vlak bij de batterij.' + est, 8, 3.4, 12, 14, -21.6, false, [0, 0.1, 0.1]),
+    conn('Connector selfiecamera (bord)', 'Connector voor de flexkabel van de selfiecamera, die onder het bord zit.' + est, 4.6, 2.4, 14, 7.6, -72.6, false, [0, 0.1, -0.08]),
+    P('Veercontacten oorspeaker', merge([12.6, 15.4].map(x => merge([xf(mmBox(1.4, 0.15, 1.4), mmv(x, Y.main1 + 0.075, -73.6)), xf(mmBox(0.5, 0.7, 1.0), mmv(x, Y.main1 + 0.5, -73.6), [0.35, 0, 0])]))), MAT.gold, {
+      d: 'Twee verende contacten die tegen de aansluitingen van de oorspeaker drukken.' + est, ex: [0, 0.1, -0.08],
+    }),
+    P('Antenneconnector hoofdprint', boCoaxGeo(), MAT.steel, { d: 'Coaxiale connector voor de antennekabel naar de bovenrand.' + est, p: mmv(26.6, Y.main1, -72.5), ex: [0.04, 0.1, -0.06] }),
+  ]);
+
+  const mainKeep = [
+    [6.2, 21.8, -59.8, -44.2], [3.4, 25.6, -42.3, -28.8], [3.5, 25.5, -68, -61],
+    [-12.1, -6.9, -38, -35.2], [-6.3, -0.9, -38, -35.2], [-12.1, -6.9, -32.6, -29.8], [-6.3, -0.9, -32.6, -29.8],
+    [-9.5, -0.9, -25.8, -22.6], [10, 18, -23.4, -19.8], [5.3, 9.9, -73.9, -71.3], [11.8, 16.2, -74.4, -72.8], [25.5, 27.7, -73.6, -71.4],
+    ...BO_SCREWS.map(([x, z]) => [x - 1.1, x + 1.1, z - 1.1, z + 1.1]),
+  ];
+  const mainPas = boPassives('Main', BO_MAIN, mainKeep, [BO_RF, BO_CAV], Y.main1, 20261016, 0.66, 0.8);
+  const main = A('Hoofdprint', {
+    d: 'De onderste print van de sandwich met de SoC, het geheugen, de opslag, het energiebeheer en de connectoren. De grote chips zitten binnen de rand van de interposer, onder de RF-print.' + est,
+    ex: [0, 0.04, 0],
+  }, [
+    mainPcb, soc, storage, audio, conns,
+    P('Condensatoren hoofdprint', mainPas.cap, MAT.boCap, { d: 'Honderden kleine keramische condensatoren voor de ontkoppeling van de voedingen. Aantal en plaats zijn een illustratie, geen kopie van het echte bord.', ex: [0, 0.07, 0] }),
+    P('Weerstanden en spoeltjes hoofdprint', mainPas.res, MAT.chip, { d: 'Kleine weerstanden, spoeltjes en filters tussen de grote chips. Aantal en plaats zijn een illustratie, geen kopie van het echte bord.', ex: [0, 0.07, 0] }),
+  ]);
+
+  // ---------- interposer ----------
+  const rfOut = boFillet(boRect(BO_RF[0], BO_RF[1], BO_RF[2], BO_RF[3]), 1.5);
+  const cavIn = boFillet(boRect(BO_CAV[0], BO_CAV[1], BO_CAV[2], BO_CAV[3]), 0.8);
+  const ipTop = Y.rf0 - 0.05;
+  const interposer = A('Interposer', {
+    d: 'Een rand van printmateriaal (ongeveer 1,6 mm breed en hoog) tussen de hoofdprint en de RF-print. Aan boven- en onderkant zitten honderden soldeerverbindingen die de twee printen met elkaar verbinden; binnen de rand ontstaat een holte voor de chips van de hoofdprint.' + est,
+    ex: [0, 0.95, 0],
+  }, [
+    P('Interposerrand', boPlanGeo('Interposer', rfOut, [cavIn, ...BO_RF_SCREWS.map(([x, z]) => [x, z, 0.62])], Y.main1, ipTop), MAT.boInterposer, {
+      d: 'De rand zelf: een smalle print met verticale doorverbindingen.' + est, ex: [0, -0.04, 0],
+    }),
+    P('Soldeervlakken interposer', boPadGeo(ipTop), MAT.gold, {
+      d: 'Twee rijen soldeervlakken op de bovenkant van de rand, die met de onderkant van de RF-print worden versoldeerd. Aantal en steek zijn geschat.',
+      ex: [0, 0.08, 0],
+    }),
+  ]);
+
+  // ---------- RF-print ----------
+  const rfY = Y.rf1;
+  const rfKeep = [[3.6, 12.4, -65.4, -56.6], [14.5, 26.5, -66.5, -53], [4.5, 11.5, -50.5, -43.5], [18, 22, -42, -38], [14.5, 24.5, -32.5, -27.5],
+    ...[[3.2, -28], [25.4, -28], [25.4, -42.5], [3.2, -54]].map(([x, z]) => [x - 1.1, x + 1.1, z - 1.1, z + 1.1]),
+    ...BO_RF_SCREWS.map(([x, z]) => [x - 1.1, x + 1.1, z - 1.1, z + 1.1])];
+  const rfPas = boPassives('RF', rfOut, rfKeep, null, rfY, 7041, 0.72, 0.72);
+  const rf = A('RF-print', {
+    d: 'De bovenste print van de sandwich, op de interposer. Hierop zitten het modem en de radio-onderdelen (mobiel netwerk, wifi, bluetooth, NFC) met hun afschermkapjes en de connectoren voor de antennekabels.' + est,
+    ex: [0, 1.3, 0],
+  }, [
+    P('Printplaat RF-print', boPlanGeo('RF', rfOut, BO_RF_SCREWS.map(([x, z]) => [x, z, 0.65]), Y.rf0, Y.rf1), MAT.pcb, { d: 'Printplaat van de RF-print, ongeveer 0,7 mm dik.' + est, ex: [0, 0.03, 0] }),
+    A('Modem', { d: 'Het modem met de RF-transceiver onder een eigen afschermkap.' + est, ex: [0, 0.06, -0.04] }, [
+      chip('Modem en RF-transceiver', 'Zet de digitale gegevens om in radiosignalen voor 5G, 4G en oudere netwerken en terug.' + est, 7, 7, 0.35, 8, -61, rfY, [0, 0.12, 0]),
+      can('Afschermkap modem', 'Metalen kapje over het modem.' + est, 8.8, 8.8, 0.48, 8, -61, rfY, [0, 0.3, 0]),
+    ]),
+    A('Vermogensversterkers', { d: 'De zendversterkers voor de verschillende frequentiebanden, onder één afschermkap.' + est, ex: [0, 0.06, -0.02] }, [
+      P('Versterkermodules', merge([[17.5, -62.5, 4, 5], [23, -62.5, 4, 5], [20.3, -56.3, 5.5, 4]].map(([x, z, w, l]) => xf(boChipGeo(w, l, 0.35), mmv(x, rfY, z)))), MAT.chip, {
+        d: 'Drie versterkermodules met filters (front-end) voor laag, midden en hoog frequentiebereik.' + est, ex: [0, 0.12, 0],
+      }),
+      can('Afschermkap versterkers', 'Metalen kapje over de versterkermodules.' + est, 12, 13.5, 0.48, 20.5, -59.75, rfY, [0, 0.3, 0]),
+    ]),
+    A('Wifi en bluetooth', { d: 'De chip voor wifi en bluetooth onder een eigen afschermkap.' + est, ex: [0, 0.06, 0] }, [
+      chip('Wifi- en bluetoothchip', 'Radiochip voor wifi en bluetooth.' + est, 5, 5, 0.35, 8, -47, rfY, [0, 0.12, 0]),
+      can('Afschermkap wifi', 'Metalen kapje over de wifi- en bluetoothchip.' + est, 7, 7, 0.48, 8, -47, rfY, [0, 0.3, 0]),
+    ]),
+    chip('NFC-controller', 'Stuurt de NFC-antenne in de achterkant aan (contactloos betalen).' + est, 3.5, 3.5, 0.35, 20, -40, rfY, [0, 0.1, 0]),
+    chip('GNSS-ontvanger', 'Ontvanger voor plaatsbepaling via satellieten.' + est, 3.2, 3.2, 0.35, 16.8, -30, rfY, [0, 0.1, 0.02]),
+    P('Antenneconnectoren RF-print', merge([[3.2, -28], [25.4, -28], [25.4, -42.5], [3.2, -54]].map(([x, z]) => xf(boCoaxGeo(), mmv(x, rfY, z)))), MAT.steel, {
+      d: 'Vier coaxiale connectoren voor de kabels naar de antennes in het frame en de afdekplaat.' + est, ex: [0, 0.1, 0],
+    }),
+    P('Condensatoren RF-print', rfPas.cap, MAT.boCap, { d: 'Kleine keramische condensatoren voor ontkoppeling en aanpassing van de radiosignalen. Aantal en plaats zijn een illustratie.', ex: [0, 0.07, 0] }),
+    P('Weerstanden en filters RF-print', rfPas.res, MAT.chip, { d: 'Kleine weerstanden, spoeltjes en filters van de radio. Aantal en plaats zijn een illustratie.', ex: [0, 0.07, 0] }),
+  ]);
+
+  // ---------- bovenafdekplaat ----------
+  const coverHoles = BO_SCREWS.map(([x, z]) => [x, z, 1.05]);
+  const cover = A('Bovenafdekplaat', {
+    d: 'Kunststof plaat over het moederbord, vastgezet met schroeven. Er lopen antennesporen over en ze drukt het bord en de connectoren op hun plaats.' + est,
+    ex: [0, 2.0, 0],
+  }, [
+    P('Afdekplaat (kunststof)', boPlanGeo('Cover', boFillet(BO_COVER, 1.2), coverHoles, Y.top, Y.cov1), MAT.boCover, {
+      d: 'De plaat zelf, ongeveer 0,6 mm dik, van kunststof. Ze ligt over de selfiecamera en de oorspeaker heen en laat de camerakolom, de periscoop en de S Pen-silo vrij.' + est,
+      ex: [0, 0.05, 0],
+    }),
+    P('Antennesporen bovenafdekplaat', boTraceGeo(), MAT.boAntenna, {
+      d: 'Metalen sporen op de afdekplaat die als antenne werken (bijvoorbeeld voor wifi en het mobiele netwerk), via veercontacten verbonden met het bord.' + est,
+      ex: [0, 0.12, 0],
+    }),
+    A('Schroeven bovenafdekplaat', { d: 'Zes kleine kruiskopschroeven die de afdekplaat en het bord aan het frame vastzetten.' + est, ex: [0, 0.35, 0] },
+      BO_SCREWS.map(([x, z], i) => P(`Schroef bovenafdekplaat ${i + 1}`, boScrewGeo(), MAT.steel, {
+        d: 'Kruiskopschroef met de kop naar de achterkant, in een verzonken gat van de afdekplaat.' + est,
+        p: mmv(x, Y.cov2 - 0.4, z), ex: [0, 0.25, 0],
+      }))),
+  ]);
+
+  return A('Moederbord', {
+    d: 'Het moederbord bovenin het toestel, als sandwich van twee printen met een interposer ertussen, afgedekt met een kunststof plaat met antennesporen. Het wijkt rondom uit voor de camera\'s, de selfiecamera, de oorspeaker en de S Pen-silo. De opbouw volgt eerdere Galaxy Ultra-toestellen; de indeling en de maten zijn geschat.',
+    spec: [['Chip', 'Snapdragon 8 Elite Gen 5 for Galaxy'], ['Geheugen', '16 GB RAM, 1 TB opslag']],
+  }, [cover, rf, interposer, main]);
+}
 
 /* ===================== Energie en koeling (pwBuild) ===================== */
 // Domeinbestand; zie docs/indeling.md voor de zones en voorvoegsels. Zolang de bouwfunctie ontbreekt, zet phone.js een plaatshouder neer.
